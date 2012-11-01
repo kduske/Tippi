@@ -8,15 +8,37 @@
 
 #include <iostream>
 
+#include "Behavior.h"
+#include "ConstructBehavior.h"
+#include "ConstructEnvironment.h"
+#include "ConvertBehaviorToDot.h"
+#include "FiringRule.h"
+#include "LolaNetParser.h"
 #include "Place.h"
 #include "Transition.h"
+#include "Net.h"
+
+#include <cassert>
+#include <fstream>
+#include <iostream>
 
 int main(int argc, const char * argv[])
 {
-    new TPNA::Place("awdsf");
-    new TPNA::Transition("asdf");
-    // insert code here...
-    std::cout << "Hello, World!\n";
-    return 0;
+    std::fstream stream("../Data/test.net");
+    assert(stream.is_open() && stream.good());
+    
+    Tippi::Lola::Parser parser(stream);
+
+    Tippi::Net* net = parser.parseTimeNet();
+
+    Tippi::FiringRule firingRule(*net);
+    Tippi::Behavior behavior;
+    
+    (Tippi::ConstructEnvironment(*net))();
+    Tippi::ConstructBehavior(*net, behavior, firingRule)();
+    Tippi::ConvertBehaviorToDot(behavior, std::cout, "Behavior")();
+    
+    assert(net != NULL);
+    delete net;
 }
 

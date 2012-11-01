@@ -7,6 +7,16 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		483F8A0A1636A4C9003018F7 /* Net.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 483F8A091636A4C9003018F7 /* Net.cpp */; };
+		483F8A101636D7E5003018F7 /* LolaNetParser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 483F8A0E1636D7E4003018F7 /* LolaNetParser.cpp */; };
+		4864D9471642929700759CE9 /* ConstructEnvironment.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4864D9451642929700759CE9 /* ConstructEnvironment.cpp */; };
+		4877AC5D16393F59006CA8C7 /* BehaviorState.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4877AC5B16393F59006CA8C7 /* BehaviorState.cpp */; };
+		4877AC6516394032006CA8C7 /* TimeMarking.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4877AC6316394032006CA8C7 /* TimeMarking.cpp */; };
+		4877AC6916394117006CA8C7 /* BehaviorEdge.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4877AC6716394117006CA8C7 /* BehaviorEdge.cpp */; };
+		4877AC6C16394C72006CA8C7 /* Behavior.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4877AC6A16394C72006CA8C7 /* Behavior.cpp */; };
+		4877AC7316397373006CA8C7 /* FiringRule.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4877AC7116397373006CA8C7 /* FiringRule.cpp */; };
+		4877AC76163996D3006CA8C7 /* ConstructBehavior.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4877AC74163996D3006CA8C7 /* ConstructBehavior.cpp */; };
+		48A0E920163A891D0034F190 /* ConvertBehaviorToDot.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 48A0E91E163A891D0034F190 /* ConvertBehaviorToDot.cpp */; };
 		48E2209B162326ED009CC271 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 48E22093162326ED009CC271 /* main.cpp */; };
 		48E2209C162326ED009CC271 /* NetNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 48E22097162326ED009CC271 /* NetNode.cpp */; };
 		48E2209E16232C3C009CC271 /* Transition.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 48E2209D16232C3C009CC271 /* Transition.cpp */; };
@@ -25,6 +35,33 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		483F8A041636A075003018F7 /* GraphNodeStore.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GraphNodeStore.h; sourceTree = "<group>"; };
+		483F8A061636A1EF003018F7 /* NetNodeStore.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NetNodeStore.h; sourceTree = "<group>"; };
+		483F8A081636A3AE003018F7 /* Net.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Net.h; sourceTree = "<group>"; };
+		483F8A091636A4C9003018F7 /* Net.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Net.cpp; sourceTree = "<group>"; };
+		483F8A0E1636D7E4003018F7 /* LolaNetParser.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = LolaNetParser.cpp; sourceTree = "<group>"; };
+		483F8A0F1636D7E5003018F7 /* LolaNetParser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LolaNetParser.h; sourceTree = "<group>"; };
+		483F8A111636E53C003018F7 /* PlaceMarking.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PlaceMarking.h; sourceTree = "<group>"; };
+		483F8A121636E59B003018F7 /* NetTypes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NetTypes.h; sourceTree = "<group>"; };
+		4864D9451642929700759CE9 /* ConstructEnvironment.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ConstructEnvironment.cpp; sourceTree = "<group>"; };
+		4864D9461642929700759CE9 /* ConstructEnvironment.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ConstructEnvironment.h; sourceTree = "<group>"; };
+		4877AC591639361E006CA8C7 /* test.net */ = {isa = PBXFileReference; lastKnownFileType = text; path = test.net; sourceTree = "<group>"; };
+		4877AC5B16393F59006CA8C7 /* BehaviorState.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = BehaviorState.cpp; sourceTree = "<group>"; };
+		4877AC5C16393F59006CA8C7 /* BehaviorState.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BehaviorState.h; sourceTree = "<group>"; };
+		4877AC6216394032006CA8C7 /* NetState.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NetState.h; sourceTree = "<group>"; };
+		4877AC6316394032006CA8C7 /* TimeMarking.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TimeMarking.cpp; sourceTree = "<group>"; };
+		4877AC6416394032006CA8C7 /* TimeMarking.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TimeMarking.h; sourceTree = "<group>"; };
+		4877AC6716394117006CA8C7 /* BehaviorEdge.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = BehaviorEdge.cpp; sourceTree = "<group>"; };
+		4877AC6816394117006CA8C7 /* BehaviorEdge.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BehaviorEdge.h; sourceTree = "<group>"; };
+		4877AC6A16394C72006CA8C7 /* Behavior.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Behavior.cpp; sourceTree = "<group>"; };
+		4877AC6B16394C72006CA8C7 /* Behavior.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Behavior.h; sourceTree = "<group>"; };
+		4877AC7116397373006CA8C7 /* FiringRule.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = FiringRule.cpp; sourceTree = "<group>"; };
+		4877AC7216397373006CA8C7 /* FiringRule.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FiringRule.h; sourceTree = "<group>"; };
+		4877AC74163996D3006CA8C7 /* ConstructBehavior.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ConstructBehavior.cpp; sourceTree = "<group>"; };
+		4877AC75163996D3006CA8C7 /* ConstructBehavior.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ConstructBehavior.h; sourceTree = "<group>"; };
+		48A0E91E163A891D0034F190 /* ConvertBehaviorToDot.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ConvertBehaviorToDot.cpp; sourceTree = "<group>"; };
+		48A0E91F163A891D0034F190 /* ConvertBehaviorToDot.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ConvertBehaviorToDot.h; sourceTree = "<group>"; };
+		48A0E922163A8E0E0034F190 /* GraphAlgorithms.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GraphAlgorithms.h; sourceTree = "<group>"; };
 		48E2207716232616009CC271 /* Tippi */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Tippi; sourceTree = BUILT_PRODUCTS_DIR; };
 		48E22091162326ED009CC271 /* GraphEdge.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GraphEdge.h; sourceTree = "<group>"; };
 		48E22092162326ED009CC271 /* GraphNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GraphNode.h; sourceTree = "<group>"; };
@@ -48,9 +85,32 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		4877AC581639361E006CA8C7 /* Data */ = {
+			isa = PBXGroup;
+			children = (
+				4877AC591639361E006CA8C7 /* test.net */,
+			);
+			name = Data;
+			path = ../Data;
+			sourceTree = "<group>";
+		};
+		4877AC6D16396755006CA8C7 /* Algorithms */ = {
+			isa = PBXGroup;
+			children = (
+				4877AC74163996D3006CA8C7 /* ConstructBehavior.cpp */,
+				4877AC75163996D3006CA8C7 /* ConstructBehavior.h */,
+				4864D9451642929700759CE9 /* ConstructEnvironment.cpp */,
+				4864D9461642929700759CE9 /* ConstructEnvironment.h */,
+				48A0E91E163A891D0034F190 /* ConvertBehaviorToDot.cpp */,
+				48A0E91F163A891D0034F190 /* ConvertBehaviorToDot.h */,
+			);
+			path = Algorithms;
+			sourceTree = "<group>";
+		};
 		48E2206C16232616009CC271 = {
 			isa = PBXGroup;
 			children = (
+				4877AC581639361E006CA8C7 /* Data */,
 				48E2208E162326ED009CC271 /* Source */,
 				48E2207816232616009CC271 /* Products */,
 			);
@@ -67,6 +127,7 @@
 		48E2208E162326ED009CC271 /* Source */ = {
 			isa = PBXGroup;
 			children = (
+				4877AC6D16396755006CA8C7 /* Algorithms */,
 				48E2208F162326ED009CC271 /* Behavior */,
 				48E22090162326ED009CC271 /* Graph */,
 				48E22094162326ED009CC271 /* MPP */,
@@ -80,6 +141,12 @@
 		48E2208F162326ED009CC271 /* Behavior */ = {
 			isa = PBXGroup;
 			children = (
+				4877AC6A16394C72006CA8C7 /* Behavior.cpp */,
+				4877AC6B16394C72006CA8C7 /* Behavior.h */,
+				4877AC6716394117006CA8C7 /* BehaviorEdge.cpp */,
+				4877AC6816394117006CA8C7 /* BehaviorEdge.h */,
+				4877AC5B16393F59006CA8C7 /* BehaviorState.cpp */,
+				4877AC5C16393F59006CA8C7 /* BehaviorState.h */,
 			);
 			path = Behavior;
 			sourceTree = "<group>";
@@ -87,8 +154,10 @@
 		48E22090162326ED009CC271 /* Graph */ = {
 			isa = PBXGroup;
 			children = (
+				48A0E922163A8E0E0034F190 /* GraphAlgorithms.h */,
 				48E22091162326ED009CC271 /* GraphEdge.h */,
 				48E22092162326ED009CC271 /* GraphNode.h */,
+				483F8A041636A075003018F7 /* GraphNodeStore.h */,
 			);
 			path = Graph;
 			sourceTree = "<group>";
@@ -104,9 +173,21 @@
 			isa = PBXGroup;
 			children = (
 				48E22096162326ED009CC271 /* Arc.h */,
+				4877AC7116397373006CA8C7 /* FiringRule.cpp */,
+				4877AC7216397373006CA8C7 /* FiringRule.h */,
+				483F8A0E1636D7E4003018F7 /* LolaNetParser.cpp */,
+				483F8A0F1636D7E5003018F7 /* LolaNetParser.h */,
+				483F8A091636A4C9003018F7 /* Net.cpp */,
+				483F8A081636A3AE003018F7 /* Net.h */,
 				48E22097162326ED009CC271 /* NetNode.cpp */,
 				48E22098162326ED009CC271 /* NetNode.h */,
+				483F8A061636A1EF003018F7 /* NetNodeStore.h */,
+				483F8A121636E59B003018F7 /* NetTypes.h */,
 				48E22099162326ED009CC271 /* Place.h */,
+				483F8A111636E53C003018F7 /* PlaceMarking.h */,
+				4877AC6216394032006CA8C7 /* NetState.h */,
+				4877AC6316394032006CA8C7 /* TimeMarking.cpp */,
+				4877AC6416394032006CA8C7 /* TimeMarking.h */,
 				48E2209D16232C3C009CC271 /* Transition.cpp */,
 				48E2209A162326ED009CC271 /* Transition.h */,
 			);
@@ -167,6 +248,16 @@
 				48E2209B162326ED009CC271 /* main.cpp in Sources */,
 				48E2209C162326ED009CC271 /* NetNode.cpp in Sources */,
 				48E2209E16232C3C009CC271 /* Transition.cpp in Sources */,
+				483F8A0A1636A4C9003018F7 /* Net.cpp in Sources */,
+				483F8A101636D7E5003018F7 /* LolaNetParser.cpp in Sources */,
+				4877AC5D16393F59006CA8C7 /* BehaviorState.cpp in Sources */,
+				4877AC6516394032006CA8C7 /* TimeMarking.cpp in Sources */,
+				4877AC6916394117006CA8C7 /* BehaviorEdge.cpp in Sources */,
+				4877AC6C16394C72006CA8C7 /* Behavior.cpp in Sources */,
+				4877AC7316397373006CA8C7 /* FiringRule.cpp in Sources */,
+				4877AC76163996D3006CA8C7 /* ConstructBehavior.cpp in Sources */,
+				48A0E920163A891D0034F190 /* ConvertBehaviorToDot.cpp in Sources */,
+				4864D9471642929700759CE9 /* ConstructEnvironment.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -227,6 +318,8 @@
 		48E2208216232616009CC271 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++98";
+				CLANG_CXX_LIBRARY = "compiler-default";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -234,6 +327,8 @@
 		48E2208316232616009CC271 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++98";
+				CLANG_CXX_LIBRARY = "compiler-default";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;

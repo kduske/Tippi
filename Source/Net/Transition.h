@@ -1,21 +1,23 @@
 //
 //  Transition.h
-//  TPNA
+//  Tippi
 //
 //  Created by Kristian Duske on 08.10.12.
 //  Copyright (c) 2012 TU Berlin. All rights reserved.
 //
 
-#ifndef TPNA_Transition_h
-#define TPNA_Transition_h
+#ifndef Tippi_Transition_h
+#define Tippi_Transition_h
 
 #include "GraphNode.h"
 #include "NetNode.h"
+
+#include "Place.h"
 #include "Arc.h"
 
 #include <cassert>
 
-namespace TPNA {
+namespace Tippi {
     class Transition : public GraphNode<PlaceToTransition, TransitionToPlace>, public NetNode {
     public:
         static const unsigned int Infinite;

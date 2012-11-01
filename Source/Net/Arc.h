@@ -1,17 +1,17 @@
 //
 //  Arc.h
-//  TPNA
+//  Tippi
 //
 //  Created by Kristian Duske on 08.10.12.
 //  Copyright (c) 2012 TU Berlin. All rights reserved.
 //
 
-#ifndef TPNA_Arc_h
-#define TPNA_Arc_h
+#ifndef Tippi_Arc_h
+#define Tippi_Arc_h
 
 #include "GraphEdge.h"
 
-namespace TPNA {
+namespace Tippi {
     class Place;
     class Transition;
     

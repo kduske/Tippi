@@ -10,6 +10,6 @@
 
 #include <limits>
 
-namespace TPNA {
+namespace Tippi {
     const unsigned int Transition::Infinite = std::numeric_limits<unsigned int>::max();
 }

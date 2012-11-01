@@ -1,6 +1,6 @@
 //
 //  NetNode.cpp
-//  TPNA
+//  Tippi
 //
 //  Created by Kristian Duske on 08.10.12.
 //  Copyright (c) 2012 TU Berlin. All rights reserved.
@@ -10,6 +10,6 @@
 
 #include <limits>
 
-namespace TPNA {
+namespace Tippi {
     const size_t NetNode::InvalidIndex = std::numeric_limits<size_t>::max();
 }
