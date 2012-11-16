@@ -59,6 +59,7 @@
 		4877AC7216397373006CA8C7 /* FiringRule.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FiringRule.h; sourceTree = "<group>"; };
 		4877AC74163996D3006CA8C7 /* ConstructBehavior.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ConstructBehavior.cpp; sourceTree = "<group>"; };
 		4877AC75163996D3006CA8C7 /* ConstructBehavior.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ConstructBehavior.h; sourceTree = "<group>"; };
+		48790AF21653DCAB0003766B /* test_partner.net */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = test_partner.net; sourceTree = "<group>"; };
 		48A0E91E163A891D0034F190 /* ConvertBehaviorToDot.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ConvertBehaviorToDot.cpp; sourceTree = "<group>"; };
 		48A0E91F163A891D0034F190 /* ConvertBehaviorToDot.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ConvertBehaviorToDot.h; sourceTree = "<group>"; };
 		48A0E922163A8E0E0034F190 /* GraphAlgorithms.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GraphAlgorithms.h; sourceTree = "<group>"; };
@@ -89,6 +90,7 @@
 			isa = PBXGroup;
 			children = (
 				4877AC591639361E006CA8C7 /* test.net */,
+				48790AF21653DCAB0003766B /* test_partner.net */,
 			);
 			name = Data;
 			path = ../Data;

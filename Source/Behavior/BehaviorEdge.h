@@ -19,13 +19,18 @@ namespace Tippi {
     
     class BehaviorEdge : public GraphEdge<BehaviorState, BehaviorState> {
     private:
-        unsigned int m_time;
+        unsigned int m_minTime;
+        unsigned int m_maxTime;
         const Transition& m_transition;
     public:
-        BehaviorEdge(BehaviorState* source, BehaviorState* target, unsigned int time, const Transition& transition);
+        BehaviorEdge(BehaviorState* source, BehaviorState* target, unsigned int minTime, unsigned int maxTime, const Transition& transition);
         
-        inline unsigned int time() const {
-            return m_time;
+        inline unsigned int minTime() const {
+            return m_minTime;
+        }
+        
+        inline unsigned int maxTime() const {
+            return m_maxTime;
         }
         
         inline const Transition& transition() const {

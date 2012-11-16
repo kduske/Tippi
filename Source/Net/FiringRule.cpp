@@ -138,16 +138,14 @@ namespace Tippi {
             unsigned int marking = timeMarking[transition];
             
             if (isEnabled(transition, state)) {
-                /*
-                if (transition.latestFiringTime() == Transition::Infinity) {
+                if (transition.latestFiringTime() == Transition::Infinite) {
                     if (marking < transition.earliestFiringTime())
                         timeMarking[transition] = std::min(transition.earliestFiringTime(), marking + time);
                 } else {
                     assert(marking + time <= transition.latestFiringTime());
                     timeMarking[transition] = marking + time;
                 }
-                 */
-                timeMarking[transition] = marking + time;
+                // timeMarking[transition] = marking + time;
             }
         }
         

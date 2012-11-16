@@ -28,8 +28,8 @@ namespace Tippi {
         return newState;
     }
 
-    BehaviorEdge* Behavior::connect(BehaviorState* source, BehaviorState* target, unsigned int time, const Transition& transition) {
-        BehaviorEdge* newEdge = new BehaviorEdge(source, target, time, transition);
+    BehaviorEdge* Behavior::connect(BehaviorState* source, BehaviorState* target, unsigned int minTime, unsigned int maxTime, const Transition& transition) {
+        BehaviorEdge* newEdge = new BehaviorEdge(source, target, minTime, maxTime, transition);
         source->addOutgoingEdge(newEdge);
         target->addIncomingEdge(newEdge);
         m_edges.push_back(newEdge);

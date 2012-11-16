@@ -9,8 +9,9 @@
 #include "BehaviorEdge.h"
 
 namespace Tippi {
-    BehaviorEdge::BehaviorEdge(BehaviorState* source, BehaviorState* target, unsigned int time, const Transition& transition) :
+    BehaviorEdge::BehaviorEdge(BehaviorState* source, BehaviorState* target, unsigned int minTime, unsigned int maxTime, const Transition& transition) :
     GraphEdge(source, target),
-    m_time(time),
+    m_minTime(minTime),
+    m_maxTime(maxTime),
     m_transition(transition) {}
 }

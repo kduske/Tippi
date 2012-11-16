@@ -43,6 +43,7 @@ namespace Tippi {
             static const TokenType FinalMarking = 1 << 16; // 65536
             static const TokenType Number       = 1 << 17; // 131072
             static const TokenType Identifier   = 1 << 18; // 262144
+            static const TokenType Infinity     = 1 << 19;
         };
         
         class Token {

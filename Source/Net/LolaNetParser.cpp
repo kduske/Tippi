@@ -126,6 +126,12 @@ namespace Tippi {
                             return token(m_buffer.str(), number);
                         }
                         return token(TokenTypes::CParen);
+                    case '*':
+                        if (!empty) {
+                            putChar(c);
+                            return token(m_buffer.str(), number);
+                        }
+                        return token(TokenTypes::Infinity);
                     case '+':
                     case '-':
                         if (!empty && number)
@@ -212,6 +218,8 @@ namespace Tippi {
                 names.push_back("number");
             if (types | TokenTypes::Identifier)
                 names.push_back("identifier");
+            if (types | TokenTypes::Infinity)
+                names.push_back("infinity");
             
             if (names.empty())
                 return "unknown token type";
@@ -337,20 +345,24 @@ namespace Tippi {
                         }
                         
                         expect(TokenTypes::Comma, (token = m_tokenizer.nextToken()).get());
-                        expect(TokenTypes::Number, (token = m_tokenizer.nextToken()).get());
+                        expect(TokenTypes::Number | TokenTypes::Infinity, (token = m_tokenizer.nextToken()).get());
                         
-                        lft = token->number();
-                        if (lft < 0) {
-                            // TODO warning: negative lft
-                            lft = 0;
-                        } else if (lft > std::numeric_limits<unsigned int>::max()) {
-                            // TODO warning: lft out of bounds
-                            lft = std::numeric_limits<unsigned int>::max();
-                        }
-                        
-                        if (lft < eft) {
-                            // TODO warning: lft < eft
-                            lft = eft;
+                        if (token->type() == TokenTypes::Number) {
+                            lft = token->number();
+                            if (lft < 0) {
+                                // TODO warning: negative lft
+                                lft = 0;
+                            } else if (lft > std::numeric_limits<unsigned int>::max()) {
+                                // TODO warning: lft out of bounds
+                                lft = std::numeric_limits<unsigned int>::max();
+                            }
+                            
+                            if (lft < eft) {
+                                // TODO warning: lft < eft
+                                lft = eft;
+                            }
+                        } else {
+                            lft = Transition::Infinite;
                         }
                         
                         expect(TokenTypes::Semicolon, (token = m_tokenizer.nextToken()).get());

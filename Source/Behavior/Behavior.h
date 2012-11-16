@@ -45,7 +45,7 @@ namespace Tippi {
             m_initialState = initialState;
         }
         
-        BehaviorEdge* connect(BehaviorState* source, BehaviorState* target, unsigned int time, const Transition& transition);
+        BehaviorEdge* connect(BehaviorState* source, BehaviorState* target, unsigned int minTime, unsigned int maxTime, const Transition& transition);
     };
 }
 
