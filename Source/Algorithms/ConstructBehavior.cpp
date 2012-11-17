@@ -44,15 +44,26 @@ namespace Tippi {
             size_t enabledTransitionCount = 0;
             size_t finiteTransitionCount = 0;
             size_t infiniteTransitionCount = 0;
+            unsigned int maxTime = std::numeric_limits<unsigned int>::max();
+            unsigned int timeUntilAllFireable = 0;
+            
             TransitionList::const_iterator trIt, trEnd;
             for (trIt = transitions.begin(), trEnd = transitions.end(); trIt != trEnd; ++trIt) {
                 const Transition& transition = **trIt;
                 if (m_firingRule.isEnabled(transition, currentNetState)) {
                     enabledTransitionCount++;
-                    if (transition.latestFiringTime() == Transition::Infinite)
+                    unsigned int eft = transition.earliestFiringTime();
+                    unsigned int lft = transition.latestFiringTime();
+                    unsigned int time = currentTimeMarking[transition];
+                    if (lft == Transition::Infinite) {
                         infiniteTransitionCount++;
-                    else
+                    } else {
                         finiteTransitionCount++;
+                        maxTime = std::min(maxTime, lft - time);
+                    }
+
+                    unsigned int timeUntilFireable = eft > time ? eft - time : 0;
+                    timeUntilAllFireable = std::max(timeUntilAllFireable, timeUntilFireable);
                 }
             }
             
@@ -90,7 +101,13 @@ namespace Tippi {
                         unsigned int eft = transition.earliestFiringTime();
                         unsigned int lft = transition.latestFiringTime();
                         unsigned int time = currentTimeMarking[transition];
-                        unsigned 
+                        unsigned minTime = eft > time ? eft - time : 0;
+                        
+                        if (finiteTransitionCount == 1 && transition.latestFiringTime() != Transition::Infinite) {
+                            // only case in which there are parallel edges which can be merged because the successor
+                            // state enables at most transitions with infinite latest firing time
+                        } else {
+                        }
                     }
                 }
             }
