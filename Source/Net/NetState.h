@@ -79,7 +79,7 @@ namespace Tippi {
         }
     };
     
-    typedef std::set<NetState, StateComparator> StateSet;
+    typedef std::set<NetState, StateComparator> NetStateSet;
 }
 
 #endif /* defined(__Tippi__State__) */

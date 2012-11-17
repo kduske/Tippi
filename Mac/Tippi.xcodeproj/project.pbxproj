@@ -16,6 +16,11 @@
 		4877AC6C16394C72006CA8C7 /* Behavior.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4877AC6A16394C72006CA8C7 /* Behavior.cpp */; };
 		4877AC7316397373006CA8C7 /* FiringRule.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4877AC7116397373006CA8C7 /* FiringRule.cpp */; };
 		4877AC76163996D3006CA8C7 /* ConstructBehavior.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4877AC74163996D3006CA8C7 /* ConstructBehavior.cpp */; };
+		4878F92E1657CE9C003857EA /* ConstructMPP.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4878F92C1657CE9C003857EA /* ConstructMPP.cpp */; };
+		4878F9341657D606003857EA /* MPPEdge.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4878F9321657D606003857EA /* MPPEdge.cpp */; };
+		4878F9371657D6B6003857EA /* MPPState.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4878F9351657D6B6003857EA /* MPPState.cpp */; };
+		4878F93E1657EA4E003857EA /* MPP.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4878F93C1657EA4E003857EA /* MPP.cpp */; };
+		4878F9451658270C003857EA /* ConvertMPPToDot.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4878F9431658270C003857EA /* ConvertMPPToDot.cpp */; };
 		48A0E920163A891D0034F190 /* ConvertBehaviorToDot.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 48A0E91E163A891D0034F190 /* ConvertBehaviorToDot.cpp */; };
 		48E2209B162326ED009CC271 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 48E22093162326ED009CC271 /* main.cpp */; };
 		48E2209C162326ED009CC271 /* NetNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 48E22097162326ED009CC271 /* NetNode.cpp */; };
@@ -59,6 +64,16 @@
 		4877AC7216397373006CA8C7 /* FiringRule.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FiringRule.h; sourceTree = "<group>"; };
 		4877AC74163996D3006CA8C7 /* ConstructBehavior.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ConstructBehavior.cpp; sourceTree = "<group>"; };
 		4877AC75163996D3006CA8C7 /* ConstructBehavior.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ConstructBehavior.h; sourceTree = "<group>"; };
+		4878F92C1657CE9C003857EA /* ConstructMPP.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ConstructMPP.cpp; sourceTree = "<group>"; };
+		4878F92D1657CE9C003857EA /* ConstructMPP.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ConstructMPP.h; sourceTree = "<group>"; };
+		4878F9321657D606003857EA /* MPPEdge.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MPPEdge.cpp; sourceTree = SOURCE_ROOT; };
+		4878F9331657D606003857EA /* MPPEdge.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MPPEdge.h; sourceTree = SOURCE_ROOT; };
+		4878F9351657D6B6003857EA /* MPPState.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MPPState.cpp; sourceTree = SOURCE_ROOT; };
+		4878F9361657D6B6003857EA /* MPPState.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MPPState.h; sourceTree = SOURCE_ROOT; };
+		4878F93C1657EA4E003857EA /* MPP.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MPP.cpp; sourceTree = SOURCE_ROOT; };
+		4878F93D1657EA4E003857EA /* MPP.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MPP.h; sourceTree = SOURCE_ROOT; };
+		4878F9431658270C003857EA /* ConvertMPPToDot.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ConvertMPPToDot.cpp; sourceTree = "<group>"; };
+		4878F9441658270C003857EA /* ConvertMPPToDot.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ConvertMPPToDot.h; sourceTree = "<group>"; };
 		48790AF21653DCAB0003766B /* test_partner.net */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = test_partner.net; sourceTree = "<group>"; };
 		48A0E91E163A891D0034F190 /* ConvertBehaviorToDot.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ConvertBehaviorToDot.cpp; sourceTree = "<group>"; };
 		48A0E91F163A891D0034F190 /* ConvertBehaviorToDot.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ConvertBehaviorToDot.h; sourceTree = "<group>"; };
@@ -103,8 +118,12 @@
 				4877AC75163996D3006CA8C7 /* ConstructBehavior.h */,
 				4864D9451642929700759CE9 /* ConstructEnvironment.cpp */,
 				4864D9461642929700759CE9 /* ConstructEnvironment.h */,
+				4878F92C1657CE9C003857EA /* ConstructMPP.cpp */,
+				4878F92D1657CE9C003857EA /* ConstructMPP.h */,
 				48A0E91E163A891D0034F190 /* ConvertBehaviorToDot.cpp */,
 				48A0E91F163A891D0034F190 /* ConvertBehaviorToDot.h */,
+				4878F9431658270C003857EA /* ConvertMPPToDot.cpp */,
+				4878F9441658270C003857EA /* ConvertMPPToDot.h */,
 			);
 			path = Algorithms;
 			sourceTree = "<group>";
@@ -167,6 +186,12 @@
 		48E22094162326ED009CC271 /* MPP */ = {
 			isa = PBXGroup;
 			children = (
+				4878F93C1657EA4E003857EA /* MPP.cpp */,
+				4878F93D1657EA4E003857EA /* MPP.h */,
+				4878F9321657D606003857EA /* MPPEdge.cpp */,
+				4878F9331657D606003857EA /* MPPEdge.h */,
+				4878F9351657D6B6003857EA /* MPPState.cpp */,
+				4878F9361657D6B6003857EA /* MPPState.h */,
 			);
 			path = MPP;
 			sourceTree = "<group>";
@@ -260,6 +285,11 @@
 				4877AC76163996D3006CA8C7 /* ConstructBehavior.cpp in Sources */,
 				48A0E920163A891D0034F190 /* ConvertBehaviorToDot.cpp in Sources */,
 				4864D9471642929700759CE9 /* ConstructEnvironment.cpp in Sources */,
+				4878F92E1657CE9C003857EA /* ConstructMPP.cpp in Sources */,
+				4878F9341657D606003857EA /* MPPEdge.cpp in Sources */,
+				4878F9371657D6B6003857EA /* MPPState.cpp in Sources */,
+				4878F93E1657EA4E003857EA /* MPP.cpp in Sources */,
+				4878F9451658270C003857EA /* ConvertMPPToDot.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

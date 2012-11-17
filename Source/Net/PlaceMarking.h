@@ -82,10 +82,13 @@ namespace Tippi {
         bool operator< (const PlaceMarking& other) const {
             assert(m_size == other.m_size);
             for (unsigned int i = 0; i < m_size; i++) {
-                if (m_places[i] > other.m_places[i])
+                assert(m_places[i] == other.m_places[i]);
+                if (m_markings[i] < other.m_markings[i])
+                    return true;
+                if (m_markings[i] > other.m_markings[i])
                     return false;
             }
-            return true;
+            return false;
         }
         
         const PlaceMarking& operator= (const PlaceMarking& other) {

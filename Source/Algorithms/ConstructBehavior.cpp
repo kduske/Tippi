@@ -38,14 +38,14 @@ namespace Tippi {
         while (!unprocessedStates.empty()) {
             BehaviorState* currentState = unprocessedStates.top(); unprocessedStates.pop();
             const NetState& currentNetState = currentState->netState();
-            const PlaceMarking& currentPlaceMarking = currentNetState.placeMarking();
             const TimeMarking& currentTimeMarking = currentNetState.timeMarking();
 
             size_t enabledTransitionCount = 0;
             size_t finiteTransitionCount = 0;
             size_t infiniteTransitionCount = 0;
-            unsigned int maxTime = std::numeric_limits<unsigned int>::max();
-            unsigned int timeUntilAllFireable = 0;
+            unsigned int timeUntilFirstCanFire = std::numeric_limits<unsigned int>::max();
+            unsigned int timeUntilAllCanFire = 0;
+            unsigned int timeUntilFirstMustFire = std::numeric_limits<unsigned int>::max();
             
             TransitionList::const_iterator trIt, trEnd;
             for (trIt = transitions.begin(), trEnd = transitions.end(); trIt != trEnd; ++trIt) {
@@ -59,11 +59,13 @@ namespace Tippi {
                         infiniteTransitionCount++;
                     } else {
                         finiteTransitionCount++;
-                        maxTime = std::min(maxTime, lft - time);
+                        unsigned int timeUntilMustFire = lft - time;
+                        timeUntilFirstMustFire = std::min(timeUntilFirstMustFire, timeUntilMustFire);
                     }
 
-                    unsigned int timeUntilFireable = eft > time ? eft - time : 0;
-                    timeUntilAllFireable = std::max(timeUntilAllFireable, timeUntilFireable);
+                    unsigned int timeUntilCanFire = eft > time ? eft - time : 0;
+                    timeUntilFirstCanFire = std::min(timeUntilFirstCanFire, timeUntilCanFire);
+                    timeUntilAllCanFire = std::max(timeUntilAllCanFire, timeUntilCanFire);
                 }
             }
             
@@ -73,14 +75,30 @@ namespace Tippi {
             
             if (enabledTransitionCount == infiniteTransitionCount) {
                 // all enabled transitions have an infinite latest firing time
+                // first, create successor states for all steps until all transitions have become firable because the
+                // time marking of a transition that is enabled but not yet firable will still change
+                // then, create another step to represent time passing util infinity at the current state, because once
+                // all transitions have become fireable, their time marking will not change any more
                 for (trIt = transitions.begin(), trEnd = transitions.end(); trIt != trEnd; ++trIt) {
                     const Transition& transition = **trIt;
                     if (m_firingRule.isEnabled(transition, currentNetState)) {
-                        unsigned int eft = transition.earliestFiringTime();
-                        unsigned int time = currentTimeMarking[transition];
-                        unsigned int passTime = eft > time ? eft - time : 0;
+                        for (unsigned int time = timeUntilFirstCanFire; time < timeUntilAllCanFire; time++) {
+                            NetState intermediateNetState = m_firingRule.passTime(currentNetState, time);
+                            if (m_firingRule.isFireable(transition, intermediateNetState)) {
+                                
+                                NetState nextNetState = m_firingRule.fire(transition, intermediateNetState);
+                                if (!nextNetState.placeMarking().violatesBound()) {
+                                    BehaviorState* successorState = m_behavior.behaviorState(nextNetState);
+                                    if (successorState == NULL) {
+                                        successorState = m_behavior.createBehaviorState(nextNetState, m_net.isFinalPlaceMarking(nextNetState.placeMarking()));
+                                        unprocessedStates.push(successorState);
+                                    }
+                                    m_behavior.connect(currentState, successorState, time, time, transition);
+                                }
+                            }
+                        }
                         
-                        NetState intermediateNetState = m_firingRule.passTime(currentNetState, passTime);
+                        NetState intermediateNetState = m_firingRule.passTime(currentNetState, timeUntilAllCanFire);
                         assert(m_firingRule.isFireable(transition, intermediateNetState));
                         
                         NetState nextNetState = m_firingRule.fire(transition, intermediateNetState);
@@ -90,45 +108,82 @@ namespace Tippi {
                                 successorState = m_behavior.createBehaviorState(nextNetState, m_net.isFinalPlaceMarking(nextNetState.placeMarking()));
                                 unprocessedStates.push(successorState);
                             }
-                            m_behavior.connect(currentState, successorState, passTime, Transition::Infinite, transition);
+                            m_behavior.connect(currentState, successorState, timeUntilAllCanFire, Transition::Infinite, transition);
+                        }
+                    }
+                }
+            } else if (finiteTransitionCount == 1) {
+                // first, create single steps for all enabled transitions until all transitions become fireable
+                // then, create single steps for all enabled transitions except for the finite transition until the
+                // finite transition must fire
+                // create a compound step for the finite transition until it must fire
+                
+                for (trIt = transitions.begin(), trEnd = transitions.end(); trIt != trEnd; ++trIt) {
+                    const Transition& transition = **trIt;
+                    if (m_firingRule.isEnabled(transition, currentNetState)) {
+                        for (unsigned int time = timeUntilFirstCanFire; time < timeUntilAllCanFire; time++) {
+                            NetState intermediateNetState = m_firingRule.passTime(currentNetState, time);
+                            if (m_firingRule.isFireable(transition, intermediateNetState)) {
+                                NetState nextNetState = m_firingRule.fire(transition, intermediateNetState);
+                                if (!nextNetState.placeMarking().violatesBound()) {
+                                    BehaviorState* successorState = m_behavior.behaviorState(nextNetState);
+                                    if (successorState == NULL) {
+                                        successorState = m_behavior.createBehaviorState(nextNetState, m_net.isFinalPlaceMarking(nextNetState.placeMarking()));
+                                        unprocessedStates.push(successorState);
+                                    }
+                                    m_behavior.connect(currentState, successorState, time, time, transition);
+                                }
+                            }
+                        }
+                        
+                        if (transition.latestFiringTime() == Transition::Infinite) {
+                            for (unsigned int time = timeUntilAllCanFire; time <= timeUntilFirstMustFire; time++) {
+                                NetState intermediateNetState = m_firingRule.passTime(currentNetState, time);
+                                assert(m_firingRule.isFireable(transition, intermediateNetState));
+                                
+                                NetState nextNetState = m_firingRule.fire(transition, intermediateNetState);
+                                if (!nextNetState.placeMarking().violatesBound()) {
+                                    BehaviorState* successorState = m_behavior.behaviorState(nextNetState);
+                                    if (successorState == NULL) {
+                                        successorState = m_behavior.createBehaviorState(nextNetState, m_net.isFinalPlaceMarking(nextNetState.placeMarking()));
+                                        unprocessedStates.push(successorState);
+                                    }
+                                    m_behavior.connect(currentState, successorState, time, time, transition);
+                                }
+                            }
+                        } else {
+                            NetState intermediateNetState = m_firingRule.passTime(currentNetState, timeUntilAllCanFire);
+                            assert(m_firingRule.isFireable(transition, intermediateNetState));
+                            NetState nextNetState = m_firingRule.fire(transition, intermediateNetState);
+                            if (!nextNetState.placeMarking().violatesBound()) {
+                                BehaviorState* successorState = m_behavior.behaviorState(nextNetState);
+                                if (successorState == NULL) {
+                                    successorState = m_behavior.createBehaviorState(nextNetState, m_net.isFinalPlaceMarking(nextNetState.placeMarking()));
+                                    unprocessedStates.push(successorState);
+                                }
+                                m_behavior.connect(currentState, successorState, timeUntilAllCanFire, timeUntilFirstMustFire, transition);
+                            }
                         }
                     }
                 }
             } else {
+                // create single steps for all enabled transitions
                 for (trIt = transitions.begin(), trEnd = transitions.end(); trIt != trEnd; ++trIt) {
                     const Transition& transition = **trIt;
                     if (m_firingRule.isEnabled(transition, currentNetState)) {
-                        unsigned int eft = transition.earliestFiringTime();
-                        unsigned int lft = transition.latestFiringTime();
-                        unsigned int time = currentTimeMarking[transition];
-                        unsigned minTime = eft > time ? eft - time : 0;
-                        
-                        if (finiteTransitionCount == 1 && transition.latestFiringTime() != Transition::Infinite) {
-                            // only case in which there are parallel edges which can be merged because the successor
-                            // state enables at most transitions with infinite latest firing time
-                        } else {
-                        }
-                    }
-                }
-            }
-            
-            
-            unsigned int minTime = m_firingRule.minimumTime(currentState->netState());
-            unsigned int maxTime = m_firingRule.maximumTime(currentState->netState());
-            
-            for (unsigned int time = minTime; time <= maxTime; time++) {
-                NetState intermediateNetState = m_firingRule.passTime(currentState->netState(), time);
-                for (unsigned int i = 0; i < transitions.size(); i++) {
-                    Transition& transition = *transitions[i];
-                    if (m_firingRule.isFireable(transition, intermediateNetState)) {
-                        NetState nextNetState = m_firingRule.fire(transition, intermediateNetState);
-                        if (!nextNetState.placeMarking().violatesBound()) {
-                            BehaviorState* successorState = m_behavior.behaviorState(nextNetState);
-                            if (successorState == NULL) {
-                                successorState = m_behavior.createBehaviorState(nextNetState, m_net.isFinalPlaceMarking(nextNetState.placeMarking()));
-                                unprocessedStates.push(successorState);
+                        for (unsigned int time = timeUntilFirstCanFire; time <= timeUntilFirstMustFire; time++) {
+                            NetState intermediateNetState = m_firingRule.passTime(currentNetState, time);
+                            if (m_firingRule.isFireable(transition, intermediateNetState)) {
+                                NetState nextNetState = m_firingRule.fire(transition, intermediateNetState);
+                                if (!nextNetState.placeMarking().violatesBound()) {
+                                    BehaviorState* successorState = m_behavior.behaviorState(nextNetState);
+                                    if (successorState == NULL) {
+                                        successorState = m_behavior.createBehaviorState(nextNetState, m_net.isFinalPlaceMarking(nextNetState.placeMarking()));
+                                        unprocessedStates.push(successorState);
+                                    }
+                                    m_behavior.connect(currentState, successorState, time, time, transition);
+                                }
                             }
-                            m_behavior.connect(currentState, successorState, time, transition);
                         }
                     }
                 }

@@ -12,6 +12,7 @@
 #include "BehaviorEdge.h"
 #include "BehaviorState.h"
 #include "GraphAlgorithms.h"
+#include "Transition.h"
 
 #include <sstream>
 
@@ -47,11 +48,15 @@ namespace Tippi {
     void ConvertBehaviorToDot::visitEdge(BehaviorEdge* edge) {
         std::string& sourceName = m_stateNames[edge->source()];
         std::string& targetName = m_stateNames[edge->target()];
-        m_stream << "    " << sourceName << " -> " << targetName << " [label=\"" << edge->time() << "," << edge->transition().name() << "\"]" << std::endl;
+        m_stream << "    " << sourceName << " -> " << targetName << " [label=\"\\[" << edge->minTime() << ",";
+        if (edge->maxTime() == Transition::Infinite)
+            m_stream << "oo";
+        else
+            m_stream << edge->maxTime();
+        m_stream << "\\]," << edge->transition().name() << "\"]" << std::endl;
     }
 
     void ConvertBehaviorToDot::operator()() {
-        
         m_stream << "digraph " << m_graphName << " {" << std::endl;
         
         BehaviorState* initialState = m_behavior.initialState();

@@ -17,7 +17,6 @@
 #include <vector>
 
 namespace Tippi {
-    
     class BehaviorState : public GraphNode<BehaviorEdge, BehaviorEdge> {
     private:
         NetState m_netState;
