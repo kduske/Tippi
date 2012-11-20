@@ -10,6 +10,8 @@
 
 #include "BehaviorState.h"
 
+#include <algorithm>
+
 namespace Tippi {
     MPP::MPP() :
     m_initialState(NULL) {}
@@ -28,6 +30,33 @@ namespace Tippi {
         MPPStateMapInsertResult result = m_states.insert(MPPStateMapEntry(behaviorState.netState(), mppState));
         assert(result.second);
         return mppState;
+    }
+    
+    void MPP::deleteMPPState(MPPState& state) {
+        MPPStateMap::iterator it = m_states.find(state.initialNetState());
+        assert(it != m_states.end());
+        assert(it->second == &state);
+        
+        const MPPState::IncomingEdgeList& incomingEdges = state.incomingEdges();
+        MPPState::IncomingEdgeList::const_iterator inEdgeIt, inEdgeEnd;
+        for (inEdgeIt = incomingEdges.begin(), inEdgeEnd = incomingEdges.end(); inEdgeIt != inEdgeEnd; ++inEdgeIt) {
+            MPPEdge* edge = *inEdgeIt;
+            edge->source()->removeOutgoingEdge(edge);
+            m_edges.erase(std::remove(m_edges.begin(), m_edges.end(), edge), m_edges.end());
+            delete edge;
+        }
+        
+        const MPPState::OutgoingEdgeList& outgoingEdges = state.outgoingEdges();
+        MPPState::OutgoingEdgeList::const_iterator outEdgeIt, outEdgeEnd;
+        for (outEdgeIt = outgoingEdges.begin(), outEdgeEnd = outgoingEdges.end(); outEdgeIt != outEdgeEnd; ++outEdgeIt) {
+            MPPEdge* edge = *outEdgeIt;
+            edge->target()->removeIncomingEdge(edge);
+            m_edges.erase(std::remove(m_edges.begin(), m_edges.end(), edge), m_edges.end());
+            delete edge;
+        }
+        
+        m_states.erase(it);
+        delete &state;
     }
 
     MPPEdge* MPP::connect(MPPState* source, MPPState* target, unsigned int minTime, unsigned int maxTime, const Transition& transition) {

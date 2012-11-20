@@ -44,7 +44,18 @@ namespace Tippi {
             return it->second;
         }
         
+        inline MPPStateList states() const {
+            MPPStateList result;
+            MPPStateMap::const_iterator stateIt, stateEnd;
+            for (stateIt = m_states.begin(), stateEnd = m_states.end(); stateIt != stateEnd; ++stateIt) {
+                MPPState* state = stateIt->second;
+                result.push_back(state);
+            }
+            return result;
+        }
+        
         MPPState* createMPPState(MPPState::DeadlockClass deadlockClass, const BehaviorState& behaviorState);
+        void deleteMPPState(MPPState& state);
         
         MPPEdge* connect(MPPState* source, MPPState* target, unsigned int minTime, unsigned int maxTime, const Transition& transition);
     };

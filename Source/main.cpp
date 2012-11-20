@@ -14,6 +14,7 @@
 #include "ConstructMPP.h"
 #include "ConvertBehaviorToDot.h"
 #include "ConvertMPPToDot.h"
+#include "RemoveDeadlocksFromMPP.h"
 #include "FiringRule.h"
 #include "LolaNetParser.h"
 #include "MPP.h"
@@ -27,7 +28,7 @@
 
 int main(int argc, const char * argv[])
 {
-    std::fstream stream("../Data/test.net");
+    std::fstream stream("../Data/test_partner.net");
     assert(stream.is_open() && stream.good());
     
     Tippi::Lola::Parser parser(stream);
@@ -40,13 +41,15 @@ int main(int argc, const char * argv[])
     
     (Tippi::ConstructEnvironment(*net))();
     Tippi::ConstructBehavior(*net, behavior, firingRule)();
-//    Tippi::ConvertBehaviorToDot(behavior, std::cout, "Behavior")();
-    
-    
+    Tippi::ConvertBehaviorToDot(behavior, std::cout, "Behavior")();
+
+    /*
     Tippi::MPP mpp;
     Tippi::ConstructMPP(*net, behavior, mpp)();
+    (Tippi::RemoveDeadlocksFromMPP(mpp))();
     Tippi::ConvertMPPToDot(mpp, std::cout, "MPP")();
-    
+     */
+     
     delete net;
 }
 

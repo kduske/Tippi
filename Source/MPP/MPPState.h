@@ -28,15 +28,20 @@ namespace Tippi {
         } DeadlockClass;
     private:
         DeadlockClass m_deadlockClass;
+        const NetState& m_initialNetState;
         NetStateSet m_netStates;
         bool m_final;
         MPPEdgeList m_incomingEdges;
         MPPEdgeList m_outgoingEdges;
     public:
-        MPPState(DeadlockClass deadlockClass, const NetState& netState, bool final);
+        MPPState(DeadlockClass deadlockClass, const NetState& initialNetState, bool final);
         
         inline DeadlockClass deadlockClass() const {
             return m_deadlockClass;
+        }
+        
+        inline const NetState& initialNetState() const {
+            return m_initialNetState;
         }
         
         inline const NetStateSet& netStates() const {

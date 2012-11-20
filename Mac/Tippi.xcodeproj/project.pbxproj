@@ -17,11 +17,12 @@
 		4877AC7316397373006CA8C7 /* FiringRule.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4877AC7116397373006CA8C7 /* FiringRule.cpp */; };
 		4877AC76163996D3006CA8C7 /* ConstructBehavior.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4877AC74163996D3006CA8C7 /* ConstructBehavior.cpp */; };
 		4878F92E1657CE9C003857EA /* ConstructMPP.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4878F92C1657CE9C003857EA /* ConstructMPP.cpp */; };
-		4878F9341657D606003857EA /* MPPEdge.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4878F9321657D606003857EA /* MPPEdge.cpp */; };
-		4878F9371657D6B6003857EA /* MPPState.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4878F9351657D6B6003857EA /* MPPState.cpp */; };
-		4878F93E1657EA4E003857EA /* MPP.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4878F93C1657EA4E003857EA /* MPP.cpp */; };
 		4878F9451658270C003857EA /* ConvertMPPToDot.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4878F9431658270C003857EA /* ConvertMPPToDot.cpp */; };
 		48A0E920163A891D0034F190 /* ConvertBehaviorToDot.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 48A0E91E163A891D0034F190 /* ConvertBehaviorToDot.cpp */; };
+		48D1BCB7165A493F009B709E /* RemoveDeadlocksFromMPP.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 48D1BCB5165A493F009B709E /* RemoveDeadlocksFromMPP.cpp */; };
+		48D1BCC0165B8661009B709E /* MPP.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 48D1BCBA165B8661009B709E /* MPP.cpp */; };
+		48D1BCC1165B8661009B709E /* MPPEdge.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 48D1BCBC165B8661009B709E /* MPPEdge.cpp */; };
+		48D1BCC2165B8661009B709E /* MPPState.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 48D1BCBE165B8661009B709E /* MPPState.cpp */; };
 		48E2209B162326ED009CC271 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 48E22093162326ED009CC271 /* main.cpp */; };
 		48E2209C162326ED009CC271 /* NetNode.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 48E22097162326ED009CC271 /* NetNode.cpp */; };
 		48E2209E16232C3C009CC271 /* Transition.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 48E2209D16232C3C009CC271 /* Transition.cpp */; };
@@ -66,18 +67,20 @@
 		4877AC75163996D3006CA8C7 /* ConstructBehavior.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ConstructBehavior.h; sourceTree = "<group>"; };
 		4878F92C1657CE9C003857EA /* ConstructMPP.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ConstructMPP.cpp; sourceTree = "<group>"; };
 		4878F92D1657CE9C003857EA /* ConstructMPP.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ConstructMPP.h; sourceTree = "<group>"; };
-		4878F9321657D606003857EA /* MPPEdge.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MPPEdge.cpp; sourceTree = SOURCE_ROOT; };
-		4878F9331657D606003857EA /* MPPEdge.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MPPEdge.h; sourceTree = SOURCE_ROOT; };
-		4878F9351657D6B6003857EA /* MPPState.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MPPState.cpp; sourceTree = SOURCE_ROOT; };
-		4878F9361657D6B6003857EA /* MPPState.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MPPState.h; sourceTree = SOURCE_ROOT; };
-		4878F93C1657EA4E003857EA /* MPP.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MPP.cpp; sourceTree = SOURCE_ROOT; };
-		4878F93D1657EA4E003857EA /* MPP.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MPP.h; sourceTree = SOURCE_ROOT; };
 		4878F9431658270C003857EA /* ConvertMPPToDot.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ConvertMPPToDot.cpp; sourceTree = "<group>"; };
 		4878F9441658270C003857EA /* ConvertMPPToDot.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ConvertMPPToDot.h; sourceTree = "<group>"; };
 		48790AF21653DCAB0003766B /* test_partner.net */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = test_partner.net; sourceTree = "<group>"; };
 		48A0E91E163A891D0034F190 /* ConvertBehaviorToDot.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ConvertBehaviorToDot.cpp; sourceTree = "<group>"; };
 		48A0E91F163A891D0034F190 /* ConvertBehaviorToDot.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ConvertBehaviorToDot.h; sourceTree = "<group>"; };
 		48A0E922163A8E0E0034F190 /* GraphAlgorithms.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GraphAlgorithms.h; sourceTree = "<group>"; };
+		48D1BCB5165A493F009B709E /* RemoveDeadlocksFromMPP.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = RemoveDeadlocksFromMPP.cpp; sourceTree = "<group>"; };
+		48D1BCB6165A493F009B709E /* RemoveDeadlocksFromMPP.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RemoveDeadlocksFromMPP.h; sourceTree = "<group>"; };
+		48D1BCBA165B8661009B709E /* MPP.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MPP.cpp; sourceTree = "<group>"; };
+		48D1BCBB165B8661009B709E /* MPP.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MPP.h; sourceTree = "<group>"; };
+		48D1BCBC165B8661009B709E /* MPPEdge.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MPPEdge.cpp; sourceTree = "<group>"; };
+		48D1BCBD165B8661009B709E /* MPPEdge.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MPPEdge.h; sourceTree = "<group>"; };
+		48D1BCBE165B8661009B709E /* MPPState.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = MPPState.cpp; sourceTree = "<group>"; };
+		48D1BCBF165B8661009B709E /* MPPState.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MPPState.h; sourceTree = "<group>"; };
 		48E2207716232616009CC271 /* Tippi */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Tippi; sourceTree = BUILT_PRODUCTS_DIR; };
 		48E22091162326ED009CC271 /* GraphEdge.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GraphEdge.h; sourceTree = "<group>"; };
 		48E22092162326ED009CC271 /* GraphNode.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GraphNode.h; sourceTree = "<group>"; };
@@ -124,8 +127,23 @@
 				48A0E91F163A891D0034F190 /* ConvertBehaviorToDot.h */,
 				4878F9431658270C003857EA /* ConvertMPPToDot.cpp */,
 				4878F9441658270C003857EA /* ConvertMPPToDot.h */,
+				48D1BCB5165A493F009B709E /* RemoveDeadlocksFromMPP.cpp */,
+				48D1BCB6165A493F009B709E /* RemoveDeadlocksFromMPP.h */,
 			);
 			path = Algorithms;
+			sourceTree = "<group>";
+		};
+		48D1BCB9165B8661009B709E /* MPP */ = {
+			isa = PBXGroup;
+			children = (
+				48D1BCBA165B8661009B709E /* MPP.cpp */,
+				48D1BCBB165B8661009B709E /* MPP.h */,
+				48D1BCBC165B8661009B709E /* MPPEdge.cpp */,
+				48D1BCBD165B8661009B709E /* MPPEdge.h */,
+				48D1BCBE165B8661009B709E /* MPPState.cpp */,
+				48D1BCBF165B8661009B709E /* MPPState.h */,
+			);
+			path = MPP;
 			sourceTree = "<group>";
 		};
 		48E2206C16232616009CC271 = {
@@ -151,7 +169,7 @@
 				4877AC6D16396755006CA8C7 /* Algorithms */,
 				48E2208F162326ED009CC271 /* Behavior */,
 				48E22090162326ED009CC271 /* Graph */,
-				48E22094162326ED009CC271 /* MPP */,
+				48D1BCB9165B8661009B709E /* MPP */,
 				48E22095162326ED009CC271 /* Net */,
 				48E22093162326ED009CC271 /* main.cpp */,
 			);
@@ -181,19 +199,6 @@
 				483F8A041636A075003018F7 /* GraphNodeStore.h */,
 			);
 			path = Graph;
-			sourceTree = "<group>";
-		};
-		48E22094162326ED009CC271 /* MPP */ = {
-			isa = PBXGroup;
-			children = (
-				4878F93C1657EA4E003857EA /* MPP.cpp */,
-				4878F93D1657EA4E003857EA /* MPP.h */,
-				4878F9321657D606003857EA /* MPPEdge.cpp */,
-				4878F9331657D606003857EA /* MPPEdge.h */,
-				4878F9351657D6B6003857EA /* MPPState.cpp */,
-				4878F9361657D6B6003857EA /* MPPState.h */,
-			);
-			path = MPP;
 			sourceTree = "<group>";
 		};
 		48E22095162326ED009CC271 /* Net */ = {
@@ -286,10 +291,11 @@
 				48A0E920163A891D0034F190 /* ConvertBehaviorToDot.cpp in Sources */,
 				4864D9471642929700759CE9 /* ConstructEnvironment.cpp in Sources */,
 				4878F92E1657CE9C003857EA /* ConstructMPP.cpp in Sources */,
-				4878F9341657D606003857EA /* MPPEdge.cpp in Sources */,
-				4878F9371657D6B6003857EA /* MPPState.cpp in Sources */,
-				4878F93E1657EA4E003857EA /* MPP.cpp in Sources */,
 				4878F9451658270C003857EA /* ConvertMPPToDot.cpp in Sources */,
+				48D1BCB7165A493F009B709E /* RemoveDeadlocksFromMPP.cpp in Sources */,
+				48D1BCC0165B8661009B709E /* MPP.cpp in Sources */,
+				48D1BCC1165B8661009B709E /* MPPEdge.cpp in Sources */,
+				48D1BCC2165B8661009B709E /* MPPState.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -9,9 +9,10 @@
 #include "MPPState.h"
 
 namespace Tippi {
-    MPPState::MPPState(DeadlockClass deadlockClass, const NetState& netState, bool final) :
+    MPPState::MPPState(DeadlockClass deadlockClass, const NetState& initialNetState, bool final) :
     m_deadlockClass(deadlockClass),
+    m_initialNetState(initialNetState),
     m_final(final) {
-        m_netStates.insert(netState);
+        m_netStates.insert(initialNetState);
     }
 }
