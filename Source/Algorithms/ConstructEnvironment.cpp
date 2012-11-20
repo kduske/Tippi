@@ -26,7 +26,7 @@ namespace Tippi {
                 Transition* transition = m_net.createTransition(place.name(), 0, Transition::Infinite, false);
                 m_net.connect(transition, &place);
             } else if (place.outputPlace()) {
-                Transition* transition = m_net.createTransition(place.name(), 0, Transition::Infinite, false);
+                Transition* transition = m_net.createTransition(place.name(), 0, 0, false);
                 m_net.connect(&place, transition);
             }
         }

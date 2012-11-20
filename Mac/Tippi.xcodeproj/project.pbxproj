@@ -69,6 +69,9 @@
 		4878F92D1657CE9C003857EA /* ConstructMPP.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ConstructMPP.h; sourceTree = "<group>"; };
 		4878F9431658270C003857EA /* ConvertMPPToDot.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ConvertMPPToDot.cpp; sourceTree = "<group>"; };
 		4878F9441658270C003857EA /* ConvertMPPToDot.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ConvertMPPToDot.h; sourceTree = "<group>"; };
+		4878F95A165BAD8F003857EA /* test_partner_simple.net */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = test_partner_simple.net; sourceTree = "<group>"; };
+		4878F95C165BE5F0003857EA /* test_partner_dl.net */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = test_partner_dl.net; sourceTree = "<group>"; };
+		4878F95D165BF14D003857EA /* test_partner_simple_inverse.net */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = test_partner_simple_inverse.net; sourceTree = "<group>"; };
 		48790AF21653DCAB0003766B /* test_partner.net */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = test_partner.net; sourceTree = "<group>"; };
 		48A0E91E163A891D0034F190 /* ConvertBehaviorToDot.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ConvertBehaviorToDot.cpp; sourceTree = "<group>"; };
 		48A0E91F163A891D0034F190 /* ConvertBehaviorToDot.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ConvertBehaviorToDot.h; sourceTree = "<group>"; };
@@ -109,6 +112,9 @@
 			children = (
 				4877AC591639361E006CA8C7 /* test.net */,
 				48790AF21653DCAB0003766B /* test_partner.net */,
+				4878F95C165BE5F0003857EA /* test_partner_dl.net */,
+				4878F95A165BAD8F003857EA /* test_partner_simple.net */,
+				4878F95D165BF14D003857EA /* test_partner_simple_inverse.net */,
 			);
 			name = Data;
 			path = ../Data;
