@@ -9,6 +9,7 @@
 #ifndef __Tippi__LolaNetParser__
 #define __Tippi__LolaNetParser__
 
+/*
 #include <exception>
 #include <iostream>
 #include <sstream>
@@ -179,6 +180,6 @@ namespace Tippi {
         };
     }
 }
-
+*/
 
 #endif /* defined(__Tippi__LolaNetParser__) */

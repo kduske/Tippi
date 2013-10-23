@@ -58,6 +58,8 @@ ENDIF()
 ADD_EXECUTABLE(Tippi ${SOURCE})
 
 # Tippi-Test executable
+# We need to remove main.cpp to avoid linker errors (duplicate symbol _main)
+LIST(REMOVE_ITEM SOURCE "${CMAKE_SOURCE_DIR}/src/main.cpp")
 ADD_EXECUTABLE(Tippi-Test ${SOURCE} ${TEST_SOURCE})
 TARGET_LINK_LIBRARIES(Tippi-Test gtest gmock)
 SET_TARGET_PROPERTIES(Tippi-Test PROPERTIES COMPILE_DEFINITIONS "TESTING")

@@ -9,56 +9,72 @@
 #ifndef Tippi_GraphNode_h
 #define Tippi_GraphNode_h
 
+#include "CollectionUtils.h"
+
 #include <algorithm>
 #include <vector>
 
 namespace Tippi {
-    template <typename IncomingEdge, typename OutgoingEdge>
+    template <typename IncomingT, typename OutgoingT>
     class GraphNode {
     public:
-        typedef std::vector<IncomingEdge*> IncomingEdgeList;
-        typedef std::vector<OutgoingEdge*> OutgoingEdgeList;
+        typedef IncomingT Incoming;
+        typedef OutgoingT Outgoing;
+        typedef std::vector<IncomingT*> IncomingList;
+        typedef std::vector<OutgoingT*> OutgoingList;
+        typedef std::vector<GraphNode*> List;
     private:
         mutable bool m_visited;
     protected:
-        IncomingEdgeList m_incomingEdges;
-        OutgoingEdgeList m_outgoingEdges;
+        IncomingList m_incoming;
+        OutgoingList m_outgoing;
     public:
         GraphNode() :
         m_visited(false) {}
         
         virtual ~GraphNode() {}
     
-        inline void addIncomingEdge(IncomingEdge* edge) {
-            m_incomingEdges.push_back(edge);
+        void addIncoming(Incoming* edge) {
+            m_incoming.push_back(edge);
         }
 
-        inline void removeIncomingEdge(IncomingEdge* edge) {
-            m_incomingEdges.erase(std::remove(m_incomingEdges.begin(), m_incomingEdges.end(), edge), m_incomingEdges.end());
-        }
-
-        inline const IncomingEdgeList& incomingEdges() const {
-            return m_incomingEdges;
-        }
-
-        inline void addOutgoingEdge(OutgoingEdge* edge) {
-            m_outgoingEdges.push_back(edge);
-        }
-
-        inline void removeOutgoingEdge(OutgoingEdge* edge) {
-            m_outgoingEdges.erase(std::remove(m_outgoingEdges.begin(), m_outgoingEdges.end(), edge), m_outgoingEdges.end());
-        }
-
-        inline const OutgoingEdgeList& outgoingEdges() const {
-            return m_outgoingEdges;
+        void removeIncoming(Incoming* edge) {
+            VectorUtils::remove(m_incoming, edge);
         }
         
-        inline bool visited() const {
+        const IncomingList& getIncoming() const {
+            return m_incoming;
+        }
+
+        void addOutgoing(Outgoing* edge) {
+            m_outgoing.push_back(edge);
+        }
+
+        void removeOutgoing(Outgoing* edge) {
+            VectorUtils::remove(m_outgoing, edge);
+        }
+
+        const OutgoingList& getOutgoing() const {
+            return m_outgoing;
+        }
+        
+        bool isVisited() const {
             return m_visited;
         }
         
-        inline void setVisited(bool visited) const {
+        void setVisited(const bool visited) const {
             m_visited = visited;
+        }
+        
+        static OutgoingT* connectToTarget(typename Outgoing::Source* source, typename Outgoing::Target* target) {
+            Outgoing* e = new Outgoing(source, target);
+            source->addOutgoing(e);
+            target->addIncoming(e);
+            return e;
+        }
+        
+        static Incoming* connectToSource(typename Incoming::Target* target, typename Incoming::Source* source) {
+            return Incoming::Source::connectToTarget(source, target);
         }
     };
 }

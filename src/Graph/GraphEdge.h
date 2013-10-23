@@ -10,16 +10,21 @@
 #define Tippi_GraphEdge_h
 
 #include <cassert>
+#include <vector>
 
 namespace Tippi {
-    template <typename Source, typename Target>
+    template <typename SourceT, typename TargetT>
     class GraphEdge {
-    protected:
-        Source* m_source;
-        Target* m_target;
-        unsigned int m_multiplicity;
     public:
-        GraphEdge(Source* source, Target* target, unsigned int multiplicity = 1) :
+        typedef std::vector<GraphEdge*> List;
+        typedef SourceT Source;
+        typedef TargetT Target;
+    protected:
+        SourceT* m_source;
+        TargetT* m_target;
+        size_t m_multiplicity;
+    public:
+        GraphEdge(SourceT* source, TargetT* target, const size_t multiplicity = 1) :
         m_source(source),
         m_target(target),
         m_multiplicity(multiplicity) {
@@ -33,23 +38,33 @@ namespace Tippi {
             m_target = NULL;
         }
         
-        inline const Source* source() const {
+        const SourceT* getSource() const {
             return m_source;
         }
         
-        inline Source* source() {
+        SourceT* getSource() {
             return m_source;
         }
         
-        inline const Target* target() const {
+        const TargetT* getTarget() const {
             return m_target;
         }
         
-        inline Target* target() {
+        TargetT* getTarget() {
             return m_target;
         }
         
-        inline unsigned int multiplicity() const {
+        void removeFromSource() {
+            m_source->removeOutgoing(this);
+            m_source = NULL;
+        }
+        
+        void removeFromTarget() {
+            m_target->removeIncoming(this);
+            m_target = NULL;
+        }
+        
+        size_t getMultiplicity() const {
             return m_multiplicity;
         }
     };

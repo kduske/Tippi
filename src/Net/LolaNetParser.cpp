@@ -8,6 +8,7 @@
 
 #include "LolaNetParser.h"
 
+/*
 #include "Net.h"
 #include "Place.h"
 #include "PlaceMarking.h"
@@ -509,3 +510,4 @@ namespace Tippi {
         }
     }
 }
+*/
