@@ -22,7 +22,6 @@ namespace Tippi {
         typedef OutgoingT Outgoing;
         typedef std::vector<IncomingT*> IncomingList;
         typedef std::vector<OutgoingT*> OutgoingList;
-        typedef std::vector<GraphNode*> List;
     private:
         mutable bool m_visited;
     protected:

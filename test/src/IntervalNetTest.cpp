@@ -20,6 +20,7 @@
 #include <gtest/gtest.h>
 
 #include "Net/IntervalNet.h"
+#include "Exceptions.h"
 
 namespace Tippi {
     namespace Interval {
@@ -27,18 +28,34 @@ namespace Tippi {
             Net net;
         };
         
+        TEST(NetTest, createDuplicatePlace) {
+            Net net;
+            Place* p1 = net.createPlace("p1");
+            ASSERT_THROW(net.createPlace("p1"), NetException);
+            net.deletePlace(p1);
+            ASSERT_NO_THROW(net.createPlace("p1"));
+        }
+        
+        TEST(NetTest, createDuplicateTransition) {
+            Net net;
+            Transition* t1 = net.createTransition("t1");
+            ASSERT_THROW(net.createTransition("t1"), NetException);
+            net.deleteTransition(t1);
+            ASSERT_NO_THROW(net.createTransition("t1"));
+        }
+        
         TEST(NetTest, createPlaceAndTransition) {
             Net net;
-            ASSERT_TRUE(net.createPlace() != NULL);
-            ASSERT_EQ(1u, net.places().size());
-            ASSERT_TRUE(net.createTransition() != NULL);
-            ASSERT_EQ(1u, net.transitions().size());
+            ASSERT_TRUE(net.createPlace("p1") != NULL);
+            ASSERT_EQ(1u, net.getPlaces().size());
+            ASSERT_TRUE(net.createTransition("t1") != NULL);
+            ASSERT_EQ(1u, net.getTransitions().size());
         }
         
         TEST(NetTest, connectPlaceAndTransition) {
             Net net;
-            Place* p = net.createPlace();
-            Transition* t = net.createTransition();
+            Place* p = net.createPlace("p1");
+            Transition* t = net.createTransition("t1");
             PlaceToTransition* p2t = net.connect(p, t);
             TransitionToPlace* t2p = net.connect(t, p);
             
@@ -52,42 +69,42 @@ namespace Tippi {
         
         TEST(NetTest, deleteIsolatedPlace) {
             Net net;
-            Place* p = net.createPlace();
+            Place* p = net.createPlace("p1");
             net.deletePlace(p);
-            ASSERT_TRUE(net.places().empty());
+            ASSERT_TRUE(net.getPlaces().empty());
         }
         
         TEST(NetTest, deleteIsolatedTransition) {
             Net net;
-            Transition* t = net.createTransition();
+            Transition* t = net.createTransition("t1");
             net.deleteTransition(t);
-            ASSERT_TRUE(net.transitions().empty());
+            ASSERT_TRUE(net.getTransitions().empty());
         }
         
         TEST(NetTest, deleteConnectedPlace) {
             Net net;
-            Place* p = net.createPlace();
-            Transition* t1 = net.createTransition();
-            Transition* t2 = net.createTransition();
+            Place* p = net.createPlace("p1");
+            Transition* t1 = net.createTransition("t1");
+            Transition* t2 = net.createTransition("t2");
             net.connect(t1, p);
             net.connect(p, t2);
             
             net.deletePlace(p);
-            ASSERT_TRUE(net.places().empty());
+            ASSERT_TRUE(net.getPlaces().empty());
             ASSERT_TRUE(t1->getOutgoing().empty());
             ASSERT_TRUE(t2->getIncoming().empty());
         }
         
         TEST(NetTest, deleteConnectedTransition) {
             Net net;
-            Place* p1 = net.createPlace();
-            Place* p2 = net.createPlace();
-            Transition* t = net.createTransition();
+            Place* p1 = net.createPlace("p1");
+            Place* p2 = net.createPlace("p2");
+            Transition* t = net.createTransition("t1");
             net.connect(p1, t);
             net.connect(t, p2);
             
             net.deleteTransition(t);
-            ASSERT_TRUE(net.transitions().empty());
+            ASSERT_TRUE(net.getTransitions().empty());
             ASSERT_TRUE(p1->getOutgoing().empty());
             ASSERT_TRUE(p2->getIncoming().empty());
         }

@@ -9,8 +9,13 @@
 #ifndef __Tippi__IntervalNet__
 #define __Tippi__IntervalNet__
 
+#include "StringUtils.h"
 #include "Graph/GraphEdge.h"
 #include "Graph/GraphNode.h"
+#include "Net/NetNode.h"
+
+#include <exception>
+#include <map>
 
 namespace Tippi {
     namespace Interval {
@@ -20,25 +25,31 @@ namespace Tippi {
         typedef GraphEdge<Transition, Place> TransitionToPlace;
         typedef GraphEdge<Place, Transition> PlaceToTransition;
 
-        class Transition : public GraphNode<PlaceToTransition, TransitionToPlace> {
+        class Transition : public GraphNode<PlaceToTransition, TransitionToPlace>, public NetNode {
         public:
+            typedef std::vector<Transition*> List;
+        public:
+            Transition(const String& name, const size_t index);
         };
         
-        class Place : public GraphNode<TransitionToPlace, PlaceToTransition> {
+        class Place : public GraphNode<TransitionToPlace, PlaceToTransition>, public NetNode {
         public:
+            typedef std::vector<Place*> List;
+        public:
+            Place(const String& name, const size_t index);
         };
         
         class Net {
         private:
-            Place::List m_places;
-            Transition::List m_transitions;
+            NetNodeStore<Place> m_places;
+            NetNodeStore<Transition> m_transitions;
             PlaceToTransition::List m_placeToTransitionArcs;
             TransitionToPlace::List m_transitionToPlaceArcs;
         public:
             ~Net();
             
-            Place* createPlace();
-            Transition* createTransition();
+            Place* createPlace(const String& name);
+            Transition* createTransition(const String& name);
             PlaceToTransition* connect(Place* place, Transition* transition);
             TransitionToPlace* connect(Transition* transition, Place* place);
 
@@ -47,8 +58,10 @@ namespace Tippi {
             void disconnect(PlaceToTransition* arc);
             void disconnect(TransitionToPlace* arc);
             
-            const Place::List& places() const;
-            const Transition::List& transitions() const;
+            const Place::List& getPlaces() const;
+            const Transition::List& getTransitions() const;
+            Place* findPlace(const String& name);
+            Transition* findTransition(const String& name);
         private:
             template <class Node, class ArcList>
             void deleteIncomingArcs(Node* node, ArcList& arcs) {

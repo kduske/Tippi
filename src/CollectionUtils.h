@@ -361,45 +361,61 @@ namespace MapUtils {
     };
     
     template <typename K, typename V>
-    typename std::map<K, V>::iterator findOrInsert(std::map<K, V>& map, const K& key) {
+    V* findValue(std::map<K, V*>& map, const K& key) {
+        typedef std::map<K, V*> Map;
+        typename Map::iterator it = map.find(key);
+        if (it == map.end())
+            return NULL;
+        return it->second;
+    }
+    
+    template <typename K, typename V>
+    const V* findValue(const std::map<K, V*>& map, const K& key) {
+        typedef std::map<K, V*> Map;
+        typename Map::const_iterator it = map.find(key);
+        if (it == map.end())
+            return NULL;
+        return it->second;
+    }
+    
+    template <typename K, typename V>
+    std::pair<typename std::map<K, V>::iterator, bool> findInsertPos(std::map<K, V>& map, const K& key) {
         typedef std::map<K, V> Map;
         typename Map::key_compare compare = map.key_comp();
         typename Map::iterator insertPos = map.lower_bound(key);
-        if (insertPos == map.end() || compare(key, insertPos->first)) {
-            // the two keys are not equal (key is less than insertPos' key), so we must insert the value
-            return map.insert(insertPos, std::pair<K, V>(key, V()));
-        }
-        return insertPos;
+        if (insertPos == map.end() || compare(key, insertPos->first))
+            return std::make_pair(insertPos, false); // map does not contain key, the two keys are not equal (key is less than insertPos' key)
+        return std::make_pair(insertPos, true); // map does contain key
+    }
+
+    template <typename K, typename V>
+    typename std::map<K, V>::iterator findOrInsert(std::map<K, V>& map, const K& key) {
+        typedef std::map<K, V> Map;
+        const std::pair<typename Map::iterator, bool> insert = findInsertPos(map, key);
+        if (!insert.second)
+            return map.insert(insert.first, std::make_pair(key, V()));
+        return insert.first;
     }
 
     template <typename K, typename V>
     void insertOrReplace(std::map<K, V>& map, const K& key, V& value) {
         typedef std::map<K, V> Map;
-        typename Map::key_compare compare = map.key_comp();
-        typename Map::iterator insertPos = map.lower_bound(key);
-        if (insertPos == map.end() || compare(key, insertPos->first)) {
-            // the two keys are not equal (key is less than insertPos' key), so we must insert the value
-            map.insert(insertPos, std::pair<K, V>(key, value));
-        } else {
-            // the two keys are equal because insertPos either points to the pair with the same key or the one
-            // right after the position where the given pair would be inserted
-            insertPos->second = value;
-        }
+        std::pair<typename Map::iterator, bool> insert = findInsertPos(map, key);
+        if (!insert.second)
+            map.insert(insert.first, std::make_pair(key, value));
+        else
+            insert.first->second = value;
     }
 
     template <typename K, typename V>
     void insertOrReplace(std::map<K, V*>& map, const K& key, V* value) {
         typedef std::map<K, V*> Map;
-        typename Map::key_compare compare = map.key_comp();
-        typename Map::iterator insertPos = map.lower_bound(key);
-        if (insertPos == map.end() || compare(key, insertPos->first)) {
-            // the two keys are not equal (key is less than insertPos' key), so we must insert the value
-            map.insert(insertPos, std::pair<K, V*>(key, value));
+        std::pair<typename Map::iterator, bool> insert = findInsertPos(map, key);
+        if (!insert.second) {
+            map.insert(insert.first, std::make_pair(key, value));
         } else {
-            // the two keys are equal because insertPos either points to the pair with the same key or the one
-            // right after the position where the given pair would be inserted
-            delete insertPos->second;
-            insertPos->second = value;
+            delete insert.first->second;
+            insert.first->second = value;
         }
     }
 
