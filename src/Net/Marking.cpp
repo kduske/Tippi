@@ -25,7 +25,8 @@
 
 namespace Tippi {
     Marking::Marking(const size_t placeCount) :
-    m_marking(placeCount) {}
+    m_marking(placeCount, 0) {
+    }
     
     const size_t& Marking::operator[](const NetNode* node) const {
         assert(node != NULL);
@@ -37,5 +38,9 @@ namespace Tippi {
         assert(node != NULL);
         assert(node->getIndex() < m_marking.size());
         return m_marking[node->getIndex()];
+    }
+
+    size_t Marking::getSize() const {
+        return m_marking.size();
     }
 }

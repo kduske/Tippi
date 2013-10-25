@@ -23,6 +23,7 @@
 #include "StringUtils.h"
 #include "Graph/GraphEdge.h"
 #include "Graph/GraphNode.h"
+#include "Net/Marking.h"
 #include "Net/NetNode.h"
 #include "Net/TimeInterval.h"
 
@@ -49,8 +50,17 @@ namespace Tippi {
         class Place : public GraphNode<TransitionToPlace, PlaceToTransition>, public NetNode {
         public:
             typedef std::vector<Place*> List;
+        private:
+            size_t m_bound;
+            bool m_inputPlace;
+            bool m_outputPlace;
         public:
-            Place(const String& name, const size_t index);
+            Place(const String& name, const size_t index, const size_t bound);
+            
+            bool isInputPlace() const;
+            bool isOutputPlace() const;
+            void setInputPlace(const bool inputPlace);
+            void setOutputPlace(const bool outputPlace);
         };
         
         class Net {
@@ -59,10 +69,12 @@ namespace Tippi {
             NetNodeStore<Transition> m_transitions;
             PlaceToTransition::List m_placeToTransitionArcs;
             TransitionToPlace::List m_transitionToPlaceArcs;
+            
+            Marking m_initialMarking;
         public:
             ~Net();
             
-            Place* createPlace(const String& name);
+            Place* createPlace(const String& name, const size_t bound = 1);
             Transition* createTransition(const String& name, const TimeInterval& interval);
             PlaceToTransition* connect(Place* place, Transition* transition);
             TransitionToPlace* connect(Transition* transition, Place* place);
@@ -72,10 +84,14 @@ namespace Tippi {
             void disconnect(PlaceToTransition* arc);
             void disconnect(TransitionToPlace* arc);
             
+            void setInitialMarking(const Marking& marking);
+            
             const Place::List& getPlaces() const;
             const Transition::List& getTransitions() const;
             Place* findPlace(const String& name);
             Transition* findTransition(const String& name);
+            
+            const Marking& initialMarking() const;
         private:
             template <class Node, class ArcList>
             void deleteIncomingArcs(Node* node, ArcList& arcs) {

@@ -31,17 +31,36 @@ namespace Tippi {
         NetNode(name, index),
         m_interval(interval) {}
 
-        Place::Place(const String& name, const size_t index) :
-        NetNode(name, index) {}
+        Place::Place(const String& name, const size_t index, const size_t bound) :
+        NetNode(name, index),
+        m_bound(bound),
+        m_inputPlace(false),
+        m_outputPlace(false) {}
+
+        bool Place::isInputPlace() const {
+            return m_inputPlace;
+        }
+        
+        bool Place::isOutputPlace() const {
+            return m_outputPlace;
+        }
+        
+        void Place::setInputPlace(const bool inputPlace) {
+            m_inputPlace = inputPlace;
+        }
+        
+        void Place::setOutputPlace(const bool outputPlace) {
+            m_outputPlace = outputPlace;
+        }
 
         Net::~Net() {
             VectorUtils::clearAndDelete(m_placeToTransitionArcs);
             VectorUtils::clearAndDelete(m_transitionToPlaceArcs);
         }
 
-        Place* Net::createPlace(const String& name) {
+        Place* Net::createPlace(const String& name, const size_t bound) {
             const size_t index = m_places.getNextIndex();
-            Place* place = new Place(name, index);
+            Place* place = new Place(name, index, bound);
             if (!m_places.insertNode(place)) {
                 delete place;
                 throw NetException("Net already contains a place with name '" + name + "'");
@@ -109,6 +128,10 @@ namespace Tippi {
             VectorUtils::removeAndDelete(m_transitionToPlaceArcs, arc);
         }
         
+        void Net::setInitialMarking(const Marking& marking) {
+            m_initialMarking = marking;
+        }
+
         const Place::List& Net::getPlaces() const {
             return m_places.getNodes();
         }
@@ -123,6 +146,10 @@ namespace Tippi {
         
         Transition* Net::findTransition(const String& name) {
             return m_transitions.findNode(name);
+        }
+
+        const Marking& Net::initialMarking() const {
+            return m_initialMarking;
         }
     }
 }

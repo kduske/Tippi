@@ -29,10 +29,11 @@ namespace Tippi {
     private:
         std::vector<size_t> m_marking;
     public:
-        Marking(const size_t placeCount);
+        Marking(const size_t placeCount = 0);
         
         const size_t& operator[](const NetNode* node) const;
         size_t& operator[](const NetNode* node);
+        size_t getSize() const;
     };
 }
 
