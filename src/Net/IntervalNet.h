@@ -13,6 +13,7 @@
 #include "Graph/GraphEdge.h"
 #include "Graph/GraphNode.h"
 #include "Net/NetNode.h"
+#include "Net/TimeInterval.h"
 
 #include <exception>
 #include <map>
@@ -28,8 +29,10 @@ namespace Tippi {
         class Transition : public GraphNode<PlaceToTransition, TransitionToPlace>, public NetNode {
         public:
             typedef std::vector<Transition*> List;
+        private:
+            TimeInterval m_interval;
         public:
-            Transition(const String& name, const size_t index);
+            Transition(const String& name, const size_t index, const TimeInterval& interval);
         };
         
         class Place : public GraphNode<TransitionToPlace, PlaceToTransition>, public NetNode {
@@ -49,7 +52,7 @@ namespace Tippi {
             ~Net();
             
             Place* createPlace(const String& name);
-            Transition* createTransition(const String& name);
+            Transition* createTransition(const String& name, const TimeInterval& interval);
             PlaceToTransition* connect(Place* place, Transition* transition);
             TransitionToPlace* connect(Transition* transition, Place* place);
 

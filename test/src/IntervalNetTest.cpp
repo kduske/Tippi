@@ -38,24 +38,24 @@ namespace Tippi {
         
         TEST(NetTest, createDuplicateTransition) {
             Net net;
-            Transition* t1 = net.createTransition("t1");
-            ASSERT_THROW(net.createTransition("t1"), NetException);
+            Transition* t1 = net.createTransition("t1", TimeInterval());
+            ASSERT_THROW(net.createTransition("t1", TimeInterval()), NetException);
             net.deleteTransition(t1);
-            ASSERT_NO_THROW(net.createTransition("t1"));
+            ASSERT_NO_THROW(net.createTransition("t1", TimeInterval()));
         }
         
         TEST(NetTest, createPlaceAndTransition) {
             Net net;
             ASSERT_TRUE(net.createPlace("p1") != NULL);
             ASSERT_EQ(1u, net.getPlaces().size());
-            ASSERT_TRUE(net.createTransition("t1") != NULL);
+            ASSERT_TRUE(net.createTransition("t1", TimeInterval()) != NULL);
             ASSERT_EQ(1u, net.getTransitions().size());
         }
         
         TEST(NetTest, connectPlaceAndTransition) {
             Net net;
             Place* p = net.createPlace("p1");
-            Transition* t = net.createTransition("t1");
+            Transition* t = net.createTransition("t1", TimeInterval());
             PlaceToTransition* p2t = net.connect(p, t);
             TransitionToPlace* t2p = net.connect(t, p);
             
@@ -76,7 +76,7 @@ namespace Tippi {
         
         TEST(NetTest, deleteIsolatedTransition) {
             Net net;
-            Transition* t = net.createTransition("t1");
+            Transition* t = net.createTransition("t1", TimeInterval());
             net.deleteTransition(t);
             ASSERT_TRUE(net.getTransitions().empty());
         }
@@ -84,8 +84,8 @@ namespace Tippi {
         TEST(NetTest, deleteConnectedPlace) {
             Net net;
             Place* p = net.createPlace("p1");
-            Transition* t1 = net.createTransition("t1");
-            Transition* t2 = net.createTransition("t2");
+            Transition* t1 = net.createTransition("t1", TimeInterval());
+            Transition* t2 = net.createTransition("t2", TimeInterval());
             net.connect(t1, p);
             net.connect(p, t2);
             
@@ -99,7 +99,7 @@ namespace Tippi {
             Net net;
             Place* p1 = net.createPlace("p1");
             Place* p2 = net.createPlace("p2");
-            Transition* t = net.createTransition("t1");
+            Transition* t = net.createTransition("t1", TimeInterval());
             net.connect(p1, t);
             net.connect(t, p2);
             

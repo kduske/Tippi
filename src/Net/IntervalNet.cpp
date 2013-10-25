@@ -12,11 +12,13 @@
 
 #include <algorithm>
 #include <cassert>
+#include <limits>
 
 namespace Tippi {
     namespace Interval {
-        Transition::Transition(const String& name, const size_t index) :
-        NetNode(name, index) {}
+        Transition::Transition(const String& name, const size_t index, const TimeInterval& interval) :
+        NetNode(name, index),
+        m_interval(interval) {}
 
         Place::Place(const String& name, const size_t index) :
         NetNode(name, index) {}
@@ -36,9 +38,9 @@ namespace Tippi {
             return place;
         }
         
-        Transition* Net::createTransition(const String& name) {
+        Transition* Net::createTransition(const String& name, const TimeInterval& interval) {
             const size_t index = m_transitions.getNextIndex();
-            Transition* transition = new Transition(name, index);
+            Transition* transition = new Transition(name, index, interval);
             if (!m_transitions.insertNode(transition)) {
                 delete transition;
                 throw NetException("Net already contains a transition with name '" + name + "'");
