@@ -68,6 +68,26 @@ namespace Tippi {
             return m_outgoing;
         }
         
+        bool isInPreset(const typename Incoming::Source* node) const {
+            typename IncomingList::const_iterator it, end;
+            for (it = m_incoming.begin(), end = m_incoming.end(); it != end; ++it) {
+                const Incoming* edge = *it;
+                if (edge->getSource() == node)
+                    return true;
+            }
+            return false;
+        }
+        
+        bool isInPostset(const typename Outgoing::Target* node) const {
+            typename OutgoingList::const_iterator it, end;
+            for (it = m_outgoing.begin(), end = m_outgoing.end(); it != end; ++it) {
+                const Outgoing* edge = *it;
+                if (edge->getTarget() == node)
+                    return true;
+            }
+            return false;
+        }
+        
         bool isVisited() const {
             return m_visited;
         }

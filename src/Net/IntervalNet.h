@@ -45,6 +45,8 @@ namespace Tippi {
             TimeInterval m_interval;
         public:
             Transition(const String& name, const size_t index, const TimeInterval& interval);
+            
+            const TimeInterval& getInterval() const;
         };
         
         class Place : public GraphNode<TransitionToPlace, PlaceToTransition>, public NetNode {
@@ -57,6 +59,7 @@ namespace Tippi {
         public:
             Place(const String& name, const size_t index, const size_t bound);
             
+            size_t getBound() const;
             bool isInputPlace() const;
             bool isOutputPlace() const;
             void setInputPlace(const bool inputPlace);
@@ -71,6 +74,7 @@ namespace Tippi {
             TransitionToPlace::List m_transitionToPlaceArcs;
             
             Marking m_initialMarking;
+            Marking::List m_finalMarkings;
         public:
             ~Net();
             
@@ -85,13 +89,17 @@ namespace Tippi {
             void disconnect(TransitionToPlace* arc);
             
             void setInitialMarking(const Marking& marking);
+            void addFinalMarking(const Marking& marking);
             
             const Place::List& getPlaces() const;
             const Transition::List& getTransitions() const;
+            const Place* findPlace(const String& name) const;
+            const Transition* findTransition(const String& name) const;
             Place* findPlace(const String& name);
             Transition* findTransition(const String& name);
             
-            const Marking& initialMarking() const;
+            const Marking& getInitialMarking() const;
+            const Marking::List& getFinalMarkings() const;
         private:
             template <class Node, class ArcList>
             void deleteIncomingArcs(Node* node, ArcList& arcs) {

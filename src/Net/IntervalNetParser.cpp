@@ -1,3 +1,4 @@
+
 /*
  Copyright (C) 2013 Kristian Duske
  
@@ -25,7 +26,7 @@
 
 #include "Net/IntervalNet.h"
 #include "Net/Marking.h"
-#include "Net/TimeInterva.h"
+#include "Net/TimeInterval.h"
 
 namespace Tippi {
     namespace Interval {
@@ -87,15 +88,15 @@ namespace Tippi {
                             discardWhile(Whitespace);
                         } else {
                             const char* begin = c;
-                            const char* end = readInteger(begin, Whitespace);
+                            const char* end = readInteger(begin, Whitespace + ";,:");
                             if (end > begin)
                                 return Token(NetToken::Number, begin, end, offset(begin), startLine, startColumn);
                             
-                            end = readDecimal(begin, Whitespace);
+                            end = readDecimal(begin, Whitespace + ";,:");
                             if (end > begin)
                                 return Token(NetToken::Number, begin, end, offset(begin), startLine, startColumn);
                             
-                            end = readString(begin, Whitespace);
+                            end = readString(begin, Whitespace + ";,:");
                             if (end == begin)
                                 throw ParserException(startLine, startColumn, "Unexpected character: " + String(c, 1));
 
@@ -112,32 +113,40 @@ namespace Tippi {
             const size_t len = end - begin;
 
             for (size_t i = 0; i < 11; ++i)
-                if (strncmp(begin, TokenMappings[i].str, std::min(len, TokenMappings[i].len)))
+                if (len == TokenMappings[i].len &&
+                    std::strncmp(begin, TokenMappings[i].str, len) == 0)
                     return TokenMappings[i].type;
             return NetToken::Identifier;
         }
         
+        NetParser::NetParser(const char* begin, const char* end) :
+        m_tokenizer(begin, end) {}
+        
+        NetParser::NetParser(const String& str) :
+        m_tokenizer(str) {}
+
         Net* NetParser::parse() {
-            expect(NetToken::TimeNet, m_tokenizer.nextToken());
-            expect(NetToken::Place, m_tokenizer.nextToken());
-            
-            Token token = m_tokenizer.nextToken();
-            if (token.type() == NetToken::Eof)
-                return NULL;
-            expect(NetToken::Safe | NetToken::Identifier, token);
-            
+            Token token;
             Net* net = new Net();
-            // parse places
-            while (token.type() & (NetToken::Safe | NetToken::Identifier)) {
-                m_tokenizer.pushToken(token);
-                parsePlaces(*net);
-                expect(NetToken::InputPlaces | NetToken::OutputPlaces | NetToken::Safe | NetToken::Identifier | NetToken::Marking | NetToken::Transition | NetToken::FinalMarking, token = m_tokenizer.nextToken());
-            }
-            
+
+            expect(NetToken::TimeNet | NetToken::Eof, token = m_tokenizer.nextToken());
             if (token.type() == NetToken::Eof)
                 return net;
             
-            expect(NetToken::InputPlaces | NetToken::OutputPlaces | NetToken::Marking | NetToken::Transition | NetToken::FinalMarking, token);
+            expect(NetToken::Place | NetToken::InputPlaces | NetToken::OutputPlaces | NetToken::Marking | NetToken::Transition | NetToken::FinalMarking | NetToken::Eof, token = m_tokenizer.nextToken());
+
+            if (token.type() == NetToken::Place) {
+                expect(NetToken::Safe | NetToken::Identifier, token = m_tokenizer.nextToken());
+
+                // parse places
+                while (token.type() & (NetToken::Safe | NetToken::Identifier)) {
+                    m_tokenizer.pushToken(token);
+                    parsePlaces(*net);
+                    expect(NetToken::InputPlaces | NetToken::OutputPlaces | NetToken::Safe | NetToken::Identifier | NetToken::Marking | NetToken::Transition | NetToken::FinalMarking | NetToken::Eof, token = m_tokenizer.nextToken());
+                }
+            }
+
+            expect(NetToken::InputPlaces | NetToken::OutputPlaces | NetToken::Marking | NetToken::Transition | NetToken::FinalMarking | NetToken::Eof, token);
             
             // parse input places
             if (token.type() == NetToken::InputPlaces) {
@@ -145,36 +154,43 @@ namespace Tippi {
                 token = m_tokenizer.nextToken();
             }
             
-            if (token.type() == NetToken::Eof)
-                return net;
+            expect(NetToken::OutputPlaces | NetToken::Marking | NetToken::Transition | NetToken::FinalMarking | NetToken::Eof, token);
             
             // parse output places
             if (token.type() == NetToken::OutputPlaces) {
                 parseOutputPlaces(*net);
                 token = m_tokenizer.nextToken();
             }
-
-            if (token.type() == NetToken::Eof)
-                return net;
+            
+            expect(NetToken::Marking | NetToken::Transition | NetToken::FinalMarking | NetToken::Eof, token);
             
             // parse initial marking
             if (token.type() == NetToken::Marking) {
                 const Marking initialMarking = parseMarking(*net);
                 net->setInitialMarking(initialMarking);
+                token = m_tokenizer.nextToken();
             }
             
-            token = m_tokenizer.nextToken();
-            if (token.type() == NetToken::Eof)
-                return net;
+            expect(NetToken::Transition | NetToken::FinalMarking | NetToken::Eof, token);
             
             // parse the transitions and arcs
-            expect(NetToken::Transition | NetToken::FinalMarking, token);
             if (token.type() == NetToken::Transition) {
                 do {
                     parseTransition(*net);
                     token = m_tokenizer.nextToken();
                 } while (token.type() == NetToken::Transition);
             }
+            
+            expect(NetToken::FinalMarking | NetToken::Eof, token);
+            
+            while (token.type() == NetToken::FinalMarking) {
+                const Marking finalMarking = parseMarking(*net);
+                net->addFinalMarking(finalMarking);
+                expect(NetToken::FinalMarking | NetToken::Eof, token = m_tokenizer.nextToken());
+            }
+            
+            expect(NetToken::Eof, token);
+            return net;
         }
 
         void NetParser::parsePlaces(Net& net) {
@@ -275,7 +291,7 @@ namespace Tippi {
                 if (token.type() == NetToken::Number) {
                     const long long e = token.toInteger<long long>();
                     if (e < 0)
-                        throw ParserException("Invalid lower time interval bound");
+                        throw ParserException(token.line(), token.column(), "Invalid lower time interval bound");
                     eft = static_cast<size_t>(e);
                     
                     expect(NetToken::Comma, token = m_tokenizer.nextToken());
@@ -284,7 +300,7 @@ namespace Tippi {
                     if (token.type() == NetToken::Number) {
                         const long long l = token.toInteger<long long>();
                         if (l < 0)
-                            throw ParserException("Invalid upper time interval bound");
+                            throw ParserException(token.line(), token.column(), "Invalid upper time interval bound");
                         lft = l;
                     }
                 }
@@ -295,19 +311,57 @@ namespace Tippi {
             
             transition = net.createTransition(transitionName, TimeInterval(eft, lft));
             
-            if (token.type() == NetToken::Eof)
-                return;
-            
             // parse the incoming arcs
             if (token.type() == NetToken::Consume) {
+                expect(NetToken::Identifier | NetToken::Semicolon, token = m_tokenizer.nextToken());
+                if (token.type() == NetToken::Identifier) {
+                    m_tokenizer.pushToken(token);
+                    do {
+                        parseIncomingArc(net, *transition);
+                    } while (m_tokenizer.nextToken().type() != NetToken::Semicolon);
+                }
             }
-            
-            if (token.type() == NetToken::Eof)
-                return;
             
             // parse the outgoing arcs
+            token = m_tokenizer.nextToken();
             if (token.type() == NetToken::Produce) {
+                expect(NetToken::Identifier | NetToken::Semicolon, token = m_tokenizer.nextToken());
+                if (token.type() == NetToken::Identifier) {
+                    m_tokenizer.pushToken(token);
+                    do {
+                        parseOutgoingArc(net, *transition);
+                    } while (m_tokenizer.nextToken().type() != NetToken::Semicolon);
+                }
             }
+        }
+        
+        void NetParser::parseIncomingArc(Net& net, Transition& transition) {
+            parseArc(net, transition, true);
+        }
+        
+        void NetParser::parseOutgoingArc(Net& net, Transition& transition) {
+            parseArc(net, transition, false);
+        }
+        
+        void NetParser::parseArc(Net& net, Transition& transition, const bool incoming) {
+            Token token = m_tokenizer.nextToken();
+            expect(NetToken::Identifier, token);
+            const String placeName = token.data();
+
+            Place* place = net.findPlace(placeName);
+            if (place == NULL)
+                throw ParserException(token.line(), token.column(), "Unknown place :'" + placeName + "'");
+
+            expect(NetToken::Colon, token = m_tokenizer.nextToken());
+            expect(NetToken::Number, token = m_tokenizer.nextToken());
+            const long long multiplicity = token.toInteger<long long>();
+            if (multiplicity != 1)
+                throw ParserException(token.line(), token.column(), "Arc multiplicity must be 1");
+
+            if (incoming)
+                net.connect(place, &transition);
+            else
+                net.connect(&transition, place);
         }
 
         String NetParser::tokenName(const NetToken::Type typeMask) const {

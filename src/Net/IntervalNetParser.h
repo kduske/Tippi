@@ -62,6 +62,7 @@ namespace Tippi {
         };
         
         class Net;
+        class Transition;
         
         class NetParser : public Parser<NetToken::Type> {
         private:
@@ -79,6 +80,10 @@ namespace Tippi {
             void parseIOPlaces(Net& net, const bool input);
             Marking parseMarking(Net& net);
             void parseTransition(Net& net);
+            void parseIncomingArc(Net& net, Transition& transition);
+            void parseOutgoingArc(Net& net, Transition& transition);
+            void parseArc(Net& net, Transition& transition, const bool incoming);
+            void parseFinalMarkings(Net& net);
             String tokenName(const NetToken::Type typeMask) const;
         };
     }

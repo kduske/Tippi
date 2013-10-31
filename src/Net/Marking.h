@@ -26,6 +26,8 @@ namespace Tippi {
     class NetNode;
     
     class Marking {
+    public:
+        typedef std::vector<Marking> List;
     private:
         std::vector<size_t> m_marking;
     public:

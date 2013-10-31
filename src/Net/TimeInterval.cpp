@@ -36,6 +36,10 @@ namespace Tippi {
             }
         }
 
+        bool TimeInterval::operator==(const TimeInterval& rhs) const {
+            return m_min == rhs.m_min && m_max == rhs.m_max;
+        }
+
         size_t TimeInterval::getMin() const {
             return m_min;
         }

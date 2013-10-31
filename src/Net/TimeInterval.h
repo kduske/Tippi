@@ -33,6 +33,8 @@ namespace Tippi {
         public:
             TimeInterval(const size_t min = 0, const size_t max = Infinity);
             
+            bool operator==(const TimeInterval& rhs) const;
+
             size_t getMin() const;
             size_t getMax() const;
         };

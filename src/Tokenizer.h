@@ -36,7 +36,7 @@ namespace Tippi {
         
         const char* m_begin;
         const char* m_end;
-        const char* m_cur;
+        const char* m_next;
         size_t m_line;
         size_t m_column;
         size_t m_lastColumn;
@@ -48,7 +48,7 @@ namespace Tippi {
         Tokenizer(const char* begin, const char* end) :
         m_begin(begin),
         m_end(end),
-        m_cur(m_begin),
+        m_next(m_begin),
         m_line(1),
         m_column(1),
         m_lastColumn(0) {}
@@ -56,7 +56,7 @@ namespace Tippi {
         Tokenizer(const String& str) :
         m_begin(str.c_str()),
         m_end(str.c_str() + str.size()),
-        m_cur(m_begin),
+        m_next(m_begin),
         m_line(1),
         m_column(1),
         m_lastColumn(0) {}
@@ -93,7 +93,7 @@ namespace Tippi {
             const char* endPos = startPos;
             token = nextToken();
             while (token.type() != delimiterType && !eof()) {
-                endPos = m_cur;
+                endPos = m_next;
                 token = nextToken();
             }
             
@@ -104,7 +104,7 @@ namespace Tippi {
         void reset() {
             m_line = 1;
             m_column = 1;
-            m_cur = m_begin;
+            m_next = m_begin;
         }
     protected:
         size_t line() const {
@@ -116,7 +116,7 @@ namespace Tippi {
         }
         
         bool eof() const {
-            return m_cur >= m_end;
+            return m_next >= m_end;
         }
         
         size_t length() const {
@@ -132,24 +132,24 @@ namespace Tippi {
             if (eof())
                 return 0;
             
-            if (*m_cur == '\n') {
-                m_line++;
+            if (*m_next == '\n') {
+                ++m_line;
                 m_lastColumn = m_column;
                 m_column = 1;
             } else {
-                m_column++;
+                ++m_column;
             }
             
-            return m_cur++;
+            return m_next++;
         }
         
         void pushChar() {
-            assert(m_cur > m_begin);
-            if (*--m_cur == '\n') {
-                m_line--;
+            assert(m_next > m_begin);
+            if (*--m_next == '\n') {
+                --m_line;
                 m_column = m_lastColumn;
             } else {
-                m_column--;
+                --m_column;
             }
         }
         
@@ -157,8 +157,8 @@ namespace Tippi {
             if (eof())
                 return 0;
             
-            assert(m_cur + offset < m_end);
-            return *(m_cur + offset);
+            assert(m_next + offset < m_end);
+            return *(m_next + offset);
         }
         
         bool isDigit(const char c) const {
@@ -210,7 +210,7 @@ namespace Tippi {
         
         const char* readString(const char* begin, const String& delims) {
             const char* c = begin;
-            while (!eof() && c != NULL && !isAnyOf(*c, delims))
+            while (!eof() && !isAnyOf(*c, delims))
                 c = nextChar();
             if (!eof())
                 pushChar();

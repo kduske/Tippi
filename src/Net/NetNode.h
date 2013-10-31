@@ -60,6 +60,10 @@ namespace Tippi {
             return m_nodes;
         }
         
+        const N* findNode(const String& name) const {
+            return MapUtils::findValue(m_nodesByName, name);
+        }
+        
         N* findNode(const String& name) {
             return MapUtils::findValue(m_nodesByName, name);
         }

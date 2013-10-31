@@ -31,11 +31,19 @@ namespace Tippi {
         NetNode(name, index),
         m_interval(interval) {}
 
+        const TimeInterval& Transition::getInterval() const {
+            return m_interval;
+        }
+
         Place::Place(const String& name, const size_t index, const size_t bound) :
         NetNode(name, index),
         m_bound(bound),
         m_inputPlace(false),
         m_outputPlace(false) {}
+
+        size_t Place::getBound() const {
+            return m_bound;
+        }
 
         bool Place::isInputPlace() const {
             return m_inputPlace;
@@ -132,12 +140,24 @@ namespace Tippi {
             m_initialMarking = marking;
         }
 
+        void Net::addFinalMarking(const Marking& marking) {
+            m_finalMarkings.push_back(marking);
+        }
+
         const Place::List& Net::getPlaces() const {
             return m_places.getNodes();
         }
         
         const Transition::List& Net::getTransitions() const {
             return m_transitions.getNodes();
+        }
+
+        const Place* Net::findPlace(const String& name) const {
+            return m_places.findNode(name);
+        }
+        
+        const Transition* Net::findTransition(const String& name) const {
+            return m_transitions.findNode(name);
         }
 
         Place* Net::findPlace(const String& name) {
@@ -147,9 +167,13 @@ namespace Tippi {
         Transition* Net::findTransition(const String& name) {
             return m_transitions.findNode(name);
         }
-
-        const Marking& Net::initialMarking() const {
+        
+        const Marking& Net::getInitialMarking() const {
             return m_initialMarking;
+        }
+
+        const Marking::List& Net::getFinalMarkings() const {
+            return m_finalMarkings;
         }
     }
 }
