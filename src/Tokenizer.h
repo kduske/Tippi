@@ -169,60 +169,49 @@ namespace Tippi {
             return isAnyOf(c, Whitespace);
         }
         
-        const char* readInteger(const char* begin, const String& delims) {
-            const char* c = begin;
-            if ((*c == '-' && !eof()) || isDigit(*c)) {
-                while (!eof() && isDigit(*(c = nextChar())));
-                if (eof() || isAnyOf(*c, delims)) {
-                    if (!eof())
-                        pushChar();
-                    return c;
+        const char* readInteger(const char lastChar, const String& delims) {
+            if (lastChar != '-' && !isDigit(lastChar))
+                return NULL;
+            
+            while (!eof() && isDigit(peekChar()))
+                nextChar();
+            if (eof() || isAnyOf(peekChar(), delims))
+                return m_next;
+            return NULL;
+        }
+        
+        const char* readDecimal(const char lastChar, const String& delims) {
+            if (lastChar != '+' && lastChar != '-' && lastChar != '.' && !isDigit(lastChar))
+                return NULL;
+            while (!eof() && isDigit(peekChar()))
+                nextChar();
+            if (peekChar() == '.') {
+                while (!eof() && isDigit(peekChar()))
+                    nextChar();
+            }
+            if (peekChar() == 'e') {
+                nextChar();
+                if (peekChar() == '+' || peekChar() == '-' || isDigit(peekChar())) {
+                    while (!eof() && isDigit(peekChar()))
+                        nextChar();
                 }
             }
-            return begin;
+            if (eof() || isAnyOf(peekChar(), delims))
+                return m_next;
+            return NULL;
         }
         
-        const char* readDecimal(const char* begin, const String& delims) {
-            const char* c = begin;
-            if (((*c == '-' || *c == '.') && !eof()) || isDigit(*c)) {
-                while (!eof() && isDigit(*(c = nextChar())));
-                if (*c == '.' && eof())
-                    return begin;
-                if (*c == '.')
-                    while (!eof() && isDigit(*(c = nextChar())));
-                if (*c == 'e' && eof())
-                    return begin;
-                if (*c == 'e') {
-                    c = nextChar();
-                    if ((*c == '+' || *c == '-') && eof())
-                        return begin;
-                    if (*c == '+' || *c == '-' || isDigit(*c))
-                        while (!eof() && isDigit(*(c = nextChar())));
-                }
-                if (eof() || isAnyOf(*c, delims)) {
-                    if (!eof())
-                        pushChar();
-                    return c;
-                }
-            }
-            return begin;
+        const char* readString(const String& delims) {
+            while (!eof() && !isAnyOf(peekChar(), delims))
+                nextChar();
+            return m_next;
         }
         
-        const char* readString(const char* begin, const String& delims) {
-            const char* c = begin;
-            while (!eof() && !isAnyOf(*c, delims))
-                c = nextChar();
-            if (!eof())
-                pushChar();
-            return c;
-        }
-        
-        const char* readQuotedString(const char* begin) {
-            const char* c = begin;
-            while (!eof() && *c != '"')
-                c = nextChar();
+        const char* readQuotedString() {
+            while (!eof() && peekChar() != '"')
+                nextChar();
             errorIfEof();
-            return c;
+            return m_next;
         }
         
         void discardWhile(const String& allow) {

@@ -88,15 +88,15 @@ namespace Tippi {
                             discardWhile(Whitespace);
                         } else {
                             const char* begin = c;
-                            const char* end = readInteger(begin, Whitespace + ";,:");
+                            const char* end = readInteger(*c, Whitespace + ";,:");
                             if (end > begin)
                                 return Token(NetToken::Number, begin, end, offset(begin), startLine, startColumn);
                             
-                            end = readDecimal(begin, Whitespace + ";,:");
+                            end = readDecimal(*c, Whitespace + ";,:");
                             if (end > begin)
                                 return Token(NetToken::Number, begin, end, offset(begin), startLine, startColumn);
                             
-                            end = readString(begin, Whitespace + ";,:");
+                            end = readString(Whitespace + ";,:");
                             if (end == begin)
                                 throw ParserException(startLine, startColumn, "Unexpected character: " + String(c, 1));
 

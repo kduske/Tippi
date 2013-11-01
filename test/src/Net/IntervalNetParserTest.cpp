@@ -27,10 +27,15 @@ namespace Tippi {
     namespace Interval {
         
         TEST(IntervalNetParserTest, testEmptyNet) {
-            const String str("TIMENET");
-            NetParser parser(str);
+            const Net* net = NULL;
             
-            const Net* net = parser.parse();
+            net = NetParser("TIMENET").parse();
+            ASSERT_TRUE(net != NULL);
+            ASSERT_TRUE(net->getPlaces().empty());
+            ASSERT_TRUE(net->getTransitions().empty());
+            ASSERT_TRUE(net->getFinalMarkings().empty());
+            
+            net = NetParser("TIMENET\n").parse();
             ASSERT_TRUE(net != NULL);
             ASSERT_TRUE(net->getPlaces().empty());
             ASSERT_TRUE(net->getTransitions().empty());
