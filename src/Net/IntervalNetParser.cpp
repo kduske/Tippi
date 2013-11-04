@@ -1,4 +1,5 @@
 
+
 /*
  Copyright (C) 2013 Kristian Duske
  
@@ -65,44 +66,48 @@ namespace Tippi {
             while (!eof()) {
                 size_t startLine = line();
                 size_t startColumn = column();
-                const char* c = nextChar();
+                const char* c = curPos();
 
                 switch (*c) {
                     case '{':
                         discardUntil("}");
                         break;
                     case ',':
+                        advance();
                         return Token(NetToken::Comma, c, c+1, offset(c), startLine, startColumn);
                     case ':':
+                        advance();
                         return Token(NetToken::Colon, c, c+1, offset(c), startLine, startColumn);
                     case ';':
+                        advance();
                         return Token(NetToken::Semicolon, c, c+1, offset(c), startLine, startColumn);
                     case '(':
+                        advance();
                         return Token(NetToken::OParen, c, c+1, offset(c), startLine, startColumn);
                     case ')':
+                        advance();
                         return Token(NetToken::CParen, c, c+1, offset(c), startLine, startColumn);
                     case '*':
+                        advance();
                         return Token(NetToken::Infinity, c, c+1, offset(c), startLine, startColumn);
-                    default:
-                        if (isWhitespace(*c)) {
-                            discardWhile(Whitespace);
-                        } else {
-                            const char* begin = c;
-                            const char* end = readInteger(*c, Whitespace + ";,:");
-                            if (end > begin)
-                                return Token(NetToken::Number, begin, end, offset(begin), startLine, startColumn);
-                            
-                            end = readDecimal(*c, Whitespace + ";,:");
-                            if (end > begin)
-                                return Token(NetToken::Number, begin, end, offset(begin), startLine, startColumn);
-                            
-                            end = readString(Whitespace + ";,:");
-                            if (end == begin)
-                                throw ParserException(startLine, startColumn, "Unexpected character: " + String(c, 1));
-
-                            return Token(detectType(begin, end), begin, end, offset(begin), startLine, startColumn);
-                        }
+                    case ' ':
+                    case '\t':
+                    case '\n':
+                    case '\r':
+                        discardWhile(Whitespace);
                         break;
+                    default: {
+                        const char* e = readInteger(Whitespace + ";,:");
+                        if (e != NULL)
+                            return Token(NetToken::Number, c, e, offset(c), startLine, startColumn);
+                        e = readDecimal(Whitespace + ";,:");
+                        if (e != NULL)
+                            return Token(NetToken::Number, c, e, offset(c), startLine, startColumn);
+                        e = readString(Whitespace + ";,:");
+                        if (e == NULL)
+                            throw ParserException(startLine, startColumn, "Unexpected character: " + String(c, 1));
+                        return Token(detectType(c, e), c, e, offset(c), startLine, startColumn);
+                    }
                 }
             }
             return Token(NetToken::Eof, NULL, NULL, length(), line(), column());

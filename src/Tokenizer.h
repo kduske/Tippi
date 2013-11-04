@@ -34,12 +34,22 @@ namespace Tippi {
     private:
         typedef std::stack<Token> TokenStack;
         
+        struct State {
+            const char* cur;
+            size_t line;
+            size_t column;
+            size_t lastColumn;
+            
+            State(const char* i_cur) :
+            cur(i_cur),
+            line(1),
+            column(1),
+            lastColumn(0) {}
+        };
+        
         const char* m_begin;
         const char* m_end;
-        const char* m_next;
-        size_t m_line;
-        size_t m_column;
-        size_t m_lastColumn;
+        State m_state;
         
         TokenStack m_tokenStack;
     protected:
@@ -48,18 +58,12 @@ namespace Tippi {
         Tokenizer(const char* begin, const char* end) :
         m_begin(begin),
         m_end(end),
-        m_next(m_begin),
-        m_line(1),
-        m_column(1),
-        m_lastColumn(0) {}
+        m_state(State(m_begin)) {}
         
         Tokenizer(const String& str) :
         m_begin(str.c_str()),
         m_end(str.c_str() + str.size()),
-        m_next(m_begin),
-        m_line(1),
-        m_column(1),
-        m_lastColumn(0) {}
+        m_state(State(m_begin)) {}
         
         virtual ~Tokenizer() {}
         
@@ -93,7 +97,7 @@ namespace Tippi {
             const char* endPos = startPos;
             token = nextToken();
             while (token.type() != delimiterType && !eof()) {
-                endPos = m_next;
+                endPos = token.end();
                 token = nextToken();
             }
             
@@ -102,21 +106,19 @@ namespace Tippi {
         }
         
         void reset() {
-            m_line = 1;
-            m_column = 1;
-            m_next = m_begin;
+            m_state = State(m_begin);
         }
     protected:
         size_t line() const {
-            return m_line;
+            return m_state.line;
         }
         
         size_t column() const {
-            return m_column;
+            return m_state.column;
         }
         
         bool eof() const {
-            return m_next >= m_end;
+            return m_state.cur >= m_end;
         }
         
         size_t length() const {
@@ -128,37 +130,51 @@ namespace Tippi {
             return static_cast<size_t>(ptr - m_begin);
         }
         
-        const char* nextChar() {
+        const char* curPos() const {
+            return m_state.cur;
+        }
+        
+        char curChar() const {
             if (eof())
                 return 0;
             
-            if (*m_next == '\n') {
-                ++m_line;
-                m_lastColumn = m_column;
-                m_column = 1;
-            } else {
-                ++m_column;
-            }
-            
-            return m_next++;
+            return *curPos();
         }
         
-        void pushChar() {
-            assert(m_next > m_begin);
-            if (*--m_next == '\n') {
-                --m_line;
-                m_column = m_lastColumn;
+        void advance() {
+            errorIfEof();
+            
+            if (curChar() == '\n') {
+                ++m_state.line;
+                m_state.lastColumn = m_state.column;
+                m_state.column = 1;
             } else {
-                --m_column;
+                ++m_state.column;
             }
+            
+            ++m_state.cur;
         }
         
-        char peekChar(size_t offset = 0) {
-            if (eof())
-                return 0;
-            
-            assert(m_next + offset < m_end);
-            return *(m_next + offset);
+        void retreat() {
+            if (curPos() == m_begin)
+                throw ParserException("Cannot retreat beyond beginning of file");
+            --m_state.cur;
+            if (curChar() == '\n') {
+                --m_state.line;
+                if (m_state.lastColumn > 0) {
+                    m_state.column = m_state.lastColumn;
+                    m_state.lastColumn = 0;
+                } else {
+                    m_state.column = 1;
+                    const char* c = m_state.cur - 1;
+                    while (c > m_begin && *c != '\n') {
+                        --c;
+                        ++m_state.column;
+                    }
+                }
+            } else {
+                --m_state.column;
+            }
         }
         
         bool isDigit(const char c) const {
@@ -169,60 +185,71 @@ namespace Tippi {
             return isAnyOf(c, Whitespace);
         }
         
-        const char* readInteger(const char lastChar, const String& delims) {
-            if (lastChar != '-' && !isDigit(lastChar))
+        const char* readInteger(const String& delims) {
+            if (curChar() != '-' && !isDigit(curChar()))
                 return NULL;
             
-            while (!eof() && isDigit(peekChar()))
-                nextChar();
-            if (eof() || isAnyOf(peekChar(), delims))
-                return m_next;
+            const State previous = m_state;
+            while (!eof() && isDigit(curChar()))
+                advance();
+            if (eof() || isAnyOf(curChar(), delims))
+                return curPos();
+            
+            m_state = previous;
             return NULL;
         }
         
-        const char* readDecimal(const char lastChar, const String& delims) {
-            if (lastChar != '+' && lastChar != '-' && lastChar != '.' && !isDigit(lastChar))
+        const char* readDecimal(const String& delims) {
+            if (curChar() != '+' && curChar() != '-' && curChar() != '.' && !isDigit(curChar()))
                 return NULL;
-            while (!eof() && isDigit(peekChar()))
-                nextChar();
-            if (peekChar() == '.') {
-                while (!eof() && isDigit(peekChar()))
-                    nextChar();
+            
+            const State previous = m_state;
+            advance();
+            while (!eof() && isDigit(curChar()))
+                advance();
+            if (curChar() == '.') {
+                advance();
+                while (!eof() && isDigit(curChar()))
+                    advance();
             }
-            if (peekChar() == 'e') {
-                nextChar();
-                if (peekChar() == '+' || peekChar() == '-' || isDigit(peekChar())) {
-                    while (!eof() && isDigit(peekChar()))
-                        nextChar();
+            if (curChar() == 'e') {
+                advance();
+                if (curChar() == '+' || curChar() == '-' || isDigit(curChar())) {
+                    advance();
+                    while (!eof() && isDigit(curChar()))
+                        advance();
                 }
             }
-            if (eof() || isAnyOf(peekChar(), delims))
-                return m_next;
+            if (eof() || isAnyOf(curChar(), delims))
+                return curPos();
+            
+            m_state = previous;
             return NULL;
         }
         
         const char* readString(const String& delims) {
-            while (!eof() && !isAnyOf(peekChar(), delims))
-                nextChar();
-            return m_next;
+            while (!eof() && !isAnyOf(curChar(), delims))
+                advance();
+            return curPos();
         }
         
         const char* readQuotedString() {
-            while (!eof() && peekChar() != '"')
-                nextChar();
+            while (!eof() && curChar() != '"')
+                advance();
             errorIfEof();
-            return m_next;
+            const char* end = curPos();
+            advance();
+            return end;
         }
         
         void discardWhile(const String& allow) {
-            while (!eof() && isAnyOf(peekChar(), allow))
-                nextChar();
-            // pushChar();
+            while (!eof() && isAnyOf(curChar(), allow))
+                advance();
         }
         
         void discardUntil(const String& delims) {
-            const char* c;
-            while (!eof() && !isAnyOf(*(c = nextChar()), delims));
+            while (!eof() && !isAnyOf(curChar(), delims))
+                advance();
         }
         
         void error(const char c) const {
@@ -232,11 +259,8 @@ namespace Tippi {
         }
         
         void errorIfEof() const {
-            if (eof()) {
-                ParserException e;
-                e << "Unexpected end of file";
-                throw e;
-            }
+            if (eof())
+                throw ParserException("Unexpected end of file");
         }
     private:
         bool isAnyOf(const char c, const String& allow) const {
@@ -252,5 +276,4 @@ namespace Tippi {
     template <typename TokenType>
     const String Tokenizer<TokenType>::Whitespace = " \t\n\r";
 }
-
 #endif
