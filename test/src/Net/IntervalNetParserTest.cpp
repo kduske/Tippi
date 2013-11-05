@@ -42,6 +42,172 @@ namespace Tippi {
             ASSERT_TRUE(net->getFinalMarkings().empty());
         }
         
+        TEST(IntervalNetParserTest, testSafeNetWithImplicitBound) {
+            const String str("TIMENET\n"
+                             "PLACE\n"
+                             "SAFE A;\n");
+            
+            NetParser parser(str);
+            const Net* net = parser.parse();
+            ASSERT_TRUE(net != NULL);
+            
+            ASSERT_EQ(1u, net->getPlaces().size());
+            const Place* A = net->findPlace("A");
+            ASSERT_EQ(1u, A->getBound());
+            delete net;
+        }
+        
+        TEST(IntervalNetParserTest, testSafeNetWithExplicitBounds) {
+            const String str("TIMENET\n"
+                             "PLACE\n"
+                             "SAFE 3 : A,B; SAFE 2 : C;\n");
+            
+            NetParser parser(str);
+            const Net* net = parser.parse();
+            ASSERT_TRUE(net != NULL);
+            
+            ASSERT_EQ(3u, net->getPlaces().size());
+            const Place* A = net->findPlace("A");
+            const Place* B = net->findPlace("B");
+            const Place* C = net->findPlace("C");
+            
+            ASSERT_EQ(3u, A->getBound());
+            ASSERT_EQ(3u, B->getBound());
+            ASSERT_EQ(2u, C->getBound());
+            delete net;
+        }
+        
+        TEST(IntervalNetParserTest, testUnsafeNet) {
+            const String str("TIMENET\n"
+                             "PLACE A;\n");
+            
+            NetParser parser(str);
+            const Net* net = parser.parse();
+            ASSERT_TRUE(net != NULL);
+            
+            ASSERT_EQ(1u, net->getPlaces().size());
+            const Place* A = net->findPlace("A");
+            ASSERT_EQ(0u, A->getBound());
+
+            delete net;
+        }
+
+        
+        TEST(IntervalNetParserTest, testMixedNet) {
+            const String str("TIMENET\n"
+                             "PLACE\n"
+                             "SAFE 3 : A,B; SAFE 2 : C; D;\n");
+            
+            NetParser parser(str);
+            const Net* net = parser.parse();
+            ASSERT_TRUE(net != NULL);
+            
+            ASSERT_EQ(4u, net->getPlaces().size());
+            const Place* A = net->findPlace("A");
+            const Place* B = net->findPlace("B");
+            const Place* C = net->findPlace("C");
+            const Place* D = net->findPlace("D");
+            
+            ASSERT_EQ(3u, A->getBound());
+            ASSERT_EQ(3u, B->getBound());
+            ASSERT_EQ(2u, C->getBound());
+            ASSERT_EQ(0u, D->getBound());
+            delete net;
+        }
+
+        TEST(IntervalNetParserTest, testSmallExample) {
+            const String str("TIMENET\n"
+                             "PLACE\n"
+                             "SAFE A;\n"
+                             "MARKING A:1;\n"
+                             "TRANSITION t1 TIME 2,3; CONSUME A:1; PRODUCE A:1;\n"
+                             "FINALMARKING A:0;");
+            
+            NetParser parser(str);
+            const Net* net = parser.parse();
+            ASSERT_TRUE(net != NULL);
+            
+            ASSERT_EQ(1u, net->getPlaces().size());
+            const Place* A = net->findPlace("A");
+            
+            ASSERT_TRUE(A != NULL);
+            ASSERT_EQ(1u, A->getBound());
+            ASSERT_FALSE(A->isInputPlace());
+            ASSERT_FALSE(A->isOutputPlace());
+            
+            const Marking& initialMarking = net->getInitialMarking();
+            ASSERT_EQ(1u, initialMarking[A]);
+            
+            ASSERT_EQ(1u, net->getTransitions().size());
+            const Transition* t1 = net->findTransition("t1");
+            
+            ASSERT_TRUE(t1 != NULL);
+            
+            ASSERT_EQ(TimeInterval(2,3), t1->getInterval());
+            
+            ASSERT_EQ(1u, t1->getIncoming().size());
+            ASSERT_TRUE(t1->isInPreset(A));
+            ASSERT_EQ(1u, t1->getOutgoing().size());
+            ASSERT_TRUE(t1->isInPostset(A));
+            
+            const Marking::List& finalMarkings = net->getFinalMarkings();
+            ASSERT_EQ(1u, finalMarkings.size());
+            
+            const Marking& finalMarking = finalMarkings.front();
+            ASSERT_EQ(0u, finalMarking[A]);
+            
+            delete net;
+        }
+        
+        
+        TEST(IntervalNetParserTest, testMissingPlaceInTransitionPreset) {
+            const String str("TIMENET\n"
+                             "PLACE\n"
+                             "SAFE A;\n"
+                             "MARKING A:1;\n"
+                             "TRANSITION t1 TIME 2,3; CONSUME A:1,B:1; PRODUCE A:1;\n"
+                             "FINALMARKING A:0;");
+            
+            NetParser parser(str);
+            ASSERT_THROW(parser.parse(), ParserException);
+        }
+        
+        TEST(IntervalNetParserTest, testMissingPlaceInTransitionPostset) {
+            const String str("TIMENET\n"
+                             "PLACE\n"
+                             "SAFE A;\n"
+                             "MARKING A:1;\n"
+                             "TRANSITION t1 TIME 2,3; CONSUME A:1; PRODUCE A:1,B:1;\n"
+                             "FINALMARKING A:0;");
+            
+            NetParser parser(str);
+            ASSERT_THROW(parser.parse(), ParserException);
+        }
+        
+        TEST(IntervalNetParserTest, testMissingPlaceInInitialMarking) {
+            const String str("TIMENET\n"
+                             "PLACE\n"
+                             "SAFE A;\n"
+                             "MARKING B:1;\n"
+                             "TRANSITION t1 TIME 2,3; CONSUME A:1; PRODUCE A:1;\n"
+                             "FINALMARKING A:0;");
+            
+            NetParser parser(str);
+            ASSERT_THROW(parser.parse(), ParserException);
+        }
+        
+        TEST(IntervalNetParserTest, testMissingPlaceInFinalMarking) {
+            const String str("TIMENET\n"
+                             "PLACE\n"
+                             "SAFE A;\n"
+                             "MARKING A:1;\n"
+                             "TRANSITION t1 TIME 2,3; CONSUME A:1; PRODUCE A:1;\n"
+                             "FINALMARKING A:0,B:0;");
+            
+            NetParser parser(str);
+            ASSERT_THROW(parser.parse(), ParserException);
+        }
+        
         TEST(IntervalNetParserTest, testFullExample) {
             const String str("TIMENET\n"
                              "PLACE\n"

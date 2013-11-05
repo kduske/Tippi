@@ -205,6 +205,7 @@ namespace Tippi {
                 expect(NetToken::Number | NetToken::Identifier, token = m_tokenizer.nextToken());
                 if (token.type() == NetToken::Number) {
                     bound = token.toInteger<long long>();
+                    expect(NetToken::Colon, token = m_tokenizer.nextToken());
                 } else {
                     bound = 1;
                     m_tokenizer.pushToken(token);
