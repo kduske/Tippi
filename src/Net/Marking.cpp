@@ -22,25 +22,76 @@
 #include "Net/NetNode.h"
 
 #include <cassert>
+#include <cstdarg>
 
 namespace Tippi {
-    Marking::Marking(const size_t placeCount) :
-    m_marking(placeCount, 0) {
+    Marking::Marking(const size_t count) :
+    m_marking(count, 0) {
     }
     
+    Marking Marking::createMarking(const size_t count, ...) {
+        Marking marking(count);
+        
+        va_list args;
+        va_start(args, count);
+        for (size_t i = 0; i < count; ++i)
+            marking[i] = va_arg(args, size_t);
+        va_end(args);
+        
+        return marking;
+    }
+
+    bool Marking::operator<(const Marking& rhs) const {
+        return compare(rhs) < 0;
+    }
+    
+    bool Marking::operator==(const Marking& rhs) const {
+        return compare(rhs) == 0;
+    }
+
+    int Marking::compare(const Marking& rhs) const {
+        assert(m_marking.size() == rhs.m_marking.size());
+        for (size_t i = 0; i < m_marking.size(); ++i) {
+            if (m_marking[i] < rhs.m_marking[i])
+                return -1;
+            if (m_marking[i] > rhs.m_marking[i])
+                return 1;
+        }
+        return 0;
+    }
+
     const size_t& Marking::operator[](const NetNode* node) const {
         assert(node != NULL);
-        assert(node->getIndex() < m_marking.size());
-        return m_marking[node->getIndex()];
+        return (*this)[node->getIndex()];
     }
     
     size_t& Marking::operator[](const NetNode* node) {
         assert(node != NULL);
-        assert(node->getIndex() < m_marking.size());
-        return m_marking[node->getIndex()];
+        return (*this)[node->getIndex()];
     }
 
+    const size_t& Marking::operator[](const size_t index) const {
+        assert(index < m_marking.size());
+        return m_marking[index];
+    }
+    
+    size_t& Marking::operator[](const size_t index) {
+        assert(index < m_marking.size());
+        return m_marking[index];
+    }
+    
     size_t Marking::getSize() const {
         return m_marking.size();
+    }
+
+    String Marking::asString() const {
+        StringStream str;
+        str << '[';
+        for (size_t i = 0; i < m_marking.size() - 1; ++i)
+            str << m_marking[i] << ',';
+        if (!m_marking.empty())
+            str << m_marking.back();
+        str << "]";
+        return str.str();
     }
 }

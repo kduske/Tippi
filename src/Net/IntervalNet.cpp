@@ -175,5 +175,16 @@ namespace Tippi {
         const Marking::List& Net::getFinalMarkings() const {
             return m_finalMarkings;
         }
+
+        bool Net::isClosed() const {
+            const Place::List& places = getPlaces();
+            Place::List::const_iterator it, end;
+            for (it = places.begin(), end = places.end(); it != end; ++it) {
+                const Place* place = *it;
+                if (place->isInputPlace() || place->isOutputPlace())
+                    return false;
+            }
+            return true;
+        }
     }
 }

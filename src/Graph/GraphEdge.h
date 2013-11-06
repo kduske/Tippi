@@ -34,11 +34,13 @@ namespace Tippi {
         SourceT* m_source;
         TargetT* m_target;
         size_t m_multiplicity;
+        mutable bool m_visited;
     public:
         GraphEdge(SourceT* source, TargetT* target, const size_t multiplicity = 1) :
         m_source(source),
         m_target(target),
-        m_multiplicity(multiplicity) {
+        m_multiplicity(multiplicity),
+        m_visited(false) {
             assert(m_source != NULL);
             assert(m_target != NULL);
             assert(m_multiplicity > 0);
@@ -66,17 +68,25 @@ namespace Tippi {
         }
         
         void removeFromSource() {
-            m_source->removeOutgoing(this);
+            m_source->removeOutgoing(static_cast<typename SourceT::Outgoing*>(this));
             m_source = NULL;
         }
         
         void removeFromTarget() {
-            m_target->removeIncoming(this);
+            m_target->removeIncoming(static_cast<typename TargetT::Incoming*>(this));
             m_target = NULL;
         }
         
         size_t getMultiplicity() const {
             return m_multiplicity;
+        }
+
+        bool isVisited() const {
+            return m_visited;
+        }
+        
+        void setVisited(const bool visited) const {
+            m_visited = visited;
         }
     };
 }

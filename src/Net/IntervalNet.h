@@ -29,6 +29,7 @@
 
 #include <exception>
 #include <map>
+#include <vector>
 
 namespace Tippi {
     namespace Interval {
@@ -100,6 +101,7 @@ namespace Tippi {
             
             const Marking& getInitialMarking() const;
             const Marking::List& getFinalMarkings() const;
+            bool isClosed() const;
         private:
             template <class Node, class ArcList>
             void deleteIncomingArcs(Node* node, ArcList& arcs) {

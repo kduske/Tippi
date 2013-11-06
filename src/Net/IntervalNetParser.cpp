@@ -1,5 +1,3 @@
-
-
 /*
  Copyright (C) 2013 Kristian Duske
  

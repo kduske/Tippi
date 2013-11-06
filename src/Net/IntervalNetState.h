@@ -20,16 +20,39 @@
 #ifndef __Tippi__IntervalNetState__
 #define __Tippi__IntervalNetState__
 
+#include "StringUtils.h"
 #include "Net/Marking.h"
 
 namespace Tippi {
     namespace Interval {
+        class Place;
+        class Transition;
+        
         class NetState {
+        public:
+            static const size_t DisabledTransition;
         private:
             Marking m_placeMarking;
             Marking m_timeMarking;
         public:
             NetState(const size_t placeCount, const size_t transitionCount);
+            NetState(const Marking& placeMarking, const Marking& timeMarking);
+            
+            bool operator<(const NetState& rhs) const;
+            bool operator==(const NetState& rhs) const;
+            int compare(const NetState& rhs) const;
+
+            bool isPlaceEnabled(const Transition* transition) const;
+            bool isTimeEnabled(const Transition* transition) const;
+            bool canMakeTimeStep(const size_t step, const Transition* transition) const;
+            
+            size_t getPlaceMarking(const Place* place) const;
+            size_t getTimeMarking(const Transition* transition) const;
+            void updatePlaceMarking(const Place* place, const size_t marking);
+            void resetTransition(const Transition* transition);
+            void disableTransition(const Transition* transition);
+            
+            String asString(const String separator = " ") const;
         };
     }
 }

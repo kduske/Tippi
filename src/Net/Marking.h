@@ -20,6 +20,8 @@
 #ifndef __Tippi__PlaceMarking__
 #define __Tippi__PlaceMarking__
 
+#include "StringUtils.h"
+
 #include <vector>
 
 namespace Tippi {
@@ -31,11 +33,20 @@ namespace Tippi {
     private:
         std::vector<size_t> m_marking;
     public:
-        Marking(const size_t placeCount = 0);
+        Marking(const size_t count = 0);
+        static Marking createMarking(const size_t m0, ...);
+        
+        bool operator<(const Marking& rhs) const;
+        bool operator==(const Marking& rhs) const;
+        int compare(const Marking& rhs) const;
         
         const size_t& operator[](const NetNode* node) const;
         size_t& operator[](const NetNode* node);
+        const size_t& operator[](const size_t index) const;
+        size_t& operator[](const size_t index);
         size_t getSize() const;
+        
+        String asString() const;
     };
 }
 

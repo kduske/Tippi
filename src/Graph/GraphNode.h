@@ -44,11 +44,11 @@ namespace Tippi {
         
         virtual ~GraphNode() {}
     
-        void addIncoming(Incoming* edge) {
+        void addIncoming(IncomingT* edge) {
             m_incoming.push_back(edge);
         }
 
-        void removeIncoming(Incoming* edge) {
+        void removeIncoming(IncomingT* edge) {
             VectorUtils::remove(m_incoming, edge);
         }
         
@@ -56,11 +56,11 @@ namespace Tippi {
             return m_incoming;
         }
 
-        void addOutgoing(Outgoing* edge) {
+        void addOutgoing(OutgoingT* edge) {
             m_outgoing.push_back(edge);
         }
 
-        void removeOutgoing(Outgoing* edge) {
+        void removeOutgoing(OutgoingT* edge) {
             VectorUtils::remove(m_outgoing, edge);
         }
 
@@ -68,20 +68,20 @@ namespace Tippi {
             return m_outgoing;
         }
         
-        bool isInPreset(const typename Incoming::Source* node) const {
+        bool isInPreset(const typename IncomingT::Source* node) const {
             typename IncomingList::const_iterator it, end;
             for (it = m_incoming.begin(), end = m_incoming.end(); it != end; ++it) {
-                const Incoming* edge = *it;
+                const IncomingT* edge = *it;
                 if (edge->getSource() == node)
                     return true;
             }
             return false;
         }
         
-        bool isInPostset(const typename Outgoing::Target* node) const {
+        bool isInPostset(const typename OutgoingT::Target* node) const {
             typename OutgoingList::const_iterator it, end;
             for (it = m_outgoing.begin(), end = m_outgoing.end(); it != end; ++it) {
-                const Outgoing* edge = *it;
+                const OutgoingT* edge = *it;
                 if (edge->getTarget() == node)
                     return true;
             }
@@ -96,15 +96,23 @@ namespace Tippi {
             m_visited = visited;
         }
         
-        static OutgoingT* connectToTarget(typename Outgoing::Source* source, typename Outgoing::Target* target) {
-            Outgoing* e = new Outgoing(source, target);
+        template <typename Node>
+        static void resetVisited(const std::vector<Node*>& nodes) {
+            typedef std::vector<Node*> List;
+            typename List::const_iterator it, end;
+            for (it = nodes.begin(), end = nodes.end(); it != end; ++it)
+                (*it)->setVisited(false);
+        }
+        
+        static OutgoingT* connectToTarget(typename OutgoingT::Source* source, typename OutgoingT::Target* target) {
+            OutgoingT* e = new OutgoingT(source, target);
             source->addOutgoing(e);
             target->addIncoming(e);
             return e;
         }
         
-        static Incoming* connectToSource(typename Incoming::Target* target, typename Incoming::Source* source) {
-            return Incoming::Source::connectToTarget(source, target);
+        static IncomingT* connectToSource(typename IncomingT::Target* target, typename IncomingT::Source* source) {
+            return IncomingT::Source::connectToTarget(source, target);
         }
     };
 }

@@ -17,29 +17,16 @@
  along with Tippi. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __Tippi__TimeInterval__
-#define __Tippi__TimeInterval__
+#include "LoadIntervalNetFilter.h"
 
-#include <iostream>
+#include "StringUtils.h"
+#include "Net/IntervalNet.h"
+#include "Net/IntervalNetParser.h"
 
 namespace Tippi {
-    namespace Interval {
-        class TimeInterval {
-        public:
-            static const size_t Infinity;
-        private:
-            size_t m_min;
-            size_t m_max;
-        public:
-            TimeInterval(const size_t min = 0, const size_t max = Infinity);
-            
-            bool operator==(const TimeInterval& rhs) const;
-
-            size_t getMin() const;
-            size_t getMax() const;
-            bool contains(const size_t time) const;
-        };
+    LoadIntervalNetFilter::NetPtr LoadIntervalNetFilter::operator()(std::istream& stream) const {
+        const String str((std::istreambuf_iterator<char>(stream)), std::istreambuf_iterator<char>());
+        Interval::NetParser parser(str);
+        return NetPtr(parser.parse());
     }
 }
-
-#endif /* defined(__Tippi__TimeInterval__) */

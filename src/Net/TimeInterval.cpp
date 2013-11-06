@@ -47,5 +47,13 @@ namespace Tippi {
         size_t TimeInterval::getMax() const {
             return m_max;
         }
+
+        bool TimeInterval::contains(const size_t time) const {
+            if (time < m_min)
+                return false;
+            if (m_max != Infinity && time > m_max)
+                return false;
+            return true;
+        }
     }
 }
