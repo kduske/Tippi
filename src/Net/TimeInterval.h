@@ -37,6 +37,7 @@ namespace Tippi {
 
             size_t getMin() const;
             size_t getMax() const;
+            bool isBounded() const;
             bool contains(const size_t time) const;
         };
     }

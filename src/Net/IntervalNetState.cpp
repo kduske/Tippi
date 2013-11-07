@@ -36,6 +36,21 @@ namespace Tippi {
         m_placeMarking(placeMarking),
         m_timeMarking(timeMarking) {}
 
+        NetState NetState::createInitialState(const Net& net) {
+            const Transition::List& transitions = net.getTransitions();
+            const Marking& placeMarking = net.getInitialMarking();
+            Marking timeMarking(transitions.size());
+            
+            Transition::List::const_iterator it, end;
+            for (it = transitions.begin(), end = transitions.end(); it != end; ++it) {
+                const Transition* transition = *it;
+                const bool placeEnabled = checkPlaceEnabled(transition, placeMarking);
+                timeMarking[transition] = placeEnabled ? 0 : DisabledTransition;
+            }
+            
+            return NetState(placeMarking, timeMarking);
+        }
+
         bool NetState::operator<(const NetState& rhs) const {
             return compare(rhs) < 0;
         }
@@ -53,6 +68,10 @@ namespace Tippi {
             return m_timeMarking.compare(rhs.m_timeMarking);
         }
 
+        bool NetState::checkPlaceEnabled(const Transition* transition) const {
+            return checkPlaceEnabled(transition, m_placeMarking);
+        }
+
         bool NetState::isPlaceEnabled(const Transition* transition) const {
             return m_timeMarking[transition] != DisabledTransition;
         }
@@ -67,6 +86,15 @@ namespace Tippi {
             const size_t max = transition->getInterval().getMax();
             assert(max == TimeInterval::Infinity || time <= max);
             return time + step <= max;
+        }
+
+        void NetState::makeTimeStep(const size_t step, const Transition* transition) {
+            assert(canMakeTimeStep(step, transition));
+            const TimeInterval& interval = transition->getInterval();
+            if (interval.isBounded())
+                m_timeMarking[transition] += step;
+            else
+                m_timeMarking[transition] = std::min(m_timeMarking[transition] + step, interval.getMin());
         }
 
         size_t NetState::getPlaceMarking(const Place* place) const {
@@ -95,6 +123,19 @@ namespace Tippi {
             str << separator;
             str << m_timeMarking.asString();
             return str.str();
+        }
+
+        bool NetState::checkPlaceEnabled(const Transition* transition, const Marking& placeMarking) {
+            const Transition::IncomingList& incoming = transition->getIncoming();
+            Transition::IncomingList::const_iterator it, end;
+            for (it = incoming.begin(), end = incoming.end(); it != end; ++it) {
+                const PlaceToTransition* edge = *it;
+                const Place* place = edge->getSource();
+                const size_t marking = placeMarking[place];
+                if (marking < edge->getMultiplicity())
+                    return false;
+            }
+            return true;
         }
     }
 }

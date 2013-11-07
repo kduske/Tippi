@@ -33,6 +33,7 @@
 
 namespace Tippi {
     namespace Interval {
+        class NetState;
         class Transition;
         class Place;
 
@@ -101,6 +102,7 @@ namespace Tippi {
             
             const Marking& getInitialMarking() const;
             const Marking::List& getFinalMarkings() const;
+
             bool isClosed() const;
         private:
             template <class Node, class ArcList>

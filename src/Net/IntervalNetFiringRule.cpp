@@ -142,7 +142,7 @@ namespace Tippi {
             for (it = outgoing.begin(), end = outgoing.end(); it != end; ++it) {
                 const PlaceToTransition* edge = *it;
                 const Transition* transition = edge->getTarget();
-                if (isPlaceEnabled(transition, state)) {
+                if (state.checkPlaceEnabled(transition)) {
                     if (!state.isPlaceEnabled(transition)) {
                         // transition was disabled, but now became enabled, so reset it
                         state.resetTransition(transition);
@@ -154,19 +154,6 @@ namespace Tippi {
                     }
                 }
             }
-        }
-
-        bool FiringRule::isPlaceEnabled(const Transition* transition, const NetState& state) const {
-            const Transition::IncomingList& incoming = transition->getIncoming();
-            Transition::IncomingList::const_iterator it, end;
-            for (it = incoming.begin(), end = incoming.end(); it != end; ++it) {
-                const PlaceToTransition* edge = *it;
-                const Place* place = edge->getSource();
-                const size_t placeMarking = state.getPlaceMarking(place);
-                if (placeMarking < edge->getMultiplicity())
-                    return false;
-            }
-            return true;
         }
     }
 }

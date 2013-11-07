@@ -25,6 +25,7 @@
 
 namespace Tippi {
     namespace Interval {
+        class Net;
         class Place;
         class Transition;
         
@@ -37,14 +38,17 @@ namespace Tippi {
         public:
             NetState(const size_t placeCount, const size_t transitionCount);
             NetState(const Marking& placeMarking, const Marking& timeMarking);
+            static NetState createInitialState(const Net& net);
             
             bool operator<(const NetState& rhs) const;
             bool operator==(const NetState& rhs) const;
             int compare(const NetState& rhs) const;
 
+            bool checkPlaceEnabled(const Transition* transition) const;
             bool isPlaceEnabled(const Transition* transition) const;
             bool isTimeEnabled(const Transition* transition) const;
             bool canMakeTimeStep(const size_t step, const Transition* transition) const;
+            void makeTimeStep(const size_t step, const Transition* transition);
             
             size_t getPlaceMarking(const Place* place) const;
             size_t getTimeMarking(const Transition* transition) const;
@@ -53,6 +57,8 @@ namespace Tippi {
             void disableTransition(const Transition* transition);
             
             String asString(const String separator = " ") const;
+        private:
+            static bool checkPlaceEnabled(const Transition* transition, const Marking& placeMarking);
         };
     }
 }

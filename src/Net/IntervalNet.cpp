@@ -20,6 +20,7 @@
 #include "IntervalNet.h"
 #include "CollectionUtils.h"
 #include "Exceptions.h"
+#include "Net/IntervalNetState.h"
 
 #include <algorithm>
 #include <cassert>

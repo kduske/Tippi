@@ -46,7 +46,6 @@ namespace Tippi {
             void updateSuccessors(const Transition* transition, NetState& state) const;
             void resetPostset(const Place* place, NetState& state) const;
             void enablePostset(const Place* place, NetState& state) const;
-            bool isPlaceEnabled(const Transition* transition, const NetState& state) const;
         };
     }
 }
