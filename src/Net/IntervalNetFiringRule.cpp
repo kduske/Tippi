@@ -23,6 +23,9 @@
 
 namespace Tippi {
     namespace Interval {
+        FiringRule::FiringRule(const Net& net) :
+        m_net(net) {}
+        
         Transition::List FiringRule::getFireableTransitions(const NetState& state) const {
             Transition::List result;
             
@@ -38,8 +41,10 @@ namespace Tippi {
         
         NetState FiringRule::fireTransition(const Transition* transition, const NetState& state) const {
             assert(transition != NULL);
-            assert(isFireable(transition, state));
             assert(m_net.findTransition(transition->getName()) == transition);
+
+            if (!isFireable(transition, state))
+                throw FiringRuleException("Transition '" + transition->getName() + "' is not fireable");
 
             NetState newState(state);
             updateTokens(transition, newState);
@@ -63,15 +68,12 @@ namespace Tippi {
             assert(canMakeTimeStep(state));
             
             NetState newState(state);
-            
             const Transition::List& transitions = m_net.getTransitions();
             Transition::List::const_iterator it, end;
             for (it = transitions.begin(), end = transitions.end(); it != end; ++it) {
                 Transition* transition = *it;
-                
-                // DO SOMETHING HERE
+                newState.makeTimeStep(1, transition);
             }
-            
             return newState;
         }
 

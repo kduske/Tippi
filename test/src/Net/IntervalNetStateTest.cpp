@@ -69,15 +69,41 @@ namespace Tippi {
         }
 
         TEST_F(IntervalNetStateTest, isPlaceEnabled) {
+            const NetState initialState = NetState::createInitialState(*m_net);
+            ASSERT_TRUE(initialState.isPlaceEnabled(m_net->findTransition("t1")));
+            ASSERT_FALSE(initialState.isPlaceEnabled(m_net->findTransition("t2")));
+            ASSERT_FALSE(initialState.isPlaceEnabled(m_net->findTransition("t3")));
         }
         
         TEST_F(IntervalNetStateTest, isTimeEnabled) {
+            NetState state = NetState::createInitialState(*m_net);
+            ASSERT_FALSE(state.isTimeEnabled(m_net->findTransition("t1")));
+            state.makeTimeStep(2, m_net->findTransition("t1"));
+            ASSERT_TRUE(state.isTimeEnabled(m_net->findTransition("t1")));
         }
 
         TEST_F(IntervalNetStateTest, canMakeTimeStep) {
+            const NetState initialState = NetState::createInitialState(*m_net);
+            ASSERT_TRUE(initialState.canMakeTimeStep(1, m_net->findTransition("t1")));
+            ASSERT_TRUE(initialState.canMakeTimeStep(2, m_net->findTransition("t1")));
+            ASSERT_TRUE(initialState.canMakeTimeStep(3, m_net->findTransition("t1")));
+            ASSERT_FALSE(initialState.canMakeTimeStep(4, m_net->findTransition("t1")));
         }
 
         TEST_F(IntervalNetStateTest, makeTimeStep) {
+            NetState state = NetState::createInitialState(*m_net);
+            state.makeTimeStep(2, m_net->findTransition("t1"));
+            
+            ASSERT_EQ(1u, state.getPlaceMarking(m_net->findPlace("A")));
+            ASSERT_EQ(0u, state.getPlaceMarking(m_net->findPlace("B")));
+            ASSERT_EQ(0u, state.getPlaceMarking(m_net->findPlace("C")));
+            ASSERT_EQ(0u, state.getPlaceMarking(m_net->findPlace("D")));
+            ASSERT_EQ(0u, state.getPlaceMarking(m_net->findPlace("a")));
+            ASSERT_EQ(0u, state.getPlaceMarking(m_net->findPlace("b")));
+            
+            ASSERT_EQ(2u, state.getTimeMarking(m_net->findTransition("t1")));
+            ASSERT_EQ(NetState::DisabledTransition, state.getTimeMarking(m_net->findTransition("t2")));
+            ASSERT_EQ(NetState::DisabledTransition, state.getTimeMarking(m_net->findTransition("t3")));
         }
     }
 }

@@ -61,6 +61,14 @@ namespace Tippi {
         NetException(const String& str) throw() : ExceptionStream(str) {}
         ~NetException() throw() {}
     };
+    
+    class FiringRuleException : public ExceptionStream<FiringRuleException> {
+    public:
+        FiringRuleException() throw() {}
+        FiringRuleException(const String& str) throw() : ExceptionStream(str) {}
+        ~FiringRuleException() throw() {}
+    };
+
 
     class AutomatonException : public ExceptionStream<NetException> {
     public:

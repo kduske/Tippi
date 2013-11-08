@@ -19,8 +19,6 @@
 
 #include "IntervalNetState.h"
 
-#include "Net/IntervalNet.h"
-
 #include <cassert>
 #include <limits>
 
@@ -77,11 +75,13 @@ namespace Tippi {
         }
         
         bool NetState::isTimeEnabled(const Transition* transition) const {
+            assert(isPlaceEnabled(transition));
             return transition->getInterval().contains(m_timeMarking[transition]);
         }
 
         bool NetState::canMakeTimeStep(const size_t step, const Transition* transition) const {
-            assert(isPlaceEnabled(transition));
+            if (!isPlaceEnabled(transition))
+                return true;
             const size_t time = m_timeMarking[transition];
             const size_t max = transition->getInterval().getMax();
             assert(max == TimeInterval::Infinity || time <= max);
@@ -90,11 +90,13 @@ namespace Tippi {
 
         void NetState::makeTimeStep(const size_t step, const Transition* transition) {
             assert(canMakeTimeStep(step, transition));
-            const TimeInterval& interval = transition->getInterval();
-            if (interval.isBounded())
-                m_timeMarking[transition] += step;
-            else
-                m_timeMarking[transition] = std::min(m_timeMarking[transition] + step, interval.getMin());
+            if (isPlaceEnabled(transition)) {
+                const TimeInterval& interval = transition->getInterval();
+                if (interval.isBounded())
+                    m_timeMarking[transition] += step;
+                else
+                    m_timeMarking[transition] = std::min(m_timeMarking[transition] + step, interval.getMin());
+            }
         }
 
         size_t NetState::getPlaceMarking(const Place* place) const {
