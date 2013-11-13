@@ -281,7 +281,6 @@ namespace Tippi {
             expect(NetToken::Identifier, token);
             const String transitionName = token.data();
             
-            
             token = m_tokenizer.nextToken();
             if (token.type() == NetToken::Eof)
                 return;
@@ -324,10 +323,10 @@ namespace Tippi {
                         parseIncomingArc(net, *transition);
                     } while (m_tokenizer.nextToken().type() != NetToken::Semicolon);
                 }
+                token = m_tokenizer.nextToken();
             }
             
             // parse the outgoing arcs
-            token = m_tokenizer.nextToken();
             if (token.type() == NetToken::Produce) {
                 expect(NetToken::Identifier | NetToken::Semicolon, token = m_tokenizer.nextToken());
                 if (token.type() == NetToken::Identifier) {
@@ -336,6 +335,8 @@ namespace Tippi {
                         parseOutgoingArc(net, *transition);
                     } while (m_tokenizer.nextToken().type() != NetToken::Semicolon);
                 }
+            } else {
+                m_tokenizer.pushToken(token);
             }
         }
         
