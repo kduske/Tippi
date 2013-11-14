@@ -17,24 +17,28 @@
  along with Tippi. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "Filter/ConstructMaximalNet.h"
-#include "Filter/LoadIntervalNet.h"
-#include "Filter/RenderIntervalNet.h"
+#ifndef __Tippi__ConstructBehavior__
+#define __Tippi__ConstructBehavior__
 
-#include <cassert>
-#include <fstream>
+#include "SharedPointer.h"
+
 #include <iostream>
 
-int main(int argc, const char * argv[]) {
-    using namespace Tippi;
+namespace Tippi {
+    namespace Behavior {
+        class Automaton;
+    }
     
-    std::fstream stream("data/test.net");
-    assert(stream.is_open() && stream.good());
+    namespace Interval {
+        class Net;
+    }
     
-    LoadIntervalNet loader;
-    RenderIntervalNet output;
-    ConstructMaximalNet maximal;
-    
-    output(maximal(loader(stream)), std::cout);
+    struct ConstructBehavior {
+        typedef std::tr1::shared_ptr<Interval::Net> NetPtr;
+        typedef std::tr1::shared_ptr<Behavior::Automaton> BehPtr;
+
+        BehPtr operator()(NetPtr net) const;
+    };
 }
 
+#endif /* defined(__Tippi__ConstructBehavior__) */

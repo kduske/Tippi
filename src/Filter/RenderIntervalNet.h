@@ -17,8 +17,8 @@
  along with Tippi. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __Tippi__IntervalNetDotFilter__
-#define __Tippi__IntervalNetDotFilter__
+#ifndef __Tippi__RenderIntervalNet__
+#define __Tippi__RenderIntervalNet__
 
 #include "StringUtils.h"
 #include "SharedPointer.h"
@@ -30,11 +30,11 @@ namespace Tippi {
         class Net;
     }
     
-    struct IntervalNetDotFilter {
+    struct RenderIntervalNet {
         typedef std::tr1::shared_ptr<Interval::Net> NetPtr;
         void operator()(const NetPtr net, std::ostream& stream);
         String operator()(const NetPtr net);
     };
 }
 
-#endif /* defined(__Tippi__IntervalNetDotFilter__) */
+#endif /* defined(__Tippi__RenderIntervalNet__) */

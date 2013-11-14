@@ -17,16 +17,22 @@
  along with Tippi. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "LoadIntervalNetFilter.h"
+#ifndef __Tippi__LoadIntervalNet__
+#define __Tippi__LoadIntervalNet__
 
-#include "StringUtils.h"
-#include "Net/IntervalNet.h"
-#include "Net/IntervalNetParser.h"
+#include "SharedPointer.h"
+
+#include <iostream>
 
 namespace Tippi {
-    LoadIntervalNetFilter::NetPtr LoadIntervalNetFilter::operator()(std::istream& stream) const {
-        const String str((std::istreambuf_iterator<char>(stream)), std::istreambuf_iterator<char>());
-        Interval::NetParser parser(str);
-        return NetPtr(parser.parse());
+    namespace Interval {
+        class Net;
     }
+    
+    struct LoadIntervalNet {
+        typedef std::tr1::shared_ptr<Interval::Net> NetPtr;
+        NetPtr operator()(std::istream& stream) const;
+    };
 }
+
+#endif /* defined(__Tippi__LoadIntervalNet__) */

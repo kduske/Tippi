@@ -17,24 +17,10 @@
  along with Tippi. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "Filter/ConstructMaximalNet.h"
-#include "Filter/LoadIntervalNet.h"
-#include "Filter/RenderIntervalNet.h"
+#include "ConstructBehavior.h"
 
-#include <cassert>
-#include <fstream>
-#include <iostream>
-
-int main(int argc, const char * argv[]) {
-    using namespace Tippi;
-    
-    std::fstream stream("data/test.net");
-    assert(stream.is_open() && stream.good());
-    
-    LoadIntervalNet loader;
-    RenderIntervalNet output;
-    ConstructMaximalNet maximal;
-    
-    output(maximal(loader(stream)), std::cout);
+namespace Tippi {
+    ConstructBehavior::BehPtr ConstructBehavior::operator()(NetPtr net) const {
+        
+    }
 }
-

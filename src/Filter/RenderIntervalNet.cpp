@@ -17,7 +17,7 @@
  along with Tippi. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "IntervalNetDotFilter.h"
+#include "RenderIntervalNet.h"
 
 #include "CollectionUtils.h"
 #include "Graph/GraphAlgorithms.h"
@@ -87,7 +87,7 @@ namespace Tippi {
         }
     };
     
-    void IntervalNetDotFilter::operator()(const NetPtr net, std::ostream& stream) {
+    void RenderIntervalNet::operator()(const NetPtr net, std::ostream& stream) {
         stream << "digraph {" << std::endl;
 
         Visitor visitor(stream);
@@ -112,7 +112,7 @@ namespace Tippi {
         stream << "}" << std::endl;
     }
 
-    String IntervalNetDotFilter::operator()(const NetPtr net) {
+    String RenderIntervalNet::operator()(const NetPtr net) {
         StringStream str;
         (*this)(net, str);
         return str.str();

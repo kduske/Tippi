@@ -17,12 +17,12 @@
  along with Tippi. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "ConstructMaximalNetFilter.h"
+#include "ConstructMaximalNet.h"
 
 #include "Net/IntervalNet.h"
 
 namespace Tippi {
-    ConstructMaximalNetFilter::NetPtr ConstructMaximalNetFilter::operator()(NetPtr net) const {
+    ConstructMaximalNet::NetPtr ConstructMaximalNet::operator()(NetPtr net) const {
         const Interval::Place::List& places = net->getPlaces();
         Interval::Place::List::const_iterator it, end;
         for (it = places.begin(), end = places.end(); it != end; ++it) {

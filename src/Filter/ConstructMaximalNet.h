@@ -17,8 +17,8 @@
  along with Tippi. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __Tippi__ConstructMaximalNetFilter__
-#define __Tippi__ConstructMaximalNetFilter__
+#ifndef __Tippi__ConstructMaximalNet__
+#define __Tippi__ConstructMaximalNet__
 
 #include "SharedPointer.h"
 
@@ -29,10 +29,10 @@ namespace Tippi {
         class Net;
     }
     
-    struct ConstructMaximalNetFilter {
+    struct ConstructMaximalNet {
         typedef std::tr1::shared_ptr<Interval::Net> NetPtr;
         NetPtr operator()(NetPtr net) const;
     };
 }
 
-#endif /* defined(__Tippi__ConstructMaximalNetFilter__) */
+#endif /* defined(__Tippi__ConstructMaximalNet__) */
