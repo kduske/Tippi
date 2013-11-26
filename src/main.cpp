@@ -40,7 +40,7 @@ int main(int argc, const char * argv[]) {
     RenderBehavior renderBehavior;
     RenderIntervalNet renderNet;
     
-    renderNet(maximal(loader(stream)), std::cout);
-//    renderBehavior(behavior(maximal(loader(stream))), std::cout);
+//    renderNet(maximal(loader(stream)), std::cout);
+    renderBehavior(behavior(maximal(loader(stream))), std::cout);
 }
 

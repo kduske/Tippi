@@ -38,7 +38,7 @@ namespace Tippi {
         
         void operator()(const Behavior::State* state) {
             m_stream << getStateId(state) << " [";
-            printAttribute("label", state->getNetState().asString());
+            printAttribute("label", state->getNetState().asString("\n"));
             m_stream << ",";
             printAttribute("shape", "ellipse");
             if (state->isFinal()) {
@@ -52,7 +52,9 @@ namespace Tippi {
             const Behavior::State* source = edge->getSource();
             const Behavior::State* target = edge->getTarget();
             
-            m_stream << getStateId(source) << " -> " << getStateId(target) << ";" << std::endl;
+            m_stream << getStateId(source) << " -> " << getStateId(target) << "[";
+            printAttribute("label", edge->getLabel());
+            m_stream << "];" << std::endl;
         }
     private:
         size_t getStateId(const Behavior::State* state) {
