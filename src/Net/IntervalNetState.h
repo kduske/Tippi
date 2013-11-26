@@ -50,6 +50,8 @@ namespace Tippi {
             bool isTimeEnabled(const Transition* transition) const;
             bool canMakeTimeStep(const size_t step, const Transition* transition) const;
             void makeTimeStep(const size_t step, const Transition* transition);
+            bool isBounded(const Net& net) const;
+            bool isFinalMarking(const Net& net) const;
             
             size_t getPlaceMarking(const Place* place) const;
             size_t getTimeMarking(const Transition* transition) const;

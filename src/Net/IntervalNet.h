@@ -102,7 +102,9 @@ namespace Tippi {
             
             const Marking& getInitialMarking() const;
             const Marking::List& getFinalMarkings() const;
+            bool isFinalMarking(const Marking& marking) const;
 
+            bool isBounded(const Marking& marking) const;
             bool isClosed() const;
         private:
             template <class Node, class ArcList>

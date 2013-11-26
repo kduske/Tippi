@@ -267,7 +267,7 @@ namespace VectorUtils {
     }
 
     template <typename T, typename K, typename Compare>
-    std::pair<typename std::vector<T>::iterator, bool> setFind(std::vector<T>& vec, K& object) {
+    std::pair<typename std::vector<T>::iterator, bool> setFind(std::vector<T>& vec, const K& object) {
         Compare cmp;
         typename std::vector<T>::iterator it = std::lower_bound(vec.begin(), vec.end(), object, cmp);
         const bool exists = (it != vec.end() && !cmp(*it, object) && !cmp(object, *it));
@@ -275,15 +275,25 @@ namespace VectorUtils {
     }
     
     template <typename T, typename K, typename Compare>
-    std::pair<typename std::vector<T>::const_iterator, bool> setFind(const std::vector<T>& vec, K& object) {
+    std::pair<typename std::vector<T>::const_iterator, bool> setFind(const std::vector<T>& vec, const K& object) {
         Compare cmp;
         typename std::vector<T>::const_iterator it = std::lower_bound(vec.begin(), vec.end(), object, cmp);
         const bool exists = (it != vec.end() && !cmp(*it, object) && !cmp(object, *it));
         return std::make_pair(it, exists);
     }
     
+    template <typename T, typename K, typename Compare>
+    bool setContains(const std::vector<T>& vec, const K& object) {
+        return setFind<T, K, Compare>(vec, object).second;
+    }
+    
+    template <typename T, typename K>
+    bool setContains(const std::vector<T>& vec, const K& object) {
+        return setFind<T, K, UniCmp<T> >(vec, object).second;
+    }
+    
     template <typename T>
-    bool setInsert(std::vector<T>& vec, T& object, std::pair<typename std::vector<T>::iterator, bool> find) {
+    bool setInsert(std::vector<T>& vec, const T& object, std::pair<typename std::vector<T>::iterator, bool> find) {
         if (find.second)
             return false;
         if (find.first == vec.end())
@@ -294,12 +304,12 @@ namespace VectorUtils {
     }
     
     template <typename T, typename Compare>
-    bool setInsert(std::vector<T>& vec, T& object) {
+    bool setInsert(std::vector<T>& vec, const T& object) {
         return setInsert(vec, object, setFind<T, T, Compare>(vec, object));
     }
     
     template <typename T, typename Compare>
-    void setInsertOrReplace(std::vector<T>& vec, T& object) {
+    void setInsertOrReplace(std::vector<T>& vec, const T& object) {
         typedef std::pair<typename std::vector<T>::iterator, bool> FindResult;
         FindResult find = setFind<T, T, Compare>(vec, object);
         
@@ -397,7 +407,7 @@ namespace VectorUtils {
     }
     
     template <typename T>
-    bool setInsert(std::vector<T>& vec, T& object) {
+    bool setInsert(std::vector<T>& vec, const T& object) {
         return setInsert<T, UniCmp<T> >(vec, object);
     }
     

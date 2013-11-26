@@ -142,7 +142,7 @@ namespace Tippi {
         }
 
         void Net::addFinalMarking(const Marking& marking) {
-            m_finalMarkings.push_back(marking);
+            VectorUtils::setInsert(m_finalMarkings, marking);
         }
 
         const Place::List& Net::getPlaces() const {
@@ -175,6 +175,21 @@ namespace Tippi {
 
         const Marking::List& Net::getFinalMarkings() const {
             return m_finalMarkings;
+        }
+
+        bool Net::isFinalMarking(const Marking& marking) const {
+            return VectorUtils::setContains(m_finalMarkings, marking);
+        }
+
+        bool Net::isBounded(const Marking& marking) const {
+            const Place::List& places = getPlaces();
+            Place::List::const_iterator it, end;
+            for (it = places.begin(), end = places.end(); it != end; ++it) {
+                const Place* place = *it;
+                if (marking[place] > place->getBound())
+                    return false;
+            }
+            return true;
         }
 
         bool Net::isClosed() const {

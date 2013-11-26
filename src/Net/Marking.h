@@ -46,6 +46,20 @@ namespace Tippi {
         size_t& operator[](const size_t index);
         size_t getSize() const;
         
+        template <class Translator>
+        String asString(const Translator& translate) const {
+            StringStream str;
+            str << '[';
+            for (size_t i = 0; i < m_marking.size() - 1; ++i) {
+                translate(str, m_marking[i]);
+                str << ',';
+            }
+            if (!m_marking.empty())
+                translate(str, m_marking.back());
+            str << "]";
+            return str.str();
+        }
+
         String asString() const;
     };
 }

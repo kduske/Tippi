@@ -48,7 +48,9 @@ namespace Tippi {
             
             const Interval::NetState netState(1, 1);
             const State* state = behavior.createState(netState);
-            ASSERT_EQ(state, behavior.findOrCreateState(netState));
+            const std::pair<State*, bool> result = behavior.findOrCreateState(netState);
+            ASSERT_FALSE(result.second);
+            ASSERT_EQ(state, result.first);
         }
         
         TEST(AutomatonTest, connectStates) {

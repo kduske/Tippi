@@ -51,6 +51,7 @@ namespace Tippi {
             typedef std::vector<State*> List;
         private:
             Interval::NetState m_netState;
+            bool m_final;
         public:
             State(const Interval::NetState& netState);
             
@@ -59,6 +60,8 @@ namespace Tippi {
             int compare(const State& rhs) const;
             
             const Interval::NetState& getNetState() const;
+            bool isFinal() const;
+            void setFinal(bool final);
         };
         
         class Automaton {
@@ -72,7 +75,7 @@ namespace Tippi {
             ~Automaton();
             
             State* createState(const Interval::NetState& netState);
-            State* findOrCreateState(const Interval::NetState& netState);
+            std::pair<State*, bool> findOrCreateState(const Interval::NetState& netState);
             Edge* connect(State* source, State* target, const String& label);
             
             void deleteState(State* state);

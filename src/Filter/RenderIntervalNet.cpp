@@ -37,8 +37,6 @@ namespace Tippi {
         size_t m_nodeId;
         IdMap m_nodeIdMap;
     public:
-        
-        
         Visitor(std::ostream& stream) :
         m_stream(stream),
         m_nodeId(1) {}

@@ -19,6 +19,8 @@
 
 #include "IntervalNetState.h"
 
+#include "Net/IntervalNet.h"
+
 #include <cassert>
 #include <limits>
 
@@ -99,6 +101,14 @@ namespace Tippi {
             }
         }
 
+        bool NetState::isBounded(const Net& net) const {
+            return net.isBounded(m_placeMarking);
+        }
+
+        bool NetState::isFinalMarking(const Net& net) const {
+            return net.isFinalMarking(m_placeMarking);
+        }
+
         size_t NetState::getPlaceMarking(const Place* place) const {
             return m_placeMarking[place];
         }
@@ -119,11 +129,20 @@ namespace Tippi {
             m_timeMarking[transition] = DisabledTransition;
         }
 
+        struct TimeMarkingTranslator {
+            void operator()(std::ostream& str, const size_t marking) const {
+                if (marking == NetState::DisabledTransition)
+                    str << '#';
+                else
+                    str << marking;
+            }
+        };
+
         String NetState::asString(const String separator) const {
             StringStream str;
             str << m_placeMarking.asString();
             str << separator;
-            str << m_timeMarking.asString();
+            str << m_timeMarking.asString(TimeMarkingTranslator());
             return str.str();
         }
 

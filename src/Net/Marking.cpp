@@ -84,14 +84,13 @@ namespace Tippi {
         return m_marking.size();
     }
 
+    struct NullTranslator {
+        void operator()(std::ostream& str, const size_t marking) const {
+            str << marking;
+        }
+    };
+
     String Marking::asString() const {
-        StringStream str;
-        str << '[';
-        for (size_t i = 0; i < m_marking.size() - 1; ++i)
-            str << m_marking[i] << ',';
-        if (!m_marking.empty())
-            str << m_marking.back();
-        str << "]";
-        return str.str();
+        return asString(NullTranslator());
     }
 }

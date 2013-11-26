@@ -57,7 +57,8 @@ namespace Tippi {
         }
 
         State::State(const Interval::NetState& netState) :
-        m_netState(netState) {}
+        m_netState(netState),
+        m_final(false) {}
         
         bool State::operator<(const State& rhs) const {
             return compare(rhs) < 0;
@@ -73,6 +74,14 @@ namespace Tippi {
         
         const Interval::NetState& State::getNetState() const {
             return m_netState;
+        }
+
+        bool State::isFinal() const {
+            return m_final;
+        }
+
+        void State::setFinal(bool final) {
+            m_final = final;
         }
 
         class StateNetStateComparator {
@@ -110,16 +119,16 @@ namespace Tippi {
             return state;
         }
         
-        State* Automaton::findOrCreateState(const Interval::NetState& netState) {
+        std::pair<State*, bool> Automaton::findOrCreateState(const Interval::NetState& netState) {
             typedef std::pair<State::List::iterator, bool> FindResult;
             FindResult result = VectorUtils::setFind<State*, const Interval::NetState&, StateNetStateComparator>(m_states, netState);
             if (result.second)
-                return *result.first;
+                return std::make_pair(*result.first, false);
             
             State* state = new State(netState);
             const bool success = VectorUtils::setInsert(m_states, state, result);
             assert(success);
-            return state;
+            return std::make_pair(state, true);
         }
 
         Edge* Automaton::connect(State* source, State* target, const String& label) {
@@ -161,6 +170,8 @@ namespace Tippi {
         }
         
         void Automaton::addFinalState(State* state) {
+            if (!state->isFinal())
+                throw AutomatonException("State is not a final state: '" + state->getNetState().asString() + "'");
             VectorUtils::setInsert(m_finalStates, state);
         }
         
