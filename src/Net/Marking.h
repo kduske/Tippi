@@ -34,7 +34,12 @@ namespace Tippi {
         std::vector<size_t> m_marking;
     public:
         Marking(const size_t count = 0);
-        static Marking createMarking(const size_t m0, ...);
+        
+        static Marking createMarking(size_t m1);
+        static Marking createMarking(size_t m1, size_t m2);
+        static Marking createMarking(size_t m1, size_t m2, size_t m3);
+        static Marking createMarking(size_t m1, size_t m2, size_t m3, size_t m4);
+        static Marking createMarking(size_t m1, size_t m2, size_t m3, size_t m4, size_t m5);
         
         bool operator<(const Marking& rhs) const;
         bool operator==(const Marking& rhs) const;
@@ -42,8 +47,8 @@ namespace Tippi {
         
         const size_t& operator[](const NetNode* node) const;
         size_t& operator[](const NetNode* node);
-        const size_t& operator[](const size_t index) const;
-        size_t& operator[](const size_t index);
+        const size_t& operator[](size_t index) const;
+        size_t& operator[](size_t index);
         size_t getSize() const;
         
         template <class Translator>

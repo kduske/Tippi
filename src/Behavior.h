@@ -62,6 +62,8 @@ namespace Tippi {
             const Interval::NetState& getNetState() const;
             bool isFinal() const;
             void setFinal(bool final);
+            
+            const Behavior::State* getSuccessor(const String& edgeLabel) const;
         };
         
         class Automaton {

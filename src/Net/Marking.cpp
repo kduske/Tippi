@@ -26,18 +26,50 @@
 
 namespace Tippi {
     Marking::Marking(const size_t count) :
-    m_marking(count, 0) {
+    m_marking(count, 0) {}
+    
+    Marking Marking::createMarking(const size_t m1) {
+        Marking marking(1);
+        size_t i = 0;
+        marking[i++] = m1;
+        return marking;
     }
     
-    Marking Marking::createMarking(const size_t count, ...) {
-        Marking marking(count);
-        
-        va_list args;
-        va_start(args, count);
-        for (size_t i = 0; i < count; ++i)
-            marking[i] = va_arg(args, size_t);
-        va_end(args);
-        
+    Marking Marking::createMarking(const size_t m1, const size_t m2) {
+        Marking marking(2);
+        size_t i = 0;
+        marking[i++] = m1;
+        marking[i++] = m2;
+        return marking;
+    }
+    
+    Marking Marking::createMarking(const size_t m1, const size_t m2, const size_t m3) {
+        Marking marking(3);
+        size_t i = 0;
+        marking[i++] = m1;
+        marking[i++] = m2;
+        marking[i++] = m3;
+        return marking;
+    }
+    
+    Marking Marking::createMarking(const size_t m1, const size_t m2, const size_t m3, const size_t m4) {
+        Marking marking(4);
+        size_t i = 0;
+        marking[i++] = m1;
+        marking[i++] = m2;
+        marking[i++] = m3;
+        marking[i++] = m4;
+        return marking;
+    }
+    
+    Marking Marking::createMarking(const size_t m1, const size_t m2, const size_t m3, const size_t m4, const size_t m5) {
+        Marking marking(5);
+        size_t i = 0;
+        marking[i++] = m1;
+        marking[i++] = m2;
+        marking[i++] = m3;
+        marking[i++] = m4;
+        marking[i++] = m5;
         return marking;
     }
 

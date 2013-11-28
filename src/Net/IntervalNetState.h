@@ -59,6 +59,9 @@ namespace Tippi {
             void resetTransition(const Transition* transition);
             void disableTransition(const Transition* transition);
             
+            bool hasPlaceMarking(const Marking& placeMarking) const;
+            bool hasTimeMarking(const Marking& timeMarking) const;
+            
             String asString(const String separator = " ") const;
         private:
             static bool checkPlaceEnabled(const Transition* transition, const Marking& placeMarking);

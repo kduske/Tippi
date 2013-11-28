@@ -84,6 +84,17 @@ namespace Tippi {
             m_final = final;
         }
 
+        const Behavior::State* State::getSuccessor(const String& edgeLabel) const {
+            const OutgoingList& edges = getOutgoing();
+            OutgoingList::const_iterator it, end;
+            for (it = edges.begin(), end = edges.end(); it != end; ++it) {
+                const Edge* edge = *it;
+                if (edge->getLabel() == edgeLabel)
+                    return edge->getTarget();
+            }
+            throw AutomatonException("No successor with edge label '" + edgeLabel + "' found");
+        }
+
         class StateNetStateComparator {
         public:
             bool operator()(const State* lhs, const State* rhs) const {

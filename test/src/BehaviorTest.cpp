@@ -56,10 +56,10 @@ namespace Tippi {
         TEST(AutomatonTest, connectStates) {
             Automaton behavior;
             
-            State* state1 = behavior.createState(Interval::NetState(Marking::createMarking(3, 0, 0, 0),
-                                                                    Marking::createMarking(2, 0, 0)));
-            State* state2 = behavior.createState(Interval::NetState(Marking::createMarking(3, 1, 0, 0),
-                                                                    Marking::createMarking(2, 0, 0)));
+            State* state1 = behavior.createState(Interval::NetState(Marking::createMarking(0, 0, 0),
+                                                                    Marking::createMarking(0, 0)));
+            State* state2 = behavior.createState(Interval::NetState(Marking::createMarking(1, 0, 0),
+                                                                    Marking::createMarking(0, 0)));
             const Edge* edge = behavior.connect(state1, state2, "test");
             ASSERT_EQ(state1, edge->getSource());
             ASSERT_EQ(state2, edge->getTarget());

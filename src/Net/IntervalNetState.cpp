@@ -138,6 +138,14 @@ namespace Tippi {
             }
         };
 
+        bool NetState::hasPlaceMarking(const Marking& placeMarking) const {
+            return m_placeMarking == placeMarking;
+        }
+        
+        bool NetState::hasTimeMarking(const Marking& timeMarking) const {
+            return m_timeMarking == timeMarking;
+        }
+
         String NetState::asString(const String separator) const {
             StringStream str;
             str << m_placeMarking.asString();
