@@ -173,7 +173,16 @@ namespace Tippi {
         ASSERT_EQ(i_tb_2, i_2->getSuccessor("tb"));
         
         const State* i_12_t1 = i_1->getSuccessor("t1");
+        ASSERT_TRUE(hasMarking(i_12_t1,
+                               0,1,0,1,0,
+                               D, D, 0, 0));
+        ASSERT_TRUE(hasOutgoingEdge(i_12_t1, ta));
+        ASSERT_TRUE(hasOutgoingEdge(i_12_t1, tb));
+        ASSERT_TRUE(hasOutgoingTimeEdge(i_12_t1));
+        ASSERT_EQ(3u, i_12_t1->getOutgoing().size());
         ASSERT_EQ(i_12_t1, i_2->getSuccessor("t1"));
+        ASSERT_EQ(i_12_t1, i_12_t1->getSuccessor("1"));
+        
         ASSERT_EQ(i_tb_12_t1, i_12_t1->getSuccessor("tb"));
         
         const State* i_12_t1_ta = i_12_t1->getSuccessor("ta");
@@ -181,7 +190,9 @@ namespace Tippi {
                                0, 1, 0, 0, 0,
                                D, D, D, 0));
         ASSERT_TRUE(hasOutgoingEdge(i_12_t1_ta, tb));
-        ASSERT_EQ(1u, i_12_t1_ta->getOutgoing().size());
+        ASSERT_TRUE(hasOutgoingTimeEdge(i_12_t1_ta));
+        ASSERT_EQ(2u, i_12_t1_ta->getOutgoing().size());
+        ASSERT_EQ(i_12_t1_ta, i_12_t1_ta->getSuccessor("1"));
         
         const State* i_12_t1_ta_tb = i_12_t1_ta->getSuccessor("tb");
         ASSERT_TRUE(hasMarking(i_12_t1_ta_tb,
@@ -193,11 +204,21 @@ namespace Tippi {
         
         const State* i_12_t1_ta_tb_t2 = i_12_t1_ta_tb->getSuccessor("t2");
         ASSERT_EQ(i_12_t1_ta_tb_t2, i_tb_12_t1_t2->getSuccessor("ta"));
+        ASSERT_TRUE(hasMarking(i_12_t1_ta_tb_t2,
+                               0, 0, 1, 0, 0,
+                               D, D, D, 0));
+        ASSERT_TRUE(hasOutgoingEdge(i_12_t1_ta_tb_t2, tb));
+        ASSERT_TRUE(hasOutgoingTimeEdge(i_12_t1_ta_tb_t2));
+        ASSERT_EQ(2u, i_12_t1_ta_tb_t2->getOutgoing().size());
+        ASSERT_EQ(i_12_t1_ta_tb_t2, i_12_t1_ta_tb_t2->getSuccessor("1"));
 
         const State* i_12_t1_ta_tb_t2_tb = i_12_t1_ta_tb_t2->getSuccessor("tb");
         ASSERT_EQ(i_12_t1_ta_tb_t2_tb, i_tb_12_t1_t2_tb->getSuccessor("ta"));
-
-        
-        
+        ASSERT_TRUE(hasMarking(i_12_t1_ta_tb_t2_tb,
+                               0, 0, 1, 0, 1,
+                               D, D, D, 0));
+        ASSERT_TRUE(hasOutgoingTimeEdge(i_12_t1_ta_tb_t2_tb));
+        ASSERT_EQ(1u, i_12_t1_ta_tb_t2_tb->getOutgoing().size());
+        ASSERT_EQ(i_12_t1_ta_tb_t2_tb, i_12_t1_ta_tb_t2_tb->getSuccessor("1"));
     }
 }

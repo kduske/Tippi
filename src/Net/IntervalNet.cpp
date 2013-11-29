@@ -30,10 +30,19 @@ namespace Tippi {
     namespace Interval {
         Transition::Transition(const String& name, const size_t index, const TimeInterval& interval) :
         NetNode(name, index),
-        m_interval(interval) {}
+        m_interval(interval),
+        m_label(name) {}
 
         const TimeInterval& Transition::getInterval() const {
             return m_interval;
+        }
+
+        const String& Transition::getLabel() const {
+            return m_label;
+        }
+        
+        void Transition::setLabel(const String& label) {
+            m_label = label;
         }
 
         Place::Place(const String& name, const size_t index, const size_t bound) :

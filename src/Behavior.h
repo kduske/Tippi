@@ -21,51 +21,16 @@
 #define __Tippi__Behavior__
 
 #include "StringUtils.h"
-#include "Graph/GraphEdge.h"
-#include "Graph/GraphNode.h"
+#include "Automaton.h"
 #include "Net/IntervalNetState.h"
 
 #include <vector>
 
 namespace Tippi {
+    class BehaviorAutomaton : public Automaton<Interval::NetState> {
+    };
+    
     namespace Behavior {
-        class State;
-        
-        class Edge : public GraphEdge<State, State> {
-        public:
-            typedef std::vector<Edge*> List;
-        private:
-            String m_label;
-        public:
-            Edge(State* source, State* target, const String& label);
-            
-            bool operator<(const Edge& rhs) const;
-            bool operator<(const Edge* rhs) const;
-            int compare(const Edge& rhs) const;
-            
-            const String& getLabel() const;
-        };
-        
-        class State : public GraphNode<Edge, Edge> {
-        public:
-            typedef std::vector<State*> List;
-        private:
-            Interval::NetState m_netState;
-            bool m_final;
-        public:
-            State(const Interval::NetState& netState);
-            
-            bool operator<(const State& rhs) const;
-            bool operator<(const State* rhs) const;
-            int compare(const State& rhs) const;
-            
-            const Interval::NetState& getNetState() const;
-            bool isFinal() const;
-            void setFinal(bool final);
-            
-            const Behavior::State* getSuccessor(const String& edgeLabel) const;
-        };
-        
         class Automaton {
         private:
             State::List m_states;

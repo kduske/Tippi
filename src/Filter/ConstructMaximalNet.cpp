@@ -22,6 +22,47 @@
 #include "Net/IntervalNet.h"
 
 namespace Tippi {
+    struct LabelingFunction {
+        String operator()(const Interval::Transition* transition) const {
+            const Interval::Place::List presetIOPlaces = getPresetIOPlaces(transition);
+            const Interval::Place::List postsetIOPlaces = getPostsetIOPlaces(transition);
+            
+            if (presetIOPlaces.size() == 1 && postsetIOPlaces.empty())
+                return presetIOPlaces[0]->getName() + "?";
+            if (presetIOPlaces.empty() && postsetIOPlaces.size() == 1)
+                return postsetIOPlaces[0]->getName() + "!";
+            return "";
+        }
+        
+        Interval::Place::List getPresetIOPlaces(const Interval::Transition* transition) const {
+            Interval::Place::List result;
+            
+            const Interval::PlaceToTransition::List& incoming = transition->getIncoming();
+            Interval::PlaceToTransition::List::const_iterator it, end;
+            for (it = incoming.begin(), end = incoming.end(); it != end; ++it) {
+                Interval::PlaceToTransition* arc = *it;
+                Interval::Place* place = arc->getSource();
+                if (place->isInputPlace() || place->isOutputPlace())
+                    result.push_back(place);
+            }
+            return result;
+        }
+        
+        Interval::Place::List getPostsetIOPlaces(const Interval::Transition* transition) const {
+            Interval::Place::List result;
+            
+            const Interval::TransitionToPlace::List& outgoing = transition->getOutgoing();
+            Interval::TransitionToPlace::List::const_iterator it, end;
+            for (it = outgoing.begin(), end = outgoing.end(); it != end; ++it) {
+                Interval::TransitionToPlace* arc = *it;
+                Interval::Place* place = arc->getTarget();
+                if (place->isInputPlace() || place->isOutputPlace())
+                    result.push_back(place);
+            }
+            return result;
+        }
+    };
+    
     ConstructMaximalNet::NetPtr ConstructMaximalNet::operator()(NetPtr net) const {
         const Interval::Place::List& places = net->getPlaces();
         Interval::Place::List::const_iterator it, end;
@@ -37,6 +78,7 @@ namespace Tippi {
                 net->connect(place, transition);
             }
         }
+        net->setTransitionLabels(LabelingFunction());
         return net;
     }
 }

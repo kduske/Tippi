@@ -50,7 +50,7 @@ namespace Tippi {
             Interval::Transition* transition = *it;
             const Interval::NetState succNetState = rule.fireTransition(transition, netState);
             if (succNetState.isBounded(*net))
-                handleNetState(net, rule, state, succNetState, transition->getName(), automaton);
+                handleNetState(net, rule, state, succNetState, transition->getLabel(), automaton);
         }
         
         if (rule.canMakeTimeStep(netState)) {

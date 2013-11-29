@@ -45,10 +45,13 @@ namespace Tippi {
             typedef std::vector<Transition*> List;
         private:
             TimeInterval m_interval;
+            String m_label;
         public:
             Transition(const String& name, const size_t index, const TimeInterval& interval);
             
             const TimeInterval& getInterval() const;
+            const String& getLabel() const;
+            void setLabel(const String& label);
         };
         
         class Place : public GraphNode<TransitionToPlace, PlaceToTransition>, public NetNode {
@@ -99,6 +102,16 @@ namespace Tippi {
             const Transition* findTransition(const String& name) const;
             Place* findPlace(const String& name);
             Transition* findTransition(const String& name);
+            
+            template <class LabelingFunction>
+            void setTransitionLabels(const LabelingFunction& labelingFunction) {
+                const Transition::List& transitions = getTransitions();
+                Transition::List::const_iterator it, end;
+                for (it = transitions.begin(), end = transitions.end(); it != end; ++it) {
+                    Transition* transition = *it;
+                    transition->setLabel(labelingFunction(transition));
+                }
+            }
             
             const Marking& getInitialMarking() const;
             const Marking::List& getFinalMarkings() const;
