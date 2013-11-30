@@ -28,6 +28,7 @@
 
 namespace Tippi {
     class BehaviorAutomaton : public Automaton<Interval::NetState> {
+        
     };
     
     namespace Behavior {

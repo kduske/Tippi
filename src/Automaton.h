@@ -21,23 +21,27 @@
 #define __Tippi__Automaton__
 
 #include "StringUtils.h"
+#include "Exceptions.h"
 #include "Graph/GraphEdge.h"
 #include "Graph/GraphNode.h"
 
+#include <cassert>
 #include <vector>
 
 namespace Tippi {
-    template <typename StateInfo> class State;
+    template <typename StateInfoType>
+    class State;
     
-    template <typename StateInfo>
-    class Edge : public GraphEdge<State<StateInfo>, State<StateInfo> > {
+    template <typename StateInfoType>
+    class Edge : public GraphEdge<State<StateInfoType>, State<StateInfoType> > {
     public:
+        typedef StateInfoType StateInfo;
         typedef std::vector<Edge*> List;
     private:
         String m_label;
     public:
-        Edge(State<StateInfo>* source, State<StateInfo>* target, const String& label) :
-        GraphEdge(source, target),
+        Edge(State<StateInfoType>* source, State<StateInfoType>* target, const String& label) :
+        GraphEdge<State<StateInfoType>, State<StateInfoType> >(source, target),
         m_label(label) {}
         
         bool operator<(const Edge& rhs) const {
@@ -49,12 +53,12 @@ namespace Tippi {
         }
         
         int compare(const Edge& rhs) const {
-            const int sourceResult = getSource()->compare(*rhs.getSource());
+            const int sourceResult = this->getSource()->compare(*rhs.getSource());
             if (sourceResult < 0)
                 return -1;
             if (sourceResult > 0)
                 return 1;
-            const int targetResult = getTarget()->compare(*rhs.getTarget());
+            const int targetResult = this->getTarget()->compare(*rhs.getTarget());
             if (targetResult < 0)
                 return -1;
             if (targetResult > 0)
@@ -67,41 +71,85 @@ namespace Tippi {
         }
     };
     
-    template <typename StateInfo>
-    class State : public GraphNode<Edge, Edge> {
+    template <typename StateInfoType>
+    class State : public GraphNode<Edge<StateInfoType>, Edge<StateInfoType> > {
     public:
+        typedef StateInfoType StateInfo;
         typedef std::vector<State*> List;
     private:
-        StateInfo m_info;
+        StateInfoType m_info;
         bool m_final;
     public:
-        State(const StateInfo& info);
+        State(const StateInfoType& info);
         
         bool operator<(const State& rhs) const;
         bool operator<(const State* rhs) const;
         int compare(const State& rhs) const;
         
-        const StateInfo& getInfo() const;
+        const StateInfoType& getInfo() const;
         bool isFinal() const;
         void setFinal(bool final);
         
         const State* getSuccessor(const String& edgeLabel) const;
     };
 
-    template <typename StateInfo>
+    template <class State, class Edge>
     class Automaton {
     private:
         typename State::List m_states;
         typename Edge::List m_edges;
         State* m_initialState;
         typename State::List m_finalStates;
+
+        class InfoCmp {
+        public:
+            bool operator()(const State* lhs, const State* rhs) const {
+                return lhs < rhs;
+            }
+            bool operator()(const State* lhs, const typename State::Info& rhs) const {
+                return lhs->getInfo() < rhs;
+            }
+            bool operator()(const typename State::Info& lhs, const State* rhs) const {
+                return lhs < rhs->getInfo();
+            }
+            bool operator()(const typename State::Info& lhs, const typename State::Info& rhs) const {
+                return lhs < rhs;
+            }
+        };
     public:
-        Automaton();
-        virtual ~Automaton();
+        Automaton() :
+        m_initialState(NULL) {}
         
-        State* createState(const StateInfo& info);
-        std::pair<State*, bool> findOrCreateState(const StateInfo& info);
-        Edge* connect(State* source, State* target, const String& label);
+        virtual ~Automaton() {
+            VectorUtils::clearAndDelete(m_states);
+            VectorUtils::clearAndDelete(m_edges);
+            m_initialState = NULL;
+            m_finalStates.clear();
+        }
+        
+        State* createState(const typename State::StateInfo& info) {
+            State* state = doCreateState(info);
+            if (!VectorUtils::setInsert(m_states, state)) {
+                delete state;
+                throw AutomatonException("Behavior already contains a state with the given info");
+            }
+            return state;
+        }
+        
+        std::pair<State*, bool> findOrCreateState(const typename State::StateInfo& info) {
+            typedef std::pair<typename State::List::iterator, bool> FindResult;
+            FindResult result = VectorUtils::setFind<State*, const typename State::StateInfo&, InfoCmp>(m_states, info);
+            if (result.second)
+                return std::make_pair(*result.first, false);
+            
+            State* state = doCreateState(info);
+            const bool success = VectorUtils::setInsert(m_states, state, result);
+            assert(success);
+            return std::make_pair(state, true);
+        }
+        
+        Edge* connect(State* source, State* target, const String& label) {
+        }
         
         void deleteState(State* state);
         void disconnect(Edge* edge);
@@ -110,13 +158,15 @@ namespace Tippi {
         void addFinalState(State* state);
         
         const typename State::List& getStates() const;
-        const State* findState(const StateInfo& info) const;
+        const State* findState(const typename State::StateInfo& info) const;
         
         State* getInitialState() const;
         const typename State::List& getFinalStates() const;
     private:
         void deleteIncomingEdges(State* state);
         void deleteOutgoingEdges(State* state);
+        
+        virtual State* doCreateState(const typename State::StateInfo& info) = 0;
     };
 }
 
