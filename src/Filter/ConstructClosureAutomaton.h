@@ -17,34 +17,61 @@
  along with Tippi. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __Tippi__ConstructBehavior__
-#define __Tippi__ConstructBehavior__
+#ifndef __Tippi__ConstructClosureAutomaton__
+#define __Tippi__ConstructClosureAutomaton__
 
 #include "SharedPointer.h"
 #include "StringUtils.h"
 #include "Closure.h"
+#include "Net/IntervalNet.h"
+#include "Net/IntervalNetState.h"
 
 #include <iostream>
 
 namespace Tippi {
     class ClAutomaton;
+    class ClState;
     class Closure;
     
     namespace Interval {
         class FiringRule;
         class Net;
-        class NetState;
     }
     
     struct ConstructClosureAutomaton {
+    private:
+        typedef std::pair<Interval::NetState::Set, bool> ClResult;
+    public:
         typedef std::tr1::shared_ptr<Interval::Net> NetPtr;
         typedef std::tr1::shared_ptr<ClAutomaton> ClPtr;
-
+        
         ClPtr operator()(const NetPtr net) const;
     private:
-        void buildClosureRecurse(const NetPtr net, const Interval::FiringRule& rule, const Interval::NetState& netState, Closure::NetStateSet& states) const;
-        Closure buildClosure(const NetPtr net, const Interval::FiringRule& rule, const Interval::NetState& netState) const;
+        Interval::Transition::List getObservableTransitions(const NetPtr net) const;
+        
+        void handleState(const NetPtr net,
+                         const Interval::FiringRule& rule,
+                         ClState* state,
+                         const Interval::Transition::List& observableTransitions,
+                         ClPtr automaton) const;
+        void handleSuccessors(const NetPtr net,
+                              const Interval::FiringRule& rule,
+                              ClState* state,
+                              const Interval::NetState::Set& successors,
+                              const String& label,
+                              const Interval::Transition::List& observableTransitions,
+                              ClPtr automaton) const;
+        bool isFinalState(const NetPtr net, const ClState* state) const;
+        
+        Interval::NetState::Set getSuccessorsForObservableTransition(const NetPtr net,
+                                                                     const Interval::FiringRule& rule,
+                                                                     const Interval::NetState::Set& states,
+                                                                     const Interval::Transition* transition) const;
+        
+        Interval::NetState::Set getSuccessorsForTimeStep(const NetPtr net,
+                                                         const Interval::FiringRule& rule,
+                                                         const Interval::NetState::Set& states) const;
     };
 }
 
-#endif /* defined(__Tippi__ConstructBehavior__) */
+#endif /* defined(__Tippi__ClosureAutomaton__) */

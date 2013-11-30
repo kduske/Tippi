@@ -17,16 +17,16 @@
  along with Tippi. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "RenderBehavior.h"
+#include "RenderClosureAutomaton.h"
 
 #include "CollectionUtils.h"
-#include "Behavior.h"
+#include "Closure.h"
 #include "Graph/GraphAlgorithms.h"
 
 namespace Tippi {
     class Visitor {
     private:
-        typedef std::map<const Behavior::State*, size_t> IdMap;
+        typedef std::map<const ClState*, size_t> IdMap;
         
         std::ostream& m_stream;
         size_t m_stateId;
@@ -36,28 +36,34 @@ namespace Tippi {
         m_stream(stream),
         m_stateId(1) {}
         
-        void operator()(const Behavior::State* state) {
-            m_stream << getStateId(state) << " [";
-            printAttribute("label", state->asString("\n"));
-            m_stream << ",";
-            printAttribute("shape", "ellipse");
-            if (state->isFinal()) {
+        void operator()(const ClState* state) {
+            if (!state->getClosure().getStates().empty()) {
+                m_stream << getStateId(state) << " [";
+                printAttribute("label", state->asString("\n", "\n"));
                 m_stream << ",";
-                printAttribute("peripheries", "2");
+                printAttribute("shape", "ellipse");
+                if (state->isFinal()) {
+                    m_stream << ",";
+                    printAttribute("peripheries", "2");
+                }
+                m_stream << "];" << std::endl;
             }
-            m_stream << "];" << std::endl;
         }
         
-        void operator()(const Behavior::Edge* edge) {
-            const Behavior::State* source = edge->getSource();
-            const Behavior::State* target = edge->getTarget();
+        void operator()(const ClEdge* edge) {
+            const ClState* source = edge->getSource();
+            const ClState* target = edge->getTarget();
             
-            m_stream << getStateId(source) << " -> " << getStateId(target) << "[";
-            printAttribute("label", edge->getLabel());
-            m_stream << "];" << std::endl;
+            if (!source->getClosure().getStates().empty() &&
+                !target->getClosure().getStates().empty()) {
+                m_stream << getStateId(source) << " -> " << getStateId(target) << "[";
+                printAttribute("label", edge->getLabel());
+                m_stream << "];" << std::endl;
+            }
+            
         }
     private:
-        size_t getStateId(const Behavior::State* state) {
+        size_t getStateId(const ClState* state) {
             std::pair<IdMap::iterator, bool> insertPos = MapUtils::findInsertPos(m_stateIdMap, state);
             if (insertPos.second)
                 return insertPos.first->second;
@@ -71,16 +77,16 @@ namespace Tippi {
         }
     };
     
-    void RenderBehavior::operator()(const BehPtr behavior, std::ostream& stream) {
+    void RenderClosureAutomaton::operator()(const ClPtr automaton, std::ostream& stream) {
         stream << "digraph {" << std::endl;
         
         Visitor visitor(stream);
-        const Behavior::State::List& states = behavior->getStates();
-        Behavior::State::resetVisited(states);
+        const ClState::List& states = automaton->getStates();
+        ClState::resetVisited(states);
         
-        Behavior::State::List::const_iterator it, end;
+        ClState::List::const_iterator it, end;
         for (it = states.begin(), end = states.end(); it != end; ++it) {
-            const Behavior::State* state = *it;
+            const ClState* state = *it;
             visitNode(state, visitor, visitor);
         }
         

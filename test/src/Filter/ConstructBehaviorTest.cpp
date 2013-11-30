@@ -109,7 +109,9 @@ namespace Tippi {
                                1, 0, 0, 0, 1,
                                0, D, D, 0));
         ASSERT_TRUE(hasOutgoingTimeEdge(i_tb));
-        ASSERT_EQ(1u, i_tb->getOutgoing().size());
+        ASSERT_TRUE(hasOutgoingEdge(i_tb, tb));
+        ASSERT_EQ(2u, i_tb->getOutgoing().size());
+        ASSERT_EQ(beh->findOrCreateBoundViolationState(), i_tb->getSuccessor("tb"));
         
         const State* i_tb_1 = i_tb->getSuccessor("1");
         ASSERT_TRUE(hasMarking(i_tb_1,
@@ -117,14 +119,18 @@ namespace Tippi {
                                1, D, D, 0));
         ASSERT_TRUE(hasOutgoingTimeEdge(i_tb_1));
         ASSERT_TRUE(hasOutgoingEdge(i_tb_1, t1));
-        ASSERT_EQ(2u, i_tb_1->getOutgoing().size());
+        ASSERT_TRUE(hasOutgoingEdge(i_tb_1, tb));
+        ASSERT_EQ(3u, i_tb_1->getOutgoing().size());
+        ASSERT_EQ(beh->findOrCreateBoundViolationState(), i_tb_1->getSuccessor("tb"));
         
         const State* i_tb_2 = i_tb_1->getSuccessor("1");
         ASSERT_TRUE(hasMarking(i_tb_2,
                                1, 0, 0, 0, 1,
                                2, D, D, 0));
         ASSERT_TRUE(hasOutgoingEdge(i_tb_2, t1));
-        ASSERT_EQ(1u, i_tb_2->getOutgoing().size());
+        ASSERT_TRUE(hasOutgoingEdge(i_tb_2, tb));
+        ASSERT_EQ(2u, i_tb_2->getOutgoing().size());
+        ASSERT_EQ(beh->findOrCreateBoundViolationState(), i_tb_2->getSuccessor("tb"));
         
         const State* i_tb_12_t1 = i_tb_1->getSuccessor("t1");
         ASSERT_TRUE(hasMarking(i_tb_12_t1,
@@ -132,7 +138,9 @@ namespace Tippi {
                                D, 0, 0, 0));
         ASSERT_TRUE(hasOutgoingEdge(i_tb_12_t1, t2));
         ASSERT_TRUE(hasOutgoingEdge(i_tb_12_t1, ta));
-        ASSERT_EQ(2u, i_tb_12_t1->getOutgoing().size());
+        ASSERT_TRUE(hasOutgoingEdge(i_tb_12_t1, tb));
+        ASSERT_EQ(3u, i_tb_12_t1->getOutgoing().size());
+        ASSERT_EQ(beh->findOrCreateBoundViolationState(), i_tb_12_t1->getSuccessor("tb"));
         ASSERT_EQ(i_tb_12_t1, i_tb_2->getSuccessor("t1"));
         
         const State* i_tb_12_t1_t2 = i_tb_12_t1->getSuccessor("t2");
@@ -150,8 +158,10 @@ namespace Tippi {
                                0, 0, 1, 1, 1,
                                D, D, 0, 0));
         ASSERT_TRUE(hasOutgoingEdge(i_tb_12_t1_t2_tb, ta));
+        ASSERT_TRUE(hasOutgoingEdge(i_tb_12_t1_t2_tb, tb));
         ASSERT_TRUE(hasOutgoingTimeEdge(i_tb_12_t1_t2_tb));
-        ASSERT_EQ(2u, i_tb_12_t1_t2_tb->getOutgoing().size());
+        ASSERT_EQ(3u, i_tb_12_t1_t2_tb->getOutgoing().size());
+        ASSERT_EQ(beh->findOrCreateBoundViolationState(), i_tb_12_t1_t2_tb->getSuccessor("tb"));
         ASSERT_EQ(i_tb_12_t1_t2_tb, i_tb_12_t1_t2_tb->getSuccessor("1"));
         
         const State* i_1 = i->getSuccessor("1");
@@ -199,7 +209,9 @@ namespace Tippi {
                                0, 1, 0, 0, 1,
                                D, 0, D, 0));
         ASSERT_TRUE(hasOutgoingEdge(i_12_t1_ta_tb, t2));
-        ASSERT_EQ(1u, i_12_t1_ta_tb->getOutgoing().size());
+        ASSERT_TRUE(hasOutgoingEdge(i_12_t1_ta_tb, tb));
+        ASSERT_EQ(2u, i_12_t1_ta_tb->getOutgoing().size());
+        ASSERT_EQ(beh->findOrCreateBoundViolationState(), i_12_t1_ta_tb->getSuccessor("tb"));
         ASSERT_EQ(i_12_t1_ta_tb, i_tb_12_t1->getSuccessor("ta"));
         
         const State* i_12_t1_ta_tb_t2 = i_12_t1_ta_tb->getSuccessor("t2");
@@ -217,8 +229,10 @@ namespace Tippi {
         ASSERT_TRUE(hasMarking(i_12_t1_ta_tb_t2_tb,
                                0, 0, 1, 0, 1,
                                D, D, D, 0));
+        ASSERT_TRUE(hasOutgoingEdge(i_12_t1_ta_tb_t2_tb, tb));
         ASSERT_TRUE(hasOutgoingTimeEdge(i_12_t1_ta_tb_t2_tb));
-        ASSERT_EQ(1u, i_12_t1_ta_tb_t2_tb->getOutgoing().size());
+        ASSERT_EQ(2u, i_12_t1_ta_tb_t2_tb->getOutgoing().size());
+        ASSERT_EQ(beh->findOrCreateBoundViolationState(), i_12_t1_ta_tb_t2_tb->getSuccessor("tb"));
         ASSERT_EQ(i_12_t1_ta_tb_t2_tb, i_12_t1_ta_tb_t2_tb->getSuccessor("1"));
     }
 }

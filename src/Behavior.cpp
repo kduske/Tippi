@@ -58,8 +58,14 @@ namespace Tippi {
 
         State::State(const Interval::NetState& netState) :
         m_netState(netState),
-        m_final(false) {}
+        m_final(false),
+        m_boundViolation(false) {}
         
+        State::State() :
+        m_netState(0, 0),
+        m_final(false),
+        m_boundViolation(true) {}
+
         bool State::operator<(const State& rhs) const {
             return compare(rhs) < 0;
         }
@@ -69,6 +75,12 @@ namespace Tippi {
         }
         
         int State::compare(const State& rhs) const {
+            if (m_boundViolation) {
+                if (rhs.m_boundViolation)
+                    return 0;
+                return -1;
+            } else if (rhs.m_boundViolation)
+                return 1;
             return m_netState.compare(rhs.m_netState);
         }
         
@@ -83,6 +95,10 @@ namespace Tippi {
         void State::setFinal(bool final) {
             m_final = final;
         }
+        
+        bool State::isBoundViolation() const {
+            return m_boundViolation;
+        }
 
         const Behavior::State* State::getSuccessor(const String& edgeLabel) const {
             const OutgoingList& edges = getOutgoing();
@@ -93,6 +109,12 @@ namespace Tippi {
                     return edge->getTarget();
             }
             throw AutomatonException("No successor with edge label '" + edgeLabel + "' found");
+        }
+
+        String State::asString(const String separator) const {
+            if (m_boundViolation)
+                return "!";
+            return m_netState.asString(separator);
         }
 
         class StateNetStateComparator {
@@ -112,7 +134,8 @@ namespace Tippi {
         };
 
         Automaton::Automaton() :
-        m_initialState(NULL) {}
+        m_initialState(NULL),
+        m_boundViolationState(NULL) {}
 
         Automaton::~Automaton() {
             VectorUtils::clearAndDelete(m_states);
@@ -142,20 +165,30 @@ namespace Tippi {
             return std::make_pair(state, true);
         }
 
+        State* Automaton::findOrCreateBoundViolationState() {
+            if (m_boundViolationState == NULL)
+                m_boundViolationState = new State();
+            return m_boundViolationState;
+        }
+
         Edge* Automaton::connect(State* source, State* target, const String& label) {
             assert(source != NULL);
+            assert(source != m_boundViolationState);
             assert(target != NULL);
             assert(VectorUtils::setFind(m_states, source).second);
-            assert(VectorUtils::setFind(m_states, target).second);
+            assert(target == m_boundViolationState || VectorUtils::setFind(m_states, target).second);
             
             Edge* edge = new Edge(source, target, label);
-            if (!VectorUtils::setInsert(m_edges, edge)) {
+            const std::pair<Edge::List::iterator, bool> result = VectorUtils::setFind(m_edges, edge);
+            if (result.second) {
                 delete edge;
-                throw AutomatonException("Behavior already contains an edge from '" + source->getNetState().asString() + "' to '" + target->getNetState().asString() + "' with label '" + label + "'");
+                return *result.first;
+            } else {
+                m_edges.insert(result.first, edge);
+                source->addOutgoing(edge);
+                target->addIncoming(edge);
+                return edge;
             }
-            source->addOutgoing(edge);
-            target->addIncoming(edge);
-            return edge;
         }
         
         void Automaton::deleteState(State* state) {
@@ -182,7 +215,7 @@ namespace Tippi {
         
         void Automaton::addFinalState(State* state) {
             if (!state->isFinal())
-                throw AutomatonException("State is not a final state: '" + state->getNetState().asString() + "'");
+                throw AutomatonException("State is not a final state: '" + state->asString() + "'");
             VectorUtils::setInsert(m_finalStates, state);
         }
         

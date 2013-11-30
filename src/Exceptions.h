@@ -70,11 +70,18 @@ namespace Tippi {
     };
 
 
-    class AutomatonException : public ExceptionStream<NetException> {
+    class AutomatonException : public ExceptionStream<AutomatonException> {
     public:
         AutomatonException() throw() {}
         AutomatonException(const String& str) throw() : ExceptionStream(str) {}
         ~AutomatonException() throw() {}
+    };
+    
+    class ClosureException : public ExceptionStream<ClosureException> {
+    public:
+        ClosureException() throw() {}
+        ClosureException(const String& str) throw() : ExceptionStream(str) {}
+        ~ClosureException() throw() {}
     };
     
     class ParserException : public ExceptionStream<ParserException> {

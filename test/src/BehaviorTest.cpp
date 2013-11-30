@@ -67,8 +67,8 @@ namespace Tippi {
             ASSERT_TRUE(state1->isInPostset(state2));
             ASSERT_TRUE(state2->isInPreset(state1));
             
-            ASSERT_THROW(behavior.connect(state1, state2, "test"), AutomatonException);
-            ASSERT_NO_THROW(behavior.connect(state1, state2, "test2"));
+            ASSERT_EQ(edge, behavior.connect(state1, state2, "test"));
+            ASSERT_NE(edge, behavior.connect(state1, state2, "test2"));
         }
     }
 }

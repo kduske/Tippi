@@ -47,16 +47,17 @@ namespace Tippi {
     };
     
     class Closure {
-    public:
-        typedef std::set<Interval::NetState> NetStateSet;
     private:
-        NetStateSet m_netStates;
+        Interval::NetState::Set m_netStates;
     public:
         Closure();
-        Closure(NetStateSet& netStates);
+        Closure(const Interval::NetState::Set& netStates);
         
         bool operator<(const Closure& rhs) const;
         int compare(const Closure& rhs) const;
+        
+        const Interval::NetState::Set& getStates() const;
+        String asString(const String& markingSeparator, const String& stateSeparator) const;
     };
     
     class ClState : public GraphNode<ClEdge, ClEdge> {
@@ -77,6 +78,7 @@ namespace Tippi {
         void setFinal(bool final);
         
         const ClState* getSuccessor(const String& edgeLabel) const;
+        String asString(const String& markingSeparator, const String& stateSeparator) const;
     };
     
     class ClAutomaton {

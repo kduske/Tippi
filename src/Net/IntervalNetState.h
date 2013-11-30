@@ -24,6 +24,8 @@
 #include "Net/IntervalNet.h"
 #include "Net/Marking.h"
 
+#include <set>
+
 namespace Tippi {
     namespace Interval {
         class Net;
@@ -33,6 +35,7 @@ namespace Tippi {
         class NetState {
         public:
             static const size_t DisabledTransition;
+            typedef std::set<NetState> Set;
         private:
             Marking m_placeMarking;
             Marking m_timeMarking;
@@ -44,6 +47,8 @@ namespace Tippi {
             bool operator<(const NetState& rhs) const;
             bool operator==(const NetState& rhs) const;
             int compare(const NetState& rhs) const;
+            int comparePlaceMarking(const NetState& rhs) const;
+            int comparePlaceMarking(const Marking& placeMarking) const;
 
             bool checkPlaceEnabled(const Transition* transition) const;
             bool isPlaceEnabled(const Transition* transition) const;

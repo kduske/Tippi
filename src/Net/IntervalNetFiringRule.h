@@ -32,12 +32,13 @@ namespace Tippi {
             FiringRule(const Net& net);
             
             Transition::List getFireableTransitions(const NetState& state) const;
+            bool isFireable(const Transition* transition, const NetState& state) const;
             NetState fireTransition(const Transition* transition, const NetState& state) const;
             bool canMakeTimeStep(const NetState& state) const;
             NetState makeTimeStep(const NetState& state) const;
+            std::pair<NetState::Set, bool> buildClosure(const NetState& state, const StringList& labels = StringList(1, "")) const;
+            std::pair<NetState::Set, bool> buildClosure(const NetState::Set& states, const StringList& labels = StringList(1, "")) const;
         private:
-            bool isFireable(const Transition* transition, const NetState& state) const;
-
             void updateTokens(const Transition* transition, NetState& state) const;
             void consumeTokens(const Transition* transition, NetState& state) const;
             void produceTokens(const Transition* transition, NetState& state) const;
@@ -46,6 +47,7 @@ namespace Tippi {
             void updateSuccessors(const Transition* transition, NetState& state) const;
             void resetPostset(const Place* place, NetState& state) const;
             void enablePostset(const Place* place, NetState& state) const;
+            bool buildClosureRecurse(const NetState& state, const StringList& labels, NetState::Set& states) const;
         };
     }
 }

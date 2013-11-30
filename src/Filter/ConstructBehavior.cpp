@@ -49,8 +49,7 @@ namespace Tippi {
         for (it = fireableTransitions.begin(), end = fireableTransitions.end(); it != end; ++it) {
             Interval::Transition* transition = *it;
             const Interval::NetState succNetState = rule.fireTransition(transition, netState);
-            if (succNetState.isBounded(*net))
-                handleNetState(net, rule, state, succNetState, transition->getName(), automaton);
+            handleNetState(net, rule, state, succNetState, transition->getLabel(), automaton);
         }
         
         if (rule.canMakeTimeStep(netState)) {
@@ -61,16 +60,22 @@ namespace Tippi {
 
     void ConstructBehavior::handleNetState(const NetPtr net, const Interval::FiringRule& rule, Behavior::State* state, const Interval::NetState& succNetState, const String& edgeLabel, Behavior::Automaton* automaton) const {
 
-        std::pair<Behavior::State*, bool> result = automaton->findOrCreateState(succNetState);
-        Behavior::State* succState = result.first;
-        automaton->connect(state, succState, edgeLabel);
-        
-        if (result.second) {
-            if (succNetState.isFinalMarking(*net)) {
-                succState->setFinal(true);
-                automaton->addFinalState(succState);
+        Behavior::State* succState = NULL;
+        if (!succNetState.isBounded(*net)) {
+            succState = automaton->findOrCreateBoundViolationState();
+        } else {
+            std::pair<Behavior::State*, bool> result = automaton->findOrCreateState(succNetState);
+            succState = result.first;
+
+            if (result.second) {
+                if (succNetState.isFinalMarking(*net)) {
+                    succState->setFinal(true);
+                    automaton->addFinalState(succState);
+                }
+                handleState(net, rule, succState, automaton);
             }
-            handleState(net, rule, succState, automaton);
         }
+        
+        automaton->connect(state, succState, edgeLabel);
     }
 }

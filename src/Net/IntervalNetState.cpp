@@ -68,6 +68,14 @@ namespace Tippi {
             return m_timeMarking.compare(rhs.m_timeMarking);
         }
 
+        int NetState::comparePlaceMarking(const NetState& rhs) const {
+            return m_placeMarking.compare(rhs.m_placeMarking);
+        }
+
+        int NetState::comparePlaceMarking(const Marking& placeMarking) const {
+            return m_placeMarking.compare(placeMarking);
+        }
+
         bool NetState::checkPlaceEnabled(const Transition* transition) const {
             return checkPlaceEnabled(transition, m_placeMarking);
         }

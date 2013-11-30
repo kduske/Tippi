@@ -18,9 +18,11 @@
  */
 
 #include "Filter/ConstructBehavior.h"
+#include "Filter/ConstructClosureAutomaton.h"
 #include "Filter/ConstructMaximalNet.h"
 #include "Filter/LoadIntervalNet.h"
 #include "Filter/RenderBehavior.h"
+#include "Filter/RenderClosureAutomaton.h"
 #include "Filter/RenderIntervalNet.h"
 
 #include <cassert>
@@ -29,18 +31,20 @@
 
 int main(int argc, const char * argv[]) {
     using namespace Tippi;
-    
+
     std::fstream stream("data/test.net");
     assert(stream.is_open() && stream.good());
     
     LoadIntervalNet loader;
     ConstructMaximalNet maximal;
-    ConstructBehavior behavior;
+    // ConstructBehavior behavior;
+    ConstructClosureAutomaton closure;
 
-    RenderBehavior renderBehavior;
-    RenderIntervalNet renderNet;
+   // RenderBehavior renderBehavior;
+    RenderClosureAutomaton renderClosure;
+//    RenderIntervalNet renderNet;
     
 //    renderNet(maximal(loader(stream)), std::cout);
-    renderBehavior(behavior(maximal(loader(stream))), std::cout);
+    renderClosure(closure(maximal(loader(stream))), std::cout);
 }
 

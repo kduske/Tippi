@@ -52,8 +52,10 @@ namespace Tippi {
         private:
             Interval::NetState m_netState;
             bool m_final;
+            bool m_boundViolation;
         public:
             State(const Interval::NetState& netState);
+            State();
             
             bool operator<(const State& rhs) const;
             bool operator<(const State* rhs) const;
@@ -62,8 +64,10 @@ namespace Tippi {
             const Interval::NetState& getNetState() const;
             bool isFinal() const;
             void setFinal(bool final);
+            bool isBoundViolation() const;
             
             const Behavior::State* getSuccessor(const String& edgeLabel) const;
+            String asString(const String separator = " ") const;
         };
         
         class Automaton {
@@ -72,12 +76,14 @@ namespace Tippi {
             Edge::List m_edges;
             State* m_initialState;
             State::List m_finalStates;
+            State* m_boundViolationState;
         public:
             Automaton();
             ~Automaton();
             
             State* createState(const Interval::NetState& netState);
             std::pair<State*, bool> findOrCreateState(const Interval::NetState& netState);
+            State* findOrCreateBoundViolationState();
             Edge* connect(State* source, State* target, const String& label);
             
             void deleteState(State* state);

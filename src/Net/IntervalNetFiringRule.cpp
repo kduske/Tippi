@@ -39,6 +39,10 @@ namespace Tippi {
             return result;
         }
         
+        bool FiringRule::isFireable(const Transition* transition, const NetState& state) const {
+            return state.isPlaceEnabled(transition) && state.isTimeEnabled(transition);
+        }
+        
         NetState FiringRule::fireTransition(const Transition* transition, const NetState& state) const {
             assert(transition != NULL);
             assert(m_net.findTransition(transition->getName()) == transition);
@@ -77,8 +81,24 @@ namespace Tippi {
             return newState;
         }
 
-        bool FiringRule::isFireable(const Transition* transition, const NetState& state) const {
-            return state.isPlaceEnabled(transition) && state.isTimeEnabled(transition);
+        std::pair<NetState::Set, bool> FiringRule::buildClosure(const NetState& state, const StringList& labels) const {
+            NetState::Set closure;
+            if (!buildClosureRecurse(state, labels, closure))
+                return std::make_pair(NetState::Set(), false);
+            return std::make_pair(closure, true);
+        }
+
+        std::pair<NetState::Set, bool> FiringRule::buildClosure(const NetState::Set& states, const StringList& labels) const {
+            NetState::Set closure;
+            if (states.empty())
+                return std::make_pair(closure, true);
+            NetState::Set::const_iterator it, end;
+            for (it = states.begin(), end = states.end(); it != end; ++it) {
+                const NetState& state = *it;
+                if (!buildClosureRecurse(state, labels, closure))
+                    return std::make_pair(NetState::Set(), false);
+            }
+            return std::make_pair(closure, true);
         }
 
         void FiringRule::updateTokens(const Transition* transition, NetState& state) const {
@@ -156,6 +176,26 @@ namespace Tippi {
                     }
                 }
             }
+        }
+
+        bool FiringRule::buildClosureRecurse(const NetState& state, const StringList& labels, NetState::Set& states) const {
+            if (!state.isBounded(m_net))
+                return false;
+            
+            if (!states.insert(state).second)
+                return true;
+            
+            const Interval::Transition::List fireableTransitions = getFireableTransitions(state);
+            Interval::Transition::List::const_iterator it, end;
+            for (it = fireableTransitions.begin(), end = fireableTransitions.end(); it != end; ++it) {
+                const Interval::Transition* transition = *it;
+                if (VectorUtils::contains(labels, transition->getLabel())) {
+                    const Interval::NetState next = fireTransition(transition, state);
+                    if (!buildClosureRecurse(next, labels, states))
+                        return false;
+                }
+            }
+            return true;
         }
     }
 }

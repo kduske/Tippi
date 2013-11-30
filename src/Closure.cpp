@@ -58,19 +58,18 @@ namespace Tippi {
     
     Closure::Closure() {}
     
-    Closure::Closure(NetStateSet& netStates) {
-        std::swap(m_netStates, netStates);
-    }
+    Closure::Closure(const Interval::NetState::Set& netStates) :
+    m_netStates(netStates) {}
     
     bool Closure::operator<(const Closure& rhs) const {
         return compare(rhs) < 0;
     }
     
     int Closure::compare(const Closure& rhs) const {
-        NetStateSet::const_iterator lit = m_netStates.begin();
-        const NetStateSet::const_iterator lend = m_netStates.end();
-        NetStateSet::const_iterator rit = rhs.m_netStates.begin();
-        const NetStateSet::const_iterator rend = rhs.m_netStates.end();
+        Interval::NetState::Set::const_iterator lit = m_netStates.begin();
+        const Interval::NetState::Set::const_iterator lend = m_netStates.end();
+        Interval::NetState::Set::const_iterator rit = rhs.m_netStates.begin();
+        const Interval::NetState::Set::const_iterator rend = rhs.m_netStates.end();
         
         while (lit != lend && rit != rend) {
             const Interval::NetState& lstate = *lit;
@@ -90,6 +89,22 @@ namespace Tippi {
         return 0;
     }
     
+    const Interval::NetState::Set& Closure::getStates() const {
+        return m_netStates;
+    }
+
+    String Closure::asString(const String& markingSeparator, const String& stateSeparator) const {
+        StringStream result;
+        Interval::NetState::Set::const_iterator it, end;
+        for (it = m_netStates.begin(), end = m_netStates.end(); it != end; ++it) {
+            const Interval::NetState& state = *it;
+            result << state.asString(markingSeparator);
+            if (std::distance(it, end) > 1)
+                result << stateSeparator;
+        }
+        return result.str();
+    }
+
     ClState::ClState(const Closure& closure) :
     m_closure(closure),
     m_final(false) {
@@ -104,7 +119,7 @@ namespace Tippi {
     }
     
     int ClState::compare(const ClState& rhs) const {
-        return m_closure < rhs.m_closure;
+        return m_closure.compare(rhs.m_closure);
     }
     
     const Closure& ClState::getClosure() const {
@@ -130,6 +145,10 @@ namespace Tippi {
         throw AutomatonException("No successor with edge label '" + edgeLabel + "' found");
     }
     
+    String ClState::asString(const String& markingSeparator, const String& stateSeparator) const {
+        return m_closure.asString(markingSeparator, stateSeparator);
+    }
+
     class StateCmp {
     public:
         bool operator()(const ClState* lhs, const ClState* rhs) const {
@@ -184,12 +203,16 @@ namespace Tippi {
         assert(VectorUtils::setFind(m_states, target).second);
         
         ClEdge* edge = new ClEdge(source, target, label);
-        if (!VectorUtils::setInsert(m_edges, edge)) {
+        const std::pair<ClEdge::List::iterator, bool> result = VectorUtils::setFind(m_edges, edge);
+        if (result.second) {
             delete edge;
-            throw AutomatonException("Behavior already contains an edge from connecting the given states");
+            return *result.first;
+        } else {
+            m_edges.insert(result.first, edge);
+            source->addOutgoing(edge);
+            target->addIncoming(edge);
+            return edge;
         }
-        source->addOutgoing(edge);
-        target->addIncoming(edge);
         return edge;
     }
     
