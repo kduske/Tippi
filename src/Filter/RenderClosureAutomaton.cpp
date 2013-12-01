@@ -56,7 +56,7 @@ namespace Tippi {
             
             if (!source->getClosure().getStates().empty() &&
                 !target->getClosure().getStates().empty()) {
-                m_stream << getStateId(source) << " -> " << getStateId(target) << "[";
+                m_stream << getStateId(source) << " -> " << getStateId(target) << " [";
                 printAttribute("label", edge->getLabel());
                 m_stream << "];" << std::endl;
             }
@@ -81,10 +81,10 @@ namespace Tippi {
         stream << "digraph {" << std::endl;
         
         Visitor visitor(stream);
-        const ClState::List& states = automaton->getStates();
-        ClState::resetVisited(states);
+        const ClState::Set& states = automaton->getStates();
+        ClState::resetVisited(states.begin(), states.end());
         
-        ClState::List::const_iterator it, end;
+        ClState::Set::const_iterator it, end;
         for (it = states.begin(), end = states.end(); it != end; ++it) {
             const ClState* state = *it;
             visitNode(state, visitor, visitor);

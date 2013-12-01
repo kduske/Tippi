@@ -92,8 +92,8 @@ namespace Tippi {
         
         const Interval::Place::List& places = net->getPlaces();
         const Interval::Transition::List& transitions = net->getTransitions();
-        Interval::Place::resetVisited(places);
-        Interval::Transition::resetVisited(transitions);
+        Interval::Place::resetVisited(places.begin(), places.end());
+        Interval::Transition::resetVisited(transitions.begin(), transitions.end());
 
         Interval::Place::List::const_iterator pIt, pEnd;
         for (pIt = places.begin(), pEnd = places.end(); pIt != pEnd; ++pIt) {

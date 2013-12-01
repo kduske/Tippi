@@ -25,6 +25,7 @@
 #include "Graph/GraphNode.h"
 #include "Net/IntervalNetState.h"
 
+#include <set>
 #include <vector>
 
 namespace Tippi {
@@ -34,6 +35,7 @@ namespace Tippi {
         class Edge : public GraphEdge<State, State> {
         public:
             typedef std::vector<Edge*> List;
+            typedef std::set<Edge*, Utils::UniCmp<Edge> > Set;
         private:
             String m_label;
         public:
@@ -48,7 +50,7 @@ namespace Tippi {
         
         class State : public GraphNode<Edge, Edge> {
         public:
-            typedef std::vector<State*> List;
+            typedef std::set<State*, Utils::UniCmp<State> > Set;
         private:
             Interval::NetState m_netState;
             bool m_final;
@@ -72,10 +74,10 @@ namespace Tippi {
         
         class Automaton {
         private:
-            State::List m_states;
-            Edge::List m_edges;
+            State::Set m_states;
+            Edge::Set m_edges;
             State* m_initialState;
-            State::List m_finalStates;
+            State::Set m_finalStates;
             State* m_boundViolationState;
         public:
             Automaton();
@@ -92,11 +94,11 @@ namespace Tippi {
             void setInitialState(State* state);
             void addFinalState(State* state);
             
-            const State::List& getStates() const;
+            const State::Set& getStates() const;
             const State* findState(const Interval::NetState& netState) const;
             
             State* getInitialState() const;
-            const State::List& getFinalStates() const;
+            const State::Set& getFinalStates() const;
         private:
             void deleteIncomingEdges(State* state);
             void deleteOutgoingEdges(State* state);

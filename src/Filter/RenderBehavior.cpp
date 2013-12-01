@@ -52,7 +52,7 @@ namespace Tippi {
             const Behavior::State* source = edge->getSource();
             const Behavior::State* target = edge->getTarget();
             
-            m_stream << getStateId(source) << " -> " << getStateId(target) << "[";
+            m_stream << getStateId(source) << " -> " << getStateId(target) << " [";
             printAttribute("label", edge->getLabel());
             m_stream << "];" << std::endl;
         }
@@ -75,10 +75,10 @@ namespace Tippi {
         stream << "digraph {" << std::endl;
         
         Visitor visitor(stream);
-        const Behavior::State::List& states = behavior->getStates();
-        Behavior::State::resetVisited(states);
+        const Behavior::State::Set& states = behavior->getStates();
+        Behavior::State::resetVisited(states.begin(), states.end());
         
-        Behavior::State::List::const_iterator it, end;
+        Behavior::State::Set::const_iterator it, end;
         for (it = states.begin(), end = states.end(); it != end; ++it) {
             const Behavior::State* state = *it;
             visitNode(state, visitor, visitor);

@@ -27,14 +27,14 @@
 #include <set>
 #include <vector>
 
-namespace VectorUtils {
+namespace Utils {
     template <typename T>
     struct Deleter {
         void operator()(const T* ptr) const {
             delete ptr;
         }
     };
-    
+
     template <typename T, typename Comparator = std::less<T> >
     struct UniCmp {
     private:
@@ -47,7 +47,9 @@ namespace VectorUtils {
             return m_cmp(lhs, rhs);
         }
     };
+}
 
+namespace VectorUtils {
     template <typename T>
     void shiftLeft(std::vector<T>& vec, const size_t offset) {
         if (vec.empty() || offset == 0)
@@ -74,7 +76,7 @@ namespace VectorUtils {
     
     template <typename T>
     void eraseAndDelete(std::vector<T*>& vec, typename std::vector<T*>::iterator first, typename std::vector<T*>::iterator last) {
-        std::for_each(first, last, Deleter<T>());
+        std::for_each(first, last, Utils::Deleter<T>());
         vec.erase(first, last);
     }
     
@@ -85,13 +87,13 @@ namespace VectorUtils {
     
     template <typename T>
     void clearAndDelete(std::vector<T*>& vec) {
-        std::for_each(vec.begin(), vec.end(), Deleter<T>());
+        std::for_each(vec.begin(), vec.end(), Utils::Deleter<T>());
         vec.clear();
     }
     
     template <typename T>
     void deleteAll(const std::vector<T*>& vec) {
-        std::for_each(vec.begin(), vec.end(), Deleter<T>());
+        std::for_each(vec.begin(), vec.end(), Utils::Deleter<T>());
     }
     
     template <typename T, typename I>
@@ -267,6 +269,19 @@ namespace VectorUtils {
     }
 
     template <typename T, typename K, typename Compare>
+    std::pair<typename std::vector<T>::const_iterator, bool> setFind(const std::vector<T>& vec, const K& object) {
+        Compare cmp;
+        typename std::vector<T>::const_iterator it = std::lower_bound(vec.begin(), vec.end(), object, cmp);
+        const bool exists = (it != vec.end() && !cmp(*it, object) && !cmp(object, *it));
+        return std::make_pair(it, exists);
+    }
+ 
+    template <typename T>
+    std::pair<typename std::vector<T>::const_iterator, bool> setFind(const std::vector<T>& vec, const T& object) {
+        return setFind<T, T, std::less<T> >(vec, object);
+    }
+    
+    template <typename T, typename K, typename Compare>
     std::pair<typename std::vector<T>::iterator, bool> setFind(std::vector<T>& vec, const K& object) {
         Compare cmp;
         typename std::vector<T>::iterator it = std::lower_bound(vec.begin(), vec.end(), object, cmp);
@@ -274,12 +289,9 @@ namespace VectorUtils {
         return std::make_pair(it, exists);
     }
     
-    template <typename T, typename K, typename Compare>
-    std::pair<typename std::vector<T>::const_iterator, bool> setFind(const std::vector<T>& vec, const K& object) {
-        Compare cmp;
-        typename std::vector<T>::const_iterator it = std::lower_bound(vec.begin(), vec.end(), object, cmp);
-        const bool exists = (it != vec.end() && !cmp(*it, object) && !cmp(object, *it));
-        return std::make_pair(it, exists);
+    template <typename T>
+    std::pair<typename std::vector<T>::iterator, bool> setFind(std::vector<T>& vec, const T& object) {
+        return setFind<T, T, std::less<T> >(vec, object);
     }
     
     template <typename T, typename K, typename Compare>
@@ -289,7 +301,7 @@ namespace VectorUtils {
     
     template <typename T, typename K>
     bool setContains(const std::vector<T>& vec, const K& object) {
-        return setFind<T, K, UniCmp<T> >(vec, object).second;
+        return setFind<T, K, std::less<T> >(vec, object).second;
     }
     
     template <typename T>
@@ -329,6 +341,11 @@ namespace VectorUtils {
         }
     }
     
+    template <typename T>
+    bool setInsert(std::vector<T>& vec, const T& object) {
+        return setInsert<T, std::less<T> >(vec, object);
+    }
+    
     template <typename T, typename I, typename Compare>
     void setInsertOrReplace(std::vector<T>& vec, I cur, const I end) {
         while (cur != end) {
@@ -338,7 +355,7 @@ namespace VectorUtils {
     }
     
     template <typename T, typename Compare>
-    bool setRemove(std::vector<T>& vec, T& object) {
+    bool setRemove(std::vector<T>& vec, const T& object) {
         typedef std::pair<typename std::vector<T>::iterator, bool> FindResult;
         FindResult find = setFind<T, T, Compare>(vec, object);
         if (find.second) {
@@ -360,9 +377,9 @@ namespace VectorUtils {
     }
 
     template <typename T, typename Compare>
-    bool setRemoveAndDelete(std::vector<T>& vec, T& object) {
-        typedef std::pair<typename std::vector<T>::iterator, bool> FindResult;
-        FindResult find = setFind<T, T, Compare>(vec, object);
+    bool setRemoveAndDelete(std::vector<T*>& vec, const T* object) {
+        typedef std::pair<typename std::vector<T*>::iterator, bool> FindResult;
+        FindResult find = setFind<T*, T*, Compare>(vec, object);
         if (find.second) {
             vec.erase(find.first);
             delete *find.first;
@@ -372,11 +389,11 @@ namespace VectorUtils {
     }
     
     template <typename T, typename I, typename Compare>
-    void setRemoveAndDelete(std::vector<T>& vec, I cur, const I end) {
-        typedef std::pair<typename std::vector<T>::iterator, bool> FindResult;
+    void setRemoveAndDelete(std::vector<T*>& vec, I cur, const I end) {
+        typedef std::pair<typename std::vector<T*>::iterator, bool> FindResult;
         while (cur != end) {
             while (cur != end) {
-                FindResult find = setFind<T, T, Compare>(vec, *cur);
+                FindResult find = setFind<T*, T*, Compare>(vec, *cur);
                 if (find.second) {
                     vec.erase(find.first);
                     delete *find.first;
@@ -385,85 +402,38 @@ namespace VectorUtils {
             }
         }
     }
-    
-    template <typename T>
-    std::pair<typename std::vector<T>::iterator, bool> setFind(std::vector<T>& vec, T& object) {
-        return setFind<T, T, UniCmp<T> >(vec, object);
-    }
-    
-    template <typename T>
-    std::pair<typename std::vector<T*>::iterator, bool> setFind(std::vector<T*>& vec, T*& object) {
-        return setFind<T*, T*, UniCmp<T> >(vec, object);
-    }
-    
-    template <typename T>
-    std::pair<typename std::vector<T>::const_iterator, bool> setFind(const std::vector<T>& vec, T& object) {
-        return setFind<T, T, UniCmp<T> >(vec, object);
-    }
-
-    template <typename T>
-    std::pair<typename std::vector<T*>::const_iterator, bool> setFind(const std::vector<T*>& vec, T*& object) {
-        return setFind<T*, T*, UniCmp<T> >(vec, object);
-    }
-    
-    template <typename T>
-    bool setInsert(std::vector<T>& vec, const T& object) {
-        return setInsert<T, UniCmp<T> >(vec, object);
-    }
-    
-    template <typename T>
-    bool setInsert(std::vector<T*>& vec, T*& object) {
-        return setInsert<T*, UniCmp<T> >(vec, object);
-    }
-    
-    template <typename T, typename I>
-    void setInsert(std::vector<T>& vec, I cur, const I end) {
-        setInsert<T, I, UniCmp<T> >(vec, cur, end);
-    }
-    
-    template <typename T, typename I>
-    void setInsert(std::vector<T*>& vec, I cur, const I end) {
-        setInsert<T*, I, UniCmp<T> >(vec, cur, end);
-    }
-
-    template <typename T>
-    bool setRemove(std::vector<T>& vec, T& object) {
-        return setRemove<T, UniCmp<T> >(vec, object);
-    }
-
-    template <typename T>
-    bool setRemove(std::vector<T*>& vec, T*& object) {
-        return setRemove<T*, UniCmp<T> >(vec, object);
-    }
-    
-    template <typename T, typename I>
-    void setRemove(std::vector<T>& vec, I cur, const I end) {
-        setRemove<T, I, UniCmp<T> >(vec, cur, end);
-    }
-
-    template <typename T, typename I>
-    void setRemove(std::vector<T*>& vec, I cur, const I end) {
-        setRemove<T*, I, UniCmp<T> >(vec, cur, end);
-    }
-    
-    template <typename T>
-    bool setRemoveAndDelete(std::vector<T*>& vec, T*& object) {
-        return setRemoveAndDelete<T*, UniCmp<T> >(vec, object);
-    }
-    
-    template <typename T, typename I>
-    void setRemoveAndDelete(std::vector<T*>& vec, I cur, const I end) {
-        setRemoveAndDelete<T*, I, UniCmp<T> >(vec, cur, end);
-    }
-    
 }
 
 namespace SetUtils {
+    template <typename T, typename Cmp>
+    bool equals(const std::set<T, Cmp>& set, const T& lhs, const T& rhs) {
+        return !set.key_comp()(lhs, rhs) && !set.key_comp()(rhs, lhs);
+    }
+    
     template <typename T>
     std::set<T> minus(const std::set<T>& lhs, const std::set<T>& rhs) {
         std::set<T> result;
         std::set_difference(lhs.begin(), lhs.end(), rhs.begin(), rhs.end(), std::insert_iterator<std::set<T> >(result, result.end()));
         return result;
+    }
+    
+    template <typename T, typename Cmp>
+    void clearAndDelete(std::set<T*, Cmp>& set) {
+        std::for_each(set.begin(), set.end(), Utils::Deleter<T>());
+        set.clear();
+    }
+
+    template <typename T, typename I, typename Cmp>
+    void remove(std::set<T*, Cmp>& set, I* item) {
+        typename std::set<T*, Cmp>::iterator it = set.find(item);
+        if (it != set.end())
+            set.erase(it);
+    }
+    
+    template <typename T, typename I, typename Cmp>
+    void removeAndDelete(std::set<T*, Cmp>& set, I* item) {
+        remove(set, item);
+        delete item;
     }
 }
 

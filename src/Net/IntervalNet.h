@@ -52,6 +52,11 @@ namespace Tippi {
             const TimeInterval& getInterval() const;
             const String& getLabel() const;
             void setLabel(const String& label);
+            
+            bool isInputSend() const;
+            bool isInputRead() const;
+            bool isOutputSend() const;
+            bool isOutputRead() const;
         };
         
         class Place : public GraphNode<TransitionToPlace, PlaceToTransition>, public NetNode {

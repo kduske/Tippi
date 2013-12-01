@@ -26,16 +26,13 @@
 #include <cassert>
 
 namespace Tippi {
-    ClEdge::ClEdge(ClState* source, ClState* target, const String& label) :
+    ClEdge::ClEdge(ClState* source, ClState* target, const String& label, const Type type) :
     GraphEdge(source, target),
-    m_label(label) {}
+    m_label(label),
+    m_type(type) {}
     
     bool ClEdge::operator<(const ClEdge& rhs) const {
         return compare(rhs) < 0;
-    }
-    
-    bool ClEdge::operator<(const ClEdge* rhs) const {
-        return compare(*rhs) < 0;
     }
     
     int ClEdge::compare(const ClEdge& rhs) const {
@@ -56,6 +53,10 @@ namespace Tippi {
         return m_label;
     }
     
+    ClEdge::Type ClEdge::getType() const {
+        return m_type;
+    }
+
     Closure::Closure() {}
     
     Closure::Closure(const Interval::NetState::Set& netStates) :
@@ -114,10 +115,6 @@ namespace Tippi {
         return compare(rhs) < 0;
     }
     
-    bool ClState::operator<(const ClState* rhs) const {
-        return compare(*rhs) < 0;
-    }
-    
     int ClState::compare(const ClState& rhs) const {
         return m_closure.compare(rhs.m_closure);
     }
@@ -134,6 +131,24 @@ namespace Tippi {
         m_final = final;
     }
     
+    bool ClState::isDeadlock() const {
+        if (isFinal())
+            return false;
+        if (m_closure.getStates().empty())
+            return false;
+        
+        const ClEdge::List& outgoing = getOutgoing();
+        ClEdge::List::const_iterator it, end;
+        for (it = outgoing.begin(), end = outgoing.end(); it != end; ++it) {
+            const ClEdge* edge = *it;
+            const ClState* successor = edge->getTarget();
+            if (successor != this && !successor->getClosure().getStates().empty())
+                return false;
+        }
+        
+        return true;
+    }
+
     const ClState* ClState::getSuccessor(const String& edgeLabel) const {
         const OutgoingList& edges = getOutgoing();
         OutgoingList::const_iterator it, end;
@@ -169,69 +184,80 @@ namespace Tippi {
     m_initialState(NULL) {}
     
     ClAutomaton::~ClAutomaton() {
-        VectorUtils::clearAndDelete(m_states);
-        VectorUtils::clearAndDelete(m_edges);
+        SetUtils::clearAndDelete(m_states);
+        SetUtils::clearAndDelete(m_edges);
         m_initialState = NULL;
         m_finalStates.clear();
     }
     
     ClState* ClAutomaton::createState(const Closure& closure) {
         ClState* state = new ClState(closure);
-        if (!VectorUtils::setInsert(m_states, state)) {
+        ClState::Set::iterator it = m_states.lower_bound(state);
+        if (it != m_states.end() && SetUtils::equals(m_states, state, *it)) {
             delete state;
             throw AutomatonException("Behavior already contains a state with the given closure");
         }
+        m_states.insert(it, state);
         return state;
     }
     
     std::pair<ClState*, bool> ClAutomaton::findOrCreateState(const Closure& closure) {
-        typedef std::pair<ClState::List::iterator, bool> FindResult;
-        FindResult result = VectorUtils::setFind<ClState*, const Closure&, StateCmp>(m_states, closure);
-        if (result.second)
-            return std::make_pair(*result.first, false);
-        
         ClState* state = new ClState(closure);
-        const bool success = VectorUtils::setInsert(m_states, state, result);
-        assert(success);
+        ClState::Set::iterator it = m_states.lower_bound(state);
+        if (it != m_states.end() && SetUtils::equals(m_states, state, *it)) {
+            delete state;
+            return std::make_pair(*it, false);
+        }
+        m_states.insert(it, state);
         return std::make_pair(state, true);
     }
     
-    ClEdge* ClAutomaton::connect(ClState* source, ClState* target, const String& label) {
+    ClEdge* ClAutomaton::connect(ClState* source, ClState* target, const String& label, const ClEdge::Type type) {
         assert(source != NULL);
         assert(target != NULL);
-        assert(VectorUtils::setFind(m_states, source).second);
-        assert(VectorUtils::setFind(m_states, target).second);
+        assert(m_states.count(source) == 1);
+        assert(m_states.count(target) == 1);
         
-        ClEdge* edge = new ClEdge(source, target, label);
-        const std::pair<ClEdge::List::iterator, bool> result = VectorUtils::setFind(m_edges, edge);
-        if (result.second) {
+        ClEdge* edge = new ClEdge(source, target, label, type);
+        ClEdge::Set::iterator it = m_edges.lower_bound(edge);
+        if (it != m_edges.end() && SetUtils::equals(m_edges, edge, *it)) {
             delete edge;
-            return *result.first;
-        } else {
-            m_edges.insert(result.first, edge);
-            source->addOutgoing(edge);
-            target->addIncoming(edge);
-            return edge;
+            return *it;
         }
+        
+        m_edges.insert(it, edge);
+        source->addOutgoing(edge);
+        target->addIncoming(edge);
         return edge;
     }
     
     void ClAutomaton::deleteState(ClState* state) {
+        // std::cout << "   Delete state: " << state->asString(",", ";") << std::endl;
+
         assert(state != NULL);
-        assert(VectorUtils::setFind(m_states, state).second);
+        ClState::Set::iterator it = m_states.lower_bound(state);
+        assert(it != m_states.end() && SetUtils::equals(m_states, state, *it));
         
         deleteIncomingEdges(state);
         deleteOutgoingEdges(state);
-        VectorUtils::setRemoveAndDelete(m_states, state);
+        m_states.erase(it);
+
+        if (m_initialState == state)
+            m_initialState = NULL;
+        SetUtils::remove(m_finalStates, state);
+        delete state;
     }
     
     void ClAutomaton::disconnect(ClEdge* edge) {
         assert(edge != NULL);
-        assert(VectorUtils::setFind(m_edges, edge).second);
+        
+        ClEdge::Set::iterator it = m_edges.find(edge);
+        assert(it != m_edges.end());
         
         edge->removeFromSource();
         edge->removeFromTarget();
-        VectorUtils::setRemoveAndDelete(m_edges, edge);
+        m_edges.erase(it);
+        delete edge;
     }
     
     void ClAutomaton::setInitialState(ClState* state) {
@@ -241,27 +267,51 @@ namespace Tippi {
     void ClAutomaton::addFinalState(ClState* state) {
         if (!state->isFinal())
             throw AutomatonException("The given state is not a final state");
-        VectorUtils::setInsert(m_finalStates, state);
+        m_finalStates.insert(state);
     }
     
-    const ClState::List& ClAutomaton::getStates() const {
+    const ClState::Set& ClAutomaton::getStates() const {
         return m_states;
     }
     
     const ClState* ClAutomaton::findState(const Closure& closure) const {
-        typedef std::pair<ClState::List::const_iterator, bool> FindResult;
-        const FindResult result = VectorUtils::setFind<ClState*, const Closure&, StateCmp>(m_states, closure);
-        if (!result.second)
+        ClState query(closure);
+        ClState::Set::const_iterator it = m_states.find(&query);
+        if (it == m_states.end())
             return NULL;
-        return *result.first;
+        return *it;
     }
     
     ClState* ClAutomaton::getInitialState() const {
         return m_initialState;
     }
     
-    const ClState::List& ClAutomaton::getFinalStates() const {
+    const ClState::Set& ClAutomaton::getFinalStates() const {
         return m_finalStates;
+    }
+    
+    ClState::Set ClAutomaton::findUnreachableStates() const {
+        ClState::Set unreachable;
+        
+        size_t count;
+        do {
+            count = unreachable.size();
+            doFindUnreachableStates(unreachable);
+        } while (count < unreachable.size());
+        
+        return unreachable;
+    }
+
+    void ClAutomaton::doFindUnreachableStates(ClState::Set& unreachable) const {
+        ClState::Set::const_iterator it, end;
+        for (it = m_states.begin(), end = m_states.end(); it != end; ++it) {
+            ClState* state = *it;
+            if (state != m_initialState &&
+                unreachable.count(state) == 0 &&
+                state->isPresetSubsetOfIgnoringLoops(unreachable))
+                unreachable.insert(state);
+        }
+        
     }
     
     void ClAutomaton::deleteIncomingEdges(ClState* state) {
@@ -269,8 +319,9 @@ namespace Tippi {
         ClState::IncomingList::const_iterator it, end;
         for (it = incomingEdges.begin(), end = incomingEdges.end(); it != end; ++it) {
             ClEdge* edge = *it;
+            SetUtils::remove(m_edges, edge);
             edge->removeFromSource();
-            VectorUtils::setRemoveAndDelete(m_edges, edge);
+            delete edge;
         }
     }
     
@@ -279,8 +330,9 @@ namespace Tippi {
         ClState::OutgoingList::const_iterator it, end;
         for (it = outgoingEdges.begin(), end = outgoingEdges.end(); it != end; ++it) {
             ClEdge* edge = *it;
+            SetUtils::remove(m_edges, edge);
             edge->removeFromTarget();
-            VectorUtils::setRemoveAndDelete(m_edges, edge);
+            delete edge;
         }
     }
 }

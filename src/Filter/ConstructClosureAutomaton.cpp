@@ -26,7 +26,8 @@
 #include <cassert>
 
 namespace Tippi {
-    ConstructClosureAutomaton::ClPtr ConstructClosureAutomaton::operator()(const NetPtr net) const {
+    ConstructClosureAutomaton::ClPtr ConstructClosureAutomaton::operator()(const NetPtr net) {
+        updateTransitionTypes(net);
         const Interval::Transition::List observableTransitions = getObservableTransitions(net);
         
         Interval::FiringRule rule(*net);
@@ -49,28 +50,54 @@ namespace Tippi {
     }
     
     Interval::Transition::List ConstructClosureAutomaton::getObservableTransitions(const NetPtr net) const {
-        Interval::Transition::List transitions;
-        const Interval::Place::List& places = net->getPlaces();
-        Interval::Place::List::const_iterator it, end;
-        for (it = places.begin(), end = places.end(); it != end; ++it) {
-            const Interval::Place* place = *it;
-            if (place->isInputPlace() || place->isOutputPlace()) {
-                const Interval::TransitionToPlace::List& incoming = place->getIncoming();
-                const Interval::PlaceToTransition::List& outgoing = place->getOutgoing();
-                if (!incoming.size() == 1)
-                    throw ClosureException("Interface place '" + place->getName() + "' must have exactly one transition in its preset");
-                if (!outgoing.size() == 1)
-                    throw ClosureException("Interface place '" + place->getName() + "' must have exactly one transition in its preset");
-                
-                Interval::Transition* preTransition = incoming[0]->getSource();
-                Interval::Transition* postTransition = outgoing[0]->getTarget();
-                transitions.push_back(preTransition);
-                transitions.push_back(postTransition);
-            }
+        Interval::Transition::List observable;
+        const Interval::Transition::List& transitions = net->getTransitions();
+        Interval::Transition::List::const_iterator it, end;
+        for (it = transitions.begin(), end = transitions.end(); it != end; ++it) {
+            Interval::Transition* transition = *it;
+            if (m_transitionTypes[transition->getIndex()] != Internal)
+                observable.push_back(transition);
         }
-        return transitions;
+        return observable;
     }
     
+    void ConstructClosureAutomaton::updateTransitionTypes(const NetPtr net) {
+        const Interval::Transition::List& transitions = net->getTransitions();
+        m_transitionTypes = TransitionTypes(transitions.size(), Internal);
+        
+        Interval::Transition::List::const_iterator tIt, tEnd;
+        for (tIt = transitions.begin(), tEnd = transitions.end(); tIt != tEnd; ++tIt) {
+            const Interval::Transition* transition = *tIt;
+            const bool inputSend = transition->isInputSend();
+            const bool inputRead = transition->isInputRead();
+            const bool outputSend = transition->isOutputSend();
+            const bool outputRead = transition->isOutputRead();
+            
+            size_t count = 0;
+            if (inputSend)
+                ++count;
+            if (inputRead)
+                ++count;
+            if (outputSend)
+                ++count;
+            if (outputRead)
+                ++count;
+            if (count > 1)
+                throw ClosureException("Transition '" + transition->getName() + "' is connected to more than one interface place");
+            
+            if (inputSend)
+                m_transitionTypes[transition->getIndex()] = InputSend;
+            else if (inputRead)
+                m_transitionTypes[transition->getIndex()] = InputRead;
+            else if (outputSend)
+                m_transitionTypes[transition->getIndex()] = OutputSend;
+            else if (outputRead)
+                m_transitionTypes[transition->getIndex()] = OutputRead;
+            else
+                m_transitionTypes[transition->getIndex()] = Internal;
+        }
+    }
+
     void ConstructClosureAutomaton::handleState(const NetPtr net,
                                                 const Interval::FiringRule& rule,
                                                 ClState* state,
@@ -82,18 +109,36 @@ namespace Tippi {
         for (it = observableTransitions.begin(), end = observableTransitions.end(); it != end; ++it) {
             const Interval::Transition* transition = *it;
             const Interval::NetState::Set successors = getSuccessorsForObservableTransition(net, rule, closure.getStates(), transition);
-            handleSuccessors(net, rule, state, successors, transition->getLabel(), observableTransitions, automaton);
+            const String& label = transition->getLabel();
+            const ClEdge::Type type = getTransitionType(transition);
+            handleSuccessors(net, rule, state, successors, label, type, observableTransitions, automaton);
         }
         
         const Interval::NetState::Set successors = getSuccessorsForTimeStep(net, rule, closure.getStates());
-        handleSuccessors(net, rule, state, successors, "1", observableTransitions, automaton);
+        handleSuccessors(net, rule, state, successors, "1", ClEdge::Time, observableTransitions, automaton);
     }
     
+    ClEdge::Type ConstructClosureAutomaton::getTransitionType(const Interval::Transition* transition) const {
+        switch (m_transitionTypes[transition->getIndex()]) {
+            case InputSend:
+                return ClEdge::InputSend;
+            case InputRead:
+                return ClEdge::InputRead;
+            case OutputSend:
+                return ClEdge::OutputSend;
+            case OutputRead:
+                return ClEdge::OutputRead;
+            default:
+                throw ClosureException("Unknown transition type");
+        }
+    }
+
     void ConstructClosureAutomaton::handleSuccessors(const NetPtr net,
                                                      const Interval::FiringRule& rule,
                                                      ClState* state,
                                                      const Interval::NetState::Set& successors,
                                                      const String& label,
+                                                     const ClEdge::Type type,
                                                      const Interval::Transition::List& observableTransitions,
                                                      ClPtr automaton) const {
         typedef std::pair<ClState*, bool> ClStateResult;
@@ -104,7 +149,7 @@ namespace Tippi {
             const Closure succClosure(succClStates);
             const ClStateResult succStateResult = automaton->findOrCreateState(succClosure);
             ClState* succState = succStateResult.first;
-            automaton->connect(state, succState, label);
+            automaton->connect(state, succState, label, type);
             if (succStateResult.second) {
                 if (isFinalState(net, succState)) {
                     succState->setFinal(true);

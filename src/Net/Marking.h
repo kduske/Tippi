@@ -22,6 +22,7 @@
 
 #include "StringUtils.h"
 
+#include <set>
 #include <vector>
 
 namespace Tippi {
@@ -30,6 +31,7 @@ namespace Tippi {
     class Marking {
     public:
         typedef std::vector<Marking> List;
+        typedef std::set<Marking> Set;
     private:
         std::vector<size_t> m_marking;
     public:

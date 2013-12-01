@@ -23,7 +23,7 @@
 #include "CollectionUtils.h"
 
 #include <algorithm>
-#include <vector>
+#include <set>
 
 namespace Tippi {
     template <typename IncomingT, typename OutgoingT>
@@ -88,6 +88,30 @@ namespace Tippi {
             return false;
         }
         
+        template <typename Cmp>
+        bool isPresetSubsetOf(const std::set<typename IncomingT::Source*, Cmp>& set) const {
+            typename IncomingList::const_iterator it, end;
+            for (it = m_incoming.begin(), end = m_incoming.end(); it != end; ++it) {
+                IncomingT* edge = *it;
+                typename IncomingT::Source* source = edge->getSource();
+                if (!set.count(source) == 1)
+                    return false;
+            }
+            return true;
+        }
+        
+        template <typename Cmp>
+        bool isPresetSubsetOfIgnoringLoops(const std::set<typename IncomingT::Source*, Cmp>& set) const {
+            typename IncomingList::const_iterator it, end;
+            for (it = m_incoming.begin(), end = m_incoming.end(); it != end; ++it) {
+                IncomingT* edge = *it;
+                typename IncomingT::Source* source = edge->getSource();
+                if (this != source && set.count(source) == 0)
+                    return false;
+            }
+            return true;
+        }
+        
         bool isVisited() const {
             return m_visited;
         }
@@ -96,12 +120,12 @@ namespace Tippi {
             m_visited = visited;
         }
         
-        template <typename Node>
-        static void resetVisited(const std::vector<Node*>& nodes) {
-            typedef std::vector<Node*> List;
-            typename List::const_iterator it, end;
-            for (it = nodes.begin(), end = nodes.end(); it != end; ++it)
-                (*it)->setVisited(false);
+        template <typename I>
+        static void resetVisited(I cur, I end) {
+            while (cur != end) {
+                (*cur)->setVisited(false);
+                ++cur;
+            }
         }
         
         static OutgoingT* connectToTarget(typename OutgoingT::Source* source, typename OutgoingT::Target* target) {

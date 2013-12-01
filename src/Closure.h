@@ -34,16 +34,27 @@ namespace Tippi {
     class ClEdge : public GraphEdge<ClState, ClState> {
     public:
         typedef std::vector<ClEdge*> List;
+        typedef std::set<ClEdge*, Utils::UniCmp<ClEdge> > Set;
+        
+        typedef enum {
+            InputSend,
+            InputRead,
+            OutputSend,
+            OutputRead,
+            Time
+        } Type;
     private:
         String m_label;
+        Type m_type;
     public:
-        ClEdge(ClState* source, ClState* target, const String& label);
+        ClEdge(ClState* source, ClState* target, const String& label, Type type);
         
         bool operator<(const ClEdge& rhs) const;
-        bool operator<(const ClEdge* rhs) const;
+        bool operator==(const ClEdge& rhs) const;
         int compare(const ClEdge& rhs) const;
         
         const String& getLabel() const;
+        Type getType() const;
     };
     
     class Closure {
@@ -54,6 +65,7 @@ namespace Tippi {
         Closure(const Interval::NetState::Set& netStates);
         
         bool operator<(const Closure& rhs) const;
+        bool operator==(const Closure& rhs) const;
         int compare(const Closure& rhs) const;
         
         const Interval::NetState::Set& getStates() const;
@@ -62,7 +74,7 @@ namespace Tippi {
     
     class ClState : public GraphNode<ClEdge, ClEdge> {
     public:
-        typedef std::vector<ClState*> List;
+        typedef std::set<ClState*, Utils::UniCmp<ClState> > Set;
     private:
         Closure m_closure;
         bool m_final;
@@ -70,12 +82,13 @@ namespace Tippi {
         ClState(const Closure& closure);
         
         bool operator<(const ClState& rhs) const;
-        bool operator<(const ClState* rhs) const;
+        bool operator==(const ClState& rhs) const;
         int compare(const ClState& rhs) const;
         
         const Closure& getClosure() const;
         bool isFinal() const;
         void setFinal(bool final);
+        bool isDeadlock() const;
         
         const ClState* getSuccessor(const String& edgeLabel) const;
         String asString(const String& markingSeparator, const String& stateSeparator) const;
@@ -83,30 +96,42 @@ namespace Tippi {
     
     class ClAutomaton {
     private:
-        ClState::List m_states;
-        ClEdge::List m_edges;
+        ClState::Set m_states;
+        ClEdge::Set m_edges;
         ClState* m_initialState;
-        ClState::List m_finalStates;
+        ClState::Set m_finalStates;
     public:
         ClAutomaton();
         ~ClAutomaton();
         
         ClState* createState(const Closure& closure);
         std::pair<ClState*, bool> findOrCreateState(const Closure& closure);
-        ClEdge* connect(ClState* source, ClState* target, const String& label);
+        ClEdge* connect(ClState* source, ClState* target, const String& label, ClEdge::Type type);
         
         void deleteState(ClState* state);
+        
+        template <typename I>
+        void deleteStates(I cur, I end) {
+            while (cur != end) {
+                deleteState(*cur);
+                ++cur;
+            }
+        }
+        
         void disconnect(ClEdge* edge);
         
         void setInitialState(ClState* state);
         void addFinalState(ClState* state);
         
-        const ClState::List& getStates() const;
+        const ClState::Set& getStates() const;
         const ClState* findState(const Closure& closure) const;
         
         ClState* getInitialState() const;
-        const ClState::List& getFinalStates() const;
+        const ClState::Set& getFinalStates() const;
+
+        ClState::Set findUnreachableStates() const;
     private:
+        void doFindUnreachableStates(ClState::Set& unreachable) const;
         void deleteIncomingEdges(ClState* state);
         void deleteOutgoingEdges(ClState* state);
     };

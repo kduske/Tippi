@@ -45,6 +45,54 @@ namespace Tippi {
             m_label = label;
         }
 
+        bool Transition::isInputSend() const {
+            const TransitionToPlace::List& outgoing = getOutgoing();
+            TransitionToPlace::List::const_iterator it, end;
+            for (it = outgoing.begin(), end = outgoing.end(); it != end; ++it) {
+                const TransitionToPlace* arc = *it;
+                const Place* place = arc->getTarget();
+                if (place->isInputPlace())
+                    return true;
+            }
+            return false;
+        }
+        
+        bool Transition::isInputRead() const {
+            const PlaceToTransition::List& incoming = getIncoming();
+            PlaceToTransition::List::const_iterator it, end;
+            for (it = incoming.begin(), end = incoming.end(); it != end; ++it) {
+                const PlaceToTransition* arc = *it;
+                const Place* place = arc->getSource();
+                if (place->isInputPlace())
+                    return true;
+            }
+            return false;
+        }
+        
+        bool Transition::isOutputSend() const {
+            const TransitionToPlace::List& outgoing = getOutgoing();
+            TransitionToPlace::List::const_iterator it, end;
+            for (it = outgoing.begin(), end = outgoing.end(); it != end; ++it) {
+                const TransitionToPlace* arc = *it;
+                const Place* place = arc->getTarget();
+                if (place->isOutputPlace())
+                    return true;
+            }
+            return false;
+        }
+        
+        bool Transition::isOutputRead() const {
+            const PlaceToTransition::List& incoming = getIncoming();
+            PlaceToTransition::List::const_iterator it, end;
+            for (it = incoming.begin(), end = incoming.end(); it != end; ++it) {
+                const PlaceToTransition* arc = *it;
+                const Place* place = arc->getSource();
+                if (place->isOutputPlace())
+                    return true;
+            }
+            return false;
+        }
+
         Place::Place(const String& name, const size_t index, const size_t bound) :
         NetNode(name, index),
         m_bound(bound),

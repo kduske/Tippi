@@ -29,10 +29,6 @@
 #include <iostream>
 
 namespace Tippi {
-    class ClAutomaton;
-    class ClState;
-    class Closure;
-    
     namespace Interval {
         class FiringRule;
         class Net;
@@ -41,26 +37,43 @@ namespace Tippi {
     struct ConstructClosureAutomaton {
     private:
         typedef std::pair<Interval::NetState::Set, bool> ClResult;
+        
+        typedef enum {
+            InputSend,
+            InputRead,
+            OutputSend,
+            OutputRead,
+            Internal
+        } TransitionType;
+        
+        typedef std::vector<TransitionType> TransitionTypes;
+        TransitionTypes m_transitionTypes;
     public:
         typedef std::tr1::shared_ptr<Interval::Net> NetPtr;
         typedef std::tr1::shared_ptr<ClAutomaton> ClPtr;
         
-        ClPtr operator()(const NetPtr net) const;
+        ClPtr operator()(const NetPtr net);
     private:
         Interval::Transition::List getObservableTransitions(const NetPtr net) const;
+        void updateTransitionTypes(const NetPtr net);
         
         void handleState(const NetPtr net,
                          const Interval::FiringRule& rule,
                          ClState* state,
                          const Interval::Transition::List& observableTransitions,
                          ClPtr automaton) const;
+        
+        ClEdge::Type getTransitionType(const Interval::Transition* transition) const;
+        
         void handleSuccessors(const NetPtr net,
                               const Interval::FiringRule& rule,
                               ClState* state,
                               const Interval::NetState::Set& successors,
                               const String& label,
+                              ClEdge::Type type,
                               const Interval::Transition::List& observableTransitions,
                               ClPtr automaton) const;
+        
         bool isFinalState(const NetPtr net, const ClState* state) const;
         
         Interval::NetState::Set getSuccessorsForObservableTransition(const NetPtr net,
