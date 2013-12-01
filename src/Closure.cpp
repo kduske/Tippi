@@ -108,8 +108,9 @@ namespace Tippi {
 
     ClState::ClState(const Closure& closure) :
     m_closure(closure),
-    m_final(false) {
-    }
+    m_final(false),
+    m_deadlockDistance(0),
+    m_reachable(true) {}
     
     bool ClState::operator<(const ClState& rhs) const {
         return compare(rhs) < 0;
@@ -149,6 +150,22 @@ namespace Tippi {
         return true;
     }
 
+    size_t ClState::getDeadlockDistance() const {
+        return m_deadlockDistance;
+    }
+    
+    void ClState::setDeadlockDistance(size_t deadlockDistance) {
+        m_deadlockDistance = deadlockDistance;
+    }
+
+    bool ClState::isReachable() const {
+        return m_reachable;
+    }
+    
+    void ClState::setReachable(bool reachable) {
+        m_reachable = reachable;
+    }
+
     const ClState* ClState::getSuccessor(const String& edgeLabel) const {
         const OutgoingList& edges = getOutgoing();
         OutgoingList::const_iterator it, end;
@@ -181,7 +198,8 @@ namespace Tippi {
     };
     
     ClAutomaton::ClAutomaton() :
-    m_initialState(NULL) {}
+    m_initialState(NULL),
+    m_maxDeadlockDistance(0) {}
     
     ClAutomaton::~ClAutomaton() {
         SetUtils::clearAndDelete(m_states);
@@ -290,6 +308,14 @@ namespace Tippi {
         return m_finalStates;
     }
     
+    size_t ClAutomaton::getMaxDeadlockDistance() const {
+        return m_maxDeadlockDistance;
+    }
+    
+    void ClAutomaton::setMaxDeadlockDistnace(size_t maxDeadlockDistance) {
+        m_maxDeadlockDistance = maxDeadlockDistance;
+    }
+
     ClState::Set ClAutomaton::findUnreachableStates() const {
         ClState::Set unreachable;
         

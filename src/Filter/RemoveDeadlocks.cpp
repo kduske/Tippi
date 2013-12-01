@@ -17,36 +17,39 @@
  along with Tippi. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "ReduceClosureAutomaton.h"
+#include "RemoveDeadlocks.h"
 
 namespace Tippi {
-    ReduceClosureAutomaton::ClPtr ReduceClosureAutomaton::operator()(ClPtr automaton) const {
+    RemoveDeadlocks::ClPtr RemoveDeadlocks::operator()(ClPtr automaton) const {
         const ClState::Set& states = automaton->getStates();
         ClState::resetVisited(states.begin(), states.end());
         
-        const ClState::Set potentialDeadlocks = findPotentialDeadlocks(automaton);
-        automaton->deleteStates(potentialDeadlocks.begin(), potentialDeadlocks.end());
-        
-        const ClState::Set& unreachable = automaton->findUnreachableStates();
-        automaton->deleteStates(unreachable.begin(), unreachable.end());
+        const ClState::Set deadlocks = findAndMarkPotentialDeadlocks(automaton);
+        automaton->deleteStates(deadlocks.begin(), deadlocks.end());
         
         return automaton;
     }
-
-    ClState::Set ReduceClosureAutomaton::findPotentialDeadlocks(const ClPtr automaton) const {
+    
+    ClState::Set RemoveDeadlocks::findAndMarkPotentialDeadlocks(ClPtr automaton) const {
         ClState::Set potentialDeadlocks = findInitialDeadlocks(automaton);
-        size_t previousSize;
-        // size_t iteration = 0;
-        do {
-            // std::cout << "====== Iteration " << iteration++ << " ======" << std::endl;
-            previousSize = potentialDeadlocks.size();
-            const ClState::Set additionalDeadlocks = findAdditionalDeadlocks(potentialDeadlocks);
-            potentialDeadlocks.insert(additionalDeadlocks.begin(), additionalDeadlocks.end());
-        } while (previousSize < potentialDeadlocks.size());
+        if (!potentialDeadlocks.empty()) {
+            size_t previousSize;
+            size_t iteration = 1;
+            markDeadlockDistance(potentialDeadlocks, iteration);
+            ++iteration;
+            do {
+                previousSize = potentialDeadlocks.size();
+                const ClState::Set additionalDeadlocks = findAdditionalDeadlocks(potentialDeadlocks);
+                markDeadlockDistance(additionalDeadlocks, iteration);
+                potentialDeadlocks.insert(additionalDeadlocks.begin(), additionalDeadlocks.end());
+                ++iteration;
+            } while (previousSize < potentialDeadlocks.size());
+            automaton->setMaxDeadlockDistnace(iteration - 1);
+        }
         return potentialDeadlocks;
     }
 
-    ClState::Set ReduceClosureAutomaton::findInitialDeadlocks(const ClPtr automaton) const {
+    ClState::Set RemoveDeadlocks::findInitialDeadlocks(const ClPtr automaton) const {
         ClState::Set initialDeadlocks;
         
         const ClState::Set& states = automaton->getStates();
@@ -62,7 +65,7 @@ namespace Tippi {
         return initialDeadlocks;
     }
 
-    ClState::Set ReduceClosureAutomaton::findAdditionalDeadlocks(const ClState::Set& states) const {
+    ClState::Set RemoveDeadlocks::findAdditionalDeadlocks(const ClState::Set& states) const {
         ClState::Set additional;
         
         const ClState::Set candidates = findDeadlockCandidates(states);
@@ -79,7 +82,7 @@ namespace Tippi {
         return additional;
     }
 
-    ClState::Set ReduceClosureAutomaton::findDeadlockCandidates(const ClState::Set& states) const {
+    ClState::Set RemoveDeadlocks::findDeadlockCandidates(const ClState::Set& states) const {
         ClState::Set candidates;
         
         ClState::Set::const_iterator sIt, sEnd;
@@ -100,8 +103,8 @@ namespace Tippi {
         
         return candidates;
     }
-
-    bool ReduceClosureAutomaton::isPotentialDeadlock(const ClState* state) const {
+    
+    bool RemoveDeadlocks::isPotentialDeadlock(const ClState* state) const {
         assert(!state->isVisited());
         assert(!state->getClosure().getStates().empty());
         
@@ -126,5 +129,14 @@ namespace Tippi {
         }
         
         return badEdges == outgoing.size();
+    }
+
+    void RemoveDeadlocks::markDeadlockDistance(const ClState::Set& states, size_t distance) const {
+        ClState::Set::const_iterator it, end;
+        for (it = states.begin(), end = states.end(); it != end; ++it) {
+            ClState* state = *it;
+            if (state->getDeadlockDistance() == 0)
+                state->setDeadlockDistance(distance);
+        }
     }
 }

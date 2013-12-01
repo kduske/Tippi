@@ -23,6 +23,8 @@
 #include "Closure.h"
 #include "Graph/GraphAlgorithms.h"
 
+#include <iomanip>
+
 namespace Tippi {
     class Visitor {
     private:
@@ -31,10 +33,12 @@ namespace Tippi {
         std::ostream& m_stream;
         size_t m_stateId;
         IdMap m_stateIdMap;
+        size_t m_maxDeadlockDistance;
     public:
-        Visitor(std::ostream& stream) :
+        Visitor(std::ostream& stream, size_t maxDeadlockDistance) :
         m_stream(stream),
-        m_stateId(1) {}
+        m_stateId(1),
+        m_maxDeadlockDistance(maxDeadlockDistance) {}
         
         void operator()(const ClState* state) {
             if (!state->getClosure().getStates().empty()) {
@@ -45,6 +49,21 @@ namespace Tippi {
                 if (state->isFinal()) {
                     m_stream << ",";
                     printAttribute("peripheries", "2");
+                }
+                const size_t distance = state->getDeadlockDistance();
+                if (!state->isReachable()) {
+                    m_stream << ",";
+                    printAttribute("style", "filled");
+                    m_stream << ",";
+                    printColorAttribute("fillcolor", 0, 255, 0);
+                } else if (distance > 0 && m_maxDeadlockDistance > 0) {
+                    const float d = distance;
+                    const float m = m_maxDeadlockDistance;
+                    const size_t gb = static_cast<size_t>(d / m * 255.0f);
+                    m_stream << ",";
+                    printAttribute("style", "filled");
+                    m_stream << ",";
+                    printColorAttribute("fillcolor", 255, gb, gb);
                 }
                 m_stream << "];" << std::endl;
             }
@@ -75,12 +94,22 @@ namespace Tippi {
         void printAttribute(const String& name, const String& value) {
             m_stream << name << "=\"" << value << "\"";
         }
+        
+        void printColorAttribute(const String& name, size_t r, size_t g, size_t b) {
+            m_stream << name << "=\"#";
+            m_stream << std::hex;
+            m_stream << std::setfill('0') << std::setw(2) << r;
+            m_stream << std::setfill('0') << std::setw(2) << g;
+            m_stream << std::setfill('0') << std::setw(2) << b;
+            m_stream << "\"";
+            m_stream << std::dec;
+        }
     };
     
     void RenderClosureAutomaton::operator()(const ClPtr automaton, std::ostream& stream) {
         stream << "digraph {" << std::endl;
         
-        Visitor visitor(stream);
+        Visitor visitor(stream, automaton->getMaxDeadlockDistance());
         const ClState::Set& states = automaton->getStates();
         ClState::resetVisited(states.begin(), states.end());
         

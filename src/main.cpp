@@ -21,7 +21,8 @@
 #include "Filter/ConstructClosureAutomaton.h"
 #include "Filter/ConstructMaximalNet.h"
 #include "Filter/LoadIntervalNet.h"
-#include "Filter/ReduceClosureAutomaton.h"
+#include "Filter/RemoveDeadlocks.h"
+#include "Filter/RemoveUnreachableStates.h"
 #include "Filter/RenderBehavior.h"
 #include "Filter/RenderClosureAutomaton.h"
 #include "Filter/RenderIntervalNet.h"
@@ -37,7 +38,9 @@ int main(int argc, const char * argv[]) {
     ConstructMaximalNet maximal;
     // ConstructBehavior behavior;
     ConstructClosureAutomaton closure;
-    ReduceClosureAutomaton reduce;
+    RemoveDeadlocks removeDeadlocks;
+    RemoveUnreachableStates removeUnreachable;
+    
 
    // RenderBehavior renderBehavior;
     RenderClosureAutomaton renderClosure;
@@ -49,9 +52,9 @@ int main(int argc, const char * argv[]) {
         std::fstream stream(argv[1]);
         assert(stream.is_open() && stream.good());
         
-        renderClosure(reduce(closure(maximal(loader(stream)))), std::cout);
+        renderClosure(removeUnreachable(removeDeadlocks(closure(maximal(loader(stream))))), std::cout);
     } else {
-        renderClosure(reduce(closure(maximal(loader(std::cin)))), std::cout);
+        renderClosure(removeUnreachable(removeDeadlocks(closure(maximal(loader(std::cin))))), std::cout);
     }
 }
 

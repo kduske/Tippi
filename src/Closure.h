@@ -78,6 +78,8 @@ namespace Tippi {
     private:
         Closure m_closure;
         bool m_final;
+        size_t m_deadlockDistance;
+        bool m_reachable;
     public:
         ClState(const Closure& closure);
         
@@ -90,6 +92,12 @@ namespace Tippi {
         void setFinal(bool final);
         bool isDeadlock() const;
         
+        size_t getDeadlockDistance() const;
+        void setDeadlockDistance(size_t deadlockDistance);
+        
+        bool isReachable() const;
+        void setReachable(bool reachable);
+        
         const ClState* getSuccessor(const String& edgeLabel) const;
         String asString(const String& markingSeparator, const String& stateSeparator) const;
     };
@@ -100,6 +108,7 @@ namespace Tippi {
         ClEdge::Set m_edges;
         ClState* m_initialState;
         ClState::Set m_finalStates;
+        size_t m_maxDeadlockDistance;
     public:
         ClAutomaton();
         ~ClAutomaton();
@@ -129,6 +138,9 @@ namespace Tippi {
         ClState* getInitialState() const;
         const ClState::Set& getFinalStates() const;
 
+        size_t getMaxDeadlockDistance() const;
+        void setMaxDeadlockDistnace(size_t maxDeadlockDistance);
+        
         ClState::Set findUnreachableStates() const;
     private:
         void doFindUnreachableStates(ClState::Set& unreachable) const;

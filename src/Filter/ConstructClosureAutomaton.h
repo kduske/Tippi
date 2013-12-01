@@ -54,16 +54,14 @@ namespace Tippi {
         
         ClPtr operator()(const NetPtr net);
     private:
-        Interval::Transition::List getObservableTransitions(const NetPtr net) const;
         void updateTransitionTypes(const NetPtr net);
         
         void handleState(const NetPtr net,
                          const Interval::FiringRule& rule,
                          ClState* state,
-                         const Interval::Transition::List& observableTransitions,
                          ClPtr automaton) const;
         
-        ClEdge::Type getTransitionType(const Interval::Transition* transition) const;
+        ClEdge::Type getEdgeType(const Interval::Transition* transition) const;
         
         void handleSuccessors(const NetPtr net,
                               const Interval::FiringRule& rule,
@@ -71,7 +69,6 @@ namespace Tippi {
                               const Interval::NetState::Set& successors,
                               const String& label,
                               ClEdge::Type type,
-                              const Interval::Transition::List& observableTransitions,
                               ClPtr automaton) const;
         
         bool isFinalState(const NetPtr net, const ClState* state) const;

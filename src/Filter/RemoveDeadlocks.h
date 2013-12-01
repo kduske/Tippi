@@ -17,25 +17,26 @@
  along with Tippi. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __Tippi__ReduceClosureAutomaton__
-#define __Tippi__ReduceClosureAutomaton__
+#ifndef __Tippi__RemoveDeadlocks__
+#define __Tippi__RemoveDeadlocks__
 
 #include "SharedPointer.h"
 #include "Closure.h"
 
 namespace Tippi {
-    struct ReduceClosureAutomaton {
+    struct RemoveDeadlocks {
     public:
         typedef std::tr1::shared_ptr<ClAutomaton> ClPtr;
         
         ClPtr operator()(ClPtr automaton) const;
     private:
-        ClState::Set findPotentialDeadlocks(const ClPtr automaton) const;
+        ClState::Set findAndMarkPotentialDeadlocks(ClPtr automaton) const;
         ClState::Set findInitialDeadlocks(const ClPtr automaton) const;
         ClState::Set findAdditionalDeadlocks(const ClState::Set& states) const;
         ClState::Set findDeadlockCandidates(const ClState::Set& states) const;
         bool isPotentialDeadlock(const ClState* state) const;
+        void markDeadlockDistance(const ClState::Set& states, size_t distance) const;
     };
 }
 
-#endif /* defined(__Tippi__ReduceClosureAutomaton__) */
+#endif /* defined(__Tippi__RemoveDeadlocks__) */
