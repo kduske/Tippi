@@ -56,6 +56,18 @@ namespace Tippi {
     ClEdge::Type ClEdge::getType() const {
         return m_type;
     }
+    
+    bool ClEdge::isServiceAction() const {
+        return m_type == OutputSend || m_type == InputRead;
+    }
+    
+    bool ClEdge::isPartnerAction() const {
+        return m_type == InputSend || m_type == OutputRead;
+    }
+    
+    bool ClEdge::isTimeAction() const {
+        return m_type == Time;
+    }
 
     Closure::Closure() {}
     
@@ -94,6 +106,10 @@ namespace Tippi {
         return m_netStates;
     }
 
+    bool Closure::isEmpty() const {
+        return m_netStates.empty();
+    }
+
     String Closure::asString(const String& markingSeparator, const String& stateSeparator) const {
         StringStream result;
         Interval::NetState::Set::const_iterator it, end;
@@ -124,6 +140,10 @@ namespace Tippi {
         return m_closure;
     }
     
+    bool ClState::isEmpty() const {
+        return m_closure.isEmpty();
+    }
+
     bool ClState::isFinal() const {
         return m_final;
     }

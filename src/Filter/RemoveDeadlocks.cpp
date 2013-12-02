@@ -111,24 +111,32 @@ namespace Tippi {
         if (state->isFinal())
             return false;
         
-        size_t badEdges = 0;
+        // this is the number of edges labeld with an action from the partner alphabet
+        size_t pc = 0;
+        // this is the number of edges labeled with an action from the partner alphabet which lead to a potential DL or to the empty state
+        size_t pdl = 0;
+        // this indicates whether the state has an outgoing edge labeld with an action from the service alphabet or 1 which leads to a potential DL
+        bool sdl = false;
+        // this is the number of edges which lead to a potential DL, to the given state or to the empty state
+        size_t odl = 0;
+        
         const ClEdge::List& outgoing = state->getOutgoing();
         ClEdge::List::const_iterator it, end;
         for (it = outgoing.begin(), end = outgoing.end(); it != end; ++it) {
             const ClEdge* edge = *it;
             const ClState* succ = edge->getTarget();
             const bool succDL = succ->isVisited();
-            if (edge->getType() == ClEdge::OutputSend || edge->getType() == ClEdge::InputRead) {
-                if (succDL)
-                    return true;
-                ++badEdges;
-            } else {
-                if (succDL || succ == state || succ->getClosure().getStates().empty())
-                    ++badEdges;
+            if (edge->isPartnerAction()) {
+                ++pc;
+                if (succDL || succ->isEmpty())
+                    ++pdl;
             }
+            sdl |= (edge->isServiceAction() || edge->isTimeAction()) && succDL;
+            if (succDL || succ == state || succ->isEmpty())
+                ++odl;
         }
-        
-        return badEdges == outgoing.size();
+
+        return (pdl == pc && sdl) || (odl == outgoing.size());
     }
 
     void RemoveDeadlocks::markDeadlockDistance(const ClState::Set& states, size_t distance) const {

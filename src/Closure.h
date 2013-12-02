@@ -55,6 +55,9 @@ namespace Tippi {
         
         const String& getLabel() const;
         Type getType() const;
+        bool isServiceAction() const;
+        bool isPartnerAction() const;
+        bool isTimeAction() const;
     };
     
     class Closure {
@@ -69,6 +72,7 @@ namespace Tippi {
         int compare(const Closure& rhs) const;
         
         const Interval::NetState::Set& getStates() const;
+        bool isEmpty() const;
         String asString(const String& markingSeparator, const String& stateSeparator) const;
     };
     
@@ -88,6 +92,7 @@ namespace Tippi {
         int compare(const ClState& rhs) const;
         
         const Closure& getClosure() const;
+        bool isEmpty() const;
         bool isFinal() const;
         void setFinal(bool final);
         bool isDeadlock() const;
