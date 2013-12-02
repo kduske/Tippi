@@ -20,6 +20,7 @@
 #ifndef __Tippi__Behavior__
 #define __Tippi__Behavior__
 
+#include "CollectionUtils.h"
 #include "StringUtils.h"
 #include "Graph/GraphEdge.h"
 #include "Graph/GraphNode.h"

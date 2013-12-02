@@ -35,6 +35,10 @@ namespace Tippi {
         return compare(rhs) < 0;
     }
     
+    bool ClEdge::operator==(const ClEdge& rhs) const {
+        return compare(rhs) == 0;
+    }
+
     int ClEdge::compare(const ClEdge& rhs) const {
         const int sourceResult = getSource()->compare(*rhs.getSource());
         if (sourceResult < 0)
@@ -233,7 +237,7 @@ namespace Tippi {
         ClState::Set::iterator it = m_states.lower_bound(state);
         if (it != m_states.end() && SetUtils::equals(m_states, state, *it)) {
             delete state;
-            throw AutomatonException("Behavior already contains a state with the given closure");
+            throw AutomatonException("Closure automaton already contains a state with the given closure");
         }
         m_states.insert(it, state);
         return state;

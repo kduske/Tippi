@@ -20,12 +20,14 @@
 #include "Filter/ConstructBehavior.h"
 #include "Filter/ConstructClosureAutomaton.h"
 #include "Filter/ConstructMaximalNet.h"
+#include "Filter/ConstructRegionAutomaton.h"
 #include "Filter/LoadIntervalNet.h"
 #include "Filter/RemoveDeadlocks.h"
 #include "Filter/RemoveUnreachableStates.h"
 #include "Filter/RenderBehavior.h"
 #include "Filter/RenderClosureAutomaton.h"
 #include "Filter/RenderIntervalNet.h"
+#include "Filter/RenderRegionAutomaton.h"
 
 #include <cassert>
 #include <fstream>
@@ -35,26 +37,35 @@ int main(int argc, const char * argv[]) {
     using namespace Tippi;
 
     LoadIntervalNet loader;
-    ConstructMaximalNet maximal;
-    // ConstructBehavior behavior;
-    ConstructClosureAutomaton closure;
+    ConstructMaximalNet constructMaximal;
+    ConstructBehavior constructBehavior;
+    ConstructClosureAutomaton constructClosureAutomaton;
     RemoveDeadlocks removeDeadlocks;
     RemoveUnreachableStates removeUnreachable;
+    ConstructRegionAutomaton constructRegionAutomaton;
     
-
-   // RenderBehavior renderBehavior;
-    RenderClosureAutomaton renderClosure;
-//    RenderIntervalNet renderNet;
-    
-//    renderNet(maximal(loader(stream)), // std::cout);
-
+    LoadIntervalNet::NetPtr net;
     if (argc == 2) {
         std::fstream stream(argv[1]);
         assert(stream.is_open() && stream.good());
-        
-        renderClosure(removeUnreachable(removeDeadlocks(closure(maximal(loader(stream))))), std::cout);
+        net = loader(stream);
     } else {
-        renderClosure(removeUnreachable(removeDeadlocks(closure(maximal(loader(std::cin))))), std::cout);
+        net = loader(std::cin);
     }
+
+    net = constructMaximal(net);
+    ConstructBehavior::BehPtr behavior = constructBehavior(net);
+    
+    ConstructClosureAutomaton::ClPtr closureAutomaton = constructClosureAutomaton(net);
+    removeDeadlocks(closureAutomaton);
+    removeUnreachable(closureAutomaton);
+    
+    ConstructRegionAutomaton::RePtr regionAutomaton = constructRegionAutomaton(closureAutomaton);
+    
+//    RenderIntervalNet renderNet;
+//    RenderBehavior renderBehavior;
+//    RenderClosureAutomaton renderClosure;
+    RenderRegionAutomaton renderRegion;
+    renderRegion(regionAutomaton, std::cout);
 }
 

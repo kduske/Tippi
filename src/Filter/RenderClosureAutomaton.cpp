@@ -41,7 +41,7 @@ namespace Tippi {
         m_maxDeadlockDistance(maxDeadlockDistance) {}
         
         void operator()(const ClState* state) {
-            if (!state->getClosure().getStates().empty()) {
+            if (!state->isEmpty()) {
                 m_stream << getStateId(state) << " [";
                 printAttribute("label", state->asString("\n", "\n"));
                 m_stream << ",";
@@ -73,8 +73,8 @@ namespace Tippi {
             const ClState* source = edge->getSource();
             const ClState* target = edge->getTarget();
             
-            if (!source->getClosure().getStates().empty() &&
-                !target->getClosure().getStates().empty()) {
+            if (!source->isEmpty() &&
+                !target->isEmpty()) {
                 m_stream << getStateId(source) << " -> " << getStateId(target) << " [";
                 printAttribute("label", edge->getLabel());
                 m_stream << "];" << std::endl;
