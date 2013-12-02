@@ -56,6 +56,8 @@ namespace Tippi {
     private:
         void updateTransitionTypes(const NetPtr net);
         
+        void buildAutomaton(const NetPtr net, ClPtr automaton) const;
+        
         void handleState(const NetPtr net,
                          const Interval::FiringRule& rule,
                          ClState* state,

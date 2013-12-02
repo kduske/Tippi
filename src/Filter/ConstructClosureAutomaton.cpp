@@ -29,18 +29,8 @@ namespace Tippi {
     ConstructClosureAutomaton::ClPtr ConstructClosureAutomaton::operator()(const NetPtr net) {
         updateTransitionTypes(net);
         
-        Interval::FiringRule rule(*net);
         ClPtr automaton(new ClAutomaton());
-        
-        const Interval::NetState initialState = Interval::NetState::createInitialState(*net);
-        const ClResult initialResult = rule.buildClosure(initialState);
-        if (initialResult.second) {
-            const Closure closure(initialResult.first);
-            ClState* initialState = automaton->createState(closure);
-            automaton->setInitialState(initialState);
-            handleState(net, rule, initialState, automaton);
-        }
-        
+        buildAutomaton(net, automaton);
         return automaton;
     }
     
@@ -78,6 +68,19 @@ namespace Tippi {
                 m_transitionTypes[transition->getIndex()] = OutputRead;
             else
                 m_transitionTypes[transition->getIndex()] = Internal;
+        }
+    }
+
+    void ConstructClosureAutomaton::buildAutomaton(const NetPtr net, ClPtr automaton) const {
+        Interval::FiringRule rule(*net);
+        const Interval::NetState initialState = Interval::NetState::createInitialState(*net);
+        
+        const ClResult initialResult = rule.buildClosure(initialState);
+        if (initialResult.second) {
+            const Closure closure(initialResult.first);
+            ClState* initialState = automaton->createState(closure);
+            automaton->setInitialState(initialState);
+            handleState(net, rule, initialState, automaton);
         }
     }
 
