@@ -103,14 +103,17 @@ namespace Tippi {
                     
                     if (source->isEmpty() || target->isEmpty()) {
                         m_stream << ",";
-                        printAttribute("color", "0.0 0.0 0.8");
+                        printAttribute("color", "0.0 0.0 0.7");
                         m_stream << ",";
-                        printAttribute("fontcolor", "0.0 0.0 0.8");
+                        printAttribute("fontcolor", "0.0 0.0 0.7");
                     } else if (edge->isPartnerAction()) {
                         m_stream << ",";
-                        printAttribute("color", "0.0 0.0 0.4");
+                        printAttribute("color", "0.0 0.0 0.2");
                         m_stream << ",";
-                        printAttribute("fontcolor", "0.0 0.0 0.4");
+                        printAttribute("fontcolor", "0.0 0.0 0.2");
+                    } else {
+                        m_stream << ",";
+                        printAttribute("penwidth", "2");
                     }
                     m_stream << "];" << std::endl;
                 }
