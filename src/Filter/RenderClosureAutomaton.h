@@ -26,10 +26,14 @@
 
 namespace Tippi {
     class ClAutomaton;
+    class ReAutomaton;
     
     struct RenderClosureAutomaton {
         typedef std::tr1::shared_ptr<ClAutomaton> ClPtr;
+        typedef std::tr1::shared_ptr<ReAutomaton> RePtr;
+
         void operator()(const ClPtr automaton, std::ostream& stream);
+        void operator()(const ClPtr closureAutomaton, const RePtr regionAutomaton, std::ostream& stream);
     };
 }
 

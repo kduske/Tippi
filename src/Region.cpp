@@ -100,6 +100,10 @@ namespace Tippi {
         m_final = final;
     }
 
+    bool ReState::isEmpty() const {
+        return m_region.empty();
+    }
+
     ReAutomaton::ReAutomaton() :
     m_initialState(NULL) {}
     
@@ -118,6 +122,7 @@ namespace Tippi {
             throw AutomatonException("Region automaton already contains a state with the given closure");
         }
         m_states.insert(it, state);
+        updateRegionMap(state);
         return state;
     }
     
@@ -129,6 +134,7 @@ namespace Tippi {
             return std::make_pair(*it, false);
         }
         m_states.insert(it, state);
+        updateRegionMap(state);
         return std::make_pair(state, true);
     }
     
@@ -171,11 +177,39 @@ namespace Tippi {
         return *it;
     }
     
+    const ReState* ReAutomaton::findRegion(const ClState* state) const {
+        const RegionMap::const_iterator it = m_regions.find(state);
+        if (it == m_regions.end())
+            return NULL;
+        return it->second;
+    }
+
+    ReState* ReAutomaton::findRegion(const ClState* state) {
+        const RegionMap::iterator it = m_regions.find(state);
+        if (it == m_regions.end())
+            return NULL;
+        return it->second;
+    }
+
     ReState* ReAutomaton::getInitialState() const {
         return m_initialState;
     }
     
     const ReState::Set& ReAutomaton::getFinalStates() const {
         return m_finalStates;
+    }
+
+    void ReAutomaton::updateRegionMap(ReState* state) {
+        typedef std::pair<RegionMap::iterator, bool> InsertPos;
+
+        const ClState::Set& region = state->getRegion();
+        ClState::Set::const_iterator it, end;
+        for (it = region.begin(), end = region.end(); it != end; ++it) {
+            const ClState* clState = *it;
+            
+            const InsertPos insertPos = MapUtils::findInsertPos(m_regions, clState);
+            assert(!insertPos.second);
+            m_regions.insert(insertPos.first, std::make_pair(clState, state));
+        }
     }
 }

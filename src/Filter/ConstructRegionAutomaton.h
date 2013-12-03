@@ -24,22 +24,31 @@
 #include "Closure.h"
 
 #include <iostream>
+#include <map>
+
 
 namespace Tippi {
     class ReAutomaton;
     class ReState;
     
     struct ConstructRegionAutomaton {
+    private:
+        typedef std::map<ReState*, String> SuccessorMap;
+        typedef std::map<ClState*, ReState*> StateRegionMap;
+        
+        StateRegionMap m_regions;
     public:
         typedef std::tr1::shared_ptr<ClAutomaton> ClPtr;
         typedef std::tr1::shared_ptr<ReAutomaton> RePtr;
         
         RePtr operator()(const ClPtr closureAutomaton);
     private:
-        void buildRegion(ClState* state, RePtr automaton) const;
-        void growRegion(ClState* state, ClState::Set& region, RePtr automaton) const;
-        void growIncoming(const ClEdge::List& incoming, ClState::Set& region, RePtr automaton) const;
-        void growOutgoing(const ClEdge::List& outgoing, ClState::Set& region, RePtr automaton) const;
+        ReState* buildRegion(ClState* state, RePtr automaton) const;
+        void buildSuccessors(ReState* region, RePtr automaton) const;
+        void buildSuccessors(ReState* region, ClState* state, RePtr automaton) const;
+        void growRegion(ClState* state, ClState::Set& region) const;
+        void growIncoming(const ClEdge::List& incoming, ClState::Set& region) const;
+        void growOutgoing(const ClEdge::List& outgoing, ClState::Set& region) const;
     };
 }
 

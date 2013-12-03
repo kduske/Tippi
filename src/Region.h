@@ -35,7 +35,7 @@ namespace Tippi {
     class ReEdge : public GraphEdge<ReState, ReState> {
     public:
         typedef std::vector<ReEdge*> List;
-        typedef std::set<ReEdge*> Set;
+        typedef std::set<ReEdge*, Utils::UniCmp<ReEdge> > Set;
     private:
         String m_label;
     public:
@@ -64,14 +64,18 @@ namespace Tippi {
         const ClState::Set& getRegion() const;
         bool isFinal() const;
         void setFinal(bool final);
+        bool isEmpty() const;
     };
     
     class ReAutomaton {
     private:
+        typedef std::map<const ClState*, ReState*> RegionMap;
+        
         ReState::Set m_states;
         ReEdge::Set m_edges;
         ReState* m_initialState;
         ReState::Set m_finalStates;
+        RegionMap m_regions;
     public:
         ReAutomaton();
         ~ReAutomaton();
@@ -85,9 +89,13 @@ namespace Tippi {
         
         const ReState::Set& getStates() const;
         const ReState* findState(const ClState::Set& region) const;
+        const ReState* findRegion(const ClState* state) const;
+        ReState* findRegion(const ClState* state);
         
         ReState* getInitialState() const;
         const ReState::Set& getFinalStates() const;
+    private:
+        void updateRegionMap(ReState* state);
     };
 }
 

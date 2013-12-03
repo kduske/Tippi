@@ -29,7 +29,7 @@
 #include <map>
 
 namespace Tippi {
-    class Visitor {
+    class IntervalNetVisitor {
     private:
         typedef std::map<const NetNode*, size_t> IdMap;
         
@@ -37,7 +37,7 @@ namespace Tippi {
         size_t m_nodeId;
         IdMap m_nodeIdMap;
     public:
-        Visitor(std::ostream& stream) :
+        IntervalNetVisitor(std::ostream& stream) :
         m_stream(stream),
         m_nodeId(1) {}
         
@@ -88,7 +88,7 @@ namespace Tippi {
     void RenderIntervalNet::operator()(const NetPtr net, std::ostream& stream) {
         stream << "digraph {" << std::endl;
 
-        Visitor visitor(stream);
+        IntervalNetVisitor visitor(stream);
         
         const Interval::Place::List& places = net->getPlaces();
         const Interval::Transition::List& transitions = net->getTransitions();

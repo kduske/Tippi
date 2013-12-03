@@ -35,7 +35,7 @@
 
 int main(int argc, const char * argv[]) {
     using namespace Tippi;
-
+    
     LoadIntervalNet loader;
     ConstructMaximalNet constructMaximal;
     ConstructBehavior constructBehavior;
@@ -52,7 +52,7 @@ int main(int argc, const char * argv[]) {
     } else {
         net = loader(std::cin);
     }
-
+    
     net = constructMaximal(net);
     ConstructBehavior::BehPtr behavior = constructBehavior(net);
     
@@ -62,10 +62,12 @@ int main(int argc, const char * argv[]) {
     
     ConstructRegionAutomaton::RePtr regionAutomaton = constructRegionAutomaton(closureAutomaton);
     
-//    RenderIntervalNet renderNet;
-//    RenderBehavior renderBehavior;
-//    RenderClosureAutomaton renderClosure;
-    RenderRegionAutomaton renderRegion;
-    renderRegion(regionAutomaton, std::cout);
+    // RenderIntervalNet renderNet;
+    // RenderBehavior renderBehavior;
+    RenderClosureAutomaton renderClosure;
+    renderClosure(closureAutomaton, regionAutomaton, std::cout);
+    
+    // RenderRegionAutomaton renderRegion;
+    // renderRegion(regionAutomaton, std::cout);
 }
 

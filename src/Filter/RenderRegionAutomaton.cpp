@@ -25,19 +25,21 @@
 #include "Graph/GraphAlgorithms.h"
 
 namespace Tippi {
-    class Visitor {
+    class RegionVisitor {
     private:
         typedef std::map<const ReState*, size_t> ReIdMap;
         typedef std::map<const ClState*, size_t> ClIdMap;
         
         std::ostream& m_stream;
-        size_t m_stateId;
+        size_t m_reStateId;
+        size_t m_clStateId;
         ReIdMap m_reIdMap;
         ClIdMap m_clIdMap;
     public:
-        Visitor(std::ostream& stream) :
+        RegionVisitor(std::ostream& stream) :
         m_stream(stream),
-        m_stateId(1) {}
+        m_reStateId(1),
+        m_clStateId(1) {}
         
         void operator()(const ReState* state) {
             const size_t stateId = getReStateId(state);
@@ -112,6 +114,7 @@ namespace Tippi {
                 m_stream << ",";
                 printAttribute("peripheries", "2");
             }
+            m_stream << "]" << std::endl;
         }
         
         void renderClosureEdges(const ClEdge::Set& edges) {
@@ -138,10 +141,18 @@ namespace Tippi {
         }
         
         void operator()(const ReEdge* edge) {
-            const ReState* source = edge->getSource();
-            const ReState* target = edge->getTarget();
+            const ReState* sourceRegion = edge->getSource();
+            const ReState* targetRegion = edge->getTarget();
             
-            m_stream << getReStateId(source) << " -> " << getReStateId(target) << " [";
+            assert(!sourceRegion->isEmpty());
+            assert(!targetRegion->isEmpty());
+            
+            const ClState* sourceState = *sourceRegion->getRegion().begin();
+            const ClState* targetState = *targetRegion->getRegion().begin();
+            
+            m_stream << getClStateId(sourceState) << " -> " << getClStateId(targetState) << " [";
+            m_stream << "ltail=cluster_" << getReStateId(sourceRegion) << ",";
+            m_stream << "lhead=cluster_" << getReStateId(targetRegion) << ",";
             printAttribute("label", edge->getLabel());
             m_stream << "];" << std::endl;
             
@@ -151,7 +162,7 @@ namespace Tippi {
             std::pair<ReIdMap::iterator, bool> insertPos = MapUtils::findInsertPos(m_reIdMap, state);
             if (insertPos.second)
                 return insertPos.first->second;
-            const size_t stateId = m_stateId++;
+            const size_t stateId = m_reStateId++;
             m_reIdMap.insert(insertPos.first, std::make_pair(state, stateId));
             return stateId;
         }
@@ -160,7 +171,7 @@ namespace Tippi {
             std::pair<ClIdMap::iterator, bool> insertPos = MapUtils::findInsertPos(m_clIdMap, state);
             if (insertPos.second)
                 return insertPos.first->second;
-            const size_t stateId = m_stateId++;
+            const size_t stateId = m_clStateId++;
             m_clIdMap.insert(insertPos.first, std::make_pair(state, stateId));
             return stateId;
         }
@@ -174,7 +185,7 @@ namespace Tippi {
         stream << "digraph {" << std::endl;
         stream << "compound=true" << std::endl;
         
-        Visitor visitor(stream);
+        RegionVisitor visitor(stream);
         const ReState::Set& states = automaton->getStates();
         ReState::resetVisited(states.begin(), states.end());
         

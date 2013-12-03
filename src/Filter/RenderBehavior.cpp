@@ -24,7 +24,7 @@
 #include "Graph/GraphAlgorithms.h"
 
 namespace Tippi {
-    class Visitor {
+    class BehaviorVisitor {
     private:
         typedef std::map<const Behavior::State*, size_t> IdMap;
         
@@ -32,7 +32,7 @@ namespace Tippi {
         size_t m_stateId;
         IdMap m_stateIdMap;
     public:
-        Visitor(std::ostream& stream) :
+        BehaviorVisitor(std::ostream& stream) :
         m_stream(stream),
         m_stateId(1) {}
         
@@ -74,7 +74,7 @@ namespace Tippi {
     void RenderBehavior::operator()(const BehPtr behavior, std::ostream& stream) {
         stream << "digraph {" << std::endl;
         
-        Visitor visitor(stream);
+        BehaviorVisitor visitor(stream);
         const Behavior::State::Set& states = behavior->getStates();
         Behavior::State::resetVisited(states.begin(), states.end());
         
