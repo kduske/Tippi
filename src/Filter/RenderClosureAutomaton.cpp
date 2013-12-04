@@ -48,7 +48,7 @@ namespace Tippi {
         m_regionIndex(0),
         m_maxDeadlockDistance(maxDeadlockDistance),
         m_regionAutomaton(regionAutomaton),
-        m_showEmptyState(true) {}
+        m_showEmptyState(false) {}
         
         void operator()(const ClState* state) {
             if (m_showEmptyState || !state->isEmpty()) {
