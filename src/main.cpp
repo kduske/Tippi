@@ -57,8 +57,8 @@ int main(int argc, const char * argv[]) {
     ConstructBehavior::BehPtr behavior = constructBehavior(net);
     
     ConstructClosureAutomaton::ClPtr closureAutomaton = constructClosureAutomaton(net);
-    removeDeadlocks(closureAutomaton);
-    removeUnreachable(closureAutomaton);
+    // removeDeadlocks(closureAutomaton);
+    // removeUnreachable(closureAutomaton);
     
     ConstructRegionAutomaton::RePtr regionAutomaton = constructRegionAutomaton(closureAutomaton);
     

@@ -72,6 +72,18 @@ namespace Tippi {
         marking[i++] = m5;
         return marking;
     }
+    
+    Marking Marking::createMarking(const size_t m1, const size_t m2, const size_t m3, const size_t m4, const size_t m5, const size_t m6) {
+        Marking marking(6);
+        size_t i = 0;
+        marking[i++] = m1;
+        marking[i++] = m2;
+        marking[i++] = m3;
+        marking[i++] = m4;
+        marking[i++] = m5;
+        marking[i++] = m6;
+        return marking;
+    }
 
     bool Marking::operator<(const Marking& rhs) const {
         return compare(rhs) < 0;

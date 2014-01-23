@@ -106,6 +106,10 @@ namespace Tippi {
         return 0;
     }
     
+    bool Closure::contains(const Interval::NetState& state) const {
+        return m_netStates.count(state) > 0;
+    }
+
     const Interval::NetState::Set& Closure::getStates() const {
         return m_netStates;
     }
@@ -190,6 +194,29 @@ namespace Tippi {
         m_reachable = reachable;
     }
 
+    bool ClState::hasIncomingEdge(const String& edgeLabel) const {
+        return !getPredecessors(edgeLabel).empty();
+    }
+    
+    bool ClState::hasOutgoingEdge(const String& edgeLabel) const {
+        return getSuccessor(edgeLabel) != NULL;
+    }
+
+    ClState::Set ClState::getPredecessors(const String& edgeLabel) const {
+        Set result;
+        
+        const IncomingList& edges = getIncoming();
+        IncomingList::const_iterator it, end;
+        for (it = edges.begin(), end = edges.end(); it != end; ++it) {
+            ClEdge* edge = *it;
+            if (edge->getLabel() == edgeLabel) {
+                ClState* state = edge->getSource();
+                result.insert(state);
+            }
+        }
+        return result;
+    }
+
     const ClState* ClState::getSuccessor(const String& edgeLabel) const {
         const OutgoingList& edges = getOutgoing();
         OutgoingList::const_iterator it, end;
@@ -198,7 +225,7 @@ namespace Tippi {
             if (edge->getLabel() == edgeLabel)
                 return edge->getTarget();
         }
-        throw AutomatonException("No successor with edge label '" + edgeLabel + "' found");
+        return NULL;
     }
     
     String ClState::asString(const String& markingSeparator, const String& stateSeparator) const {

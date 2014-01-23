@@ -72,6 +72,7 @@ namespace Tippi {
         bool operator==(const Closure& rhs) const;
         int compare(const Closure& rhs) const;
         
+        bool contains(const Interval::NetState& state) const;
         const Interval::NetState::Set& getStates() const;
         bool isEmpty() const;
         String asString(const String& markingSeparator, const String& stateSeparator) const;
@@ -104,6 +105,9 @@ namespace Tippi {
         bool isReachable() const;
         void setReachable(bool reachable);
         
+        bool hasIncomingEdge(const String& edgeLabel) const;
+        bool hasOutgoingEdge(const String& edgeLabel) const;
+        Set getPredecessors(const String& edgeLabel) const;
         const ClState* getSuccessor(const String& edgeLabel) const;
         String asString(const String& markingSeparator, const String& stateSeparator) const;
     };

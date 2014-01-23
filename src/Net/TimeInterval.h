@@ -20,6 +20,7 @@
 #ifndef __Tippi__TimeInterval__
 #define __Tippi__TimeInterval__
 
+#include "StringUtils.h"
 #include <iostream>
 
 namespace Tippi {
@@ -39,6 +40,8 @@ namespace Tippi {
             size_t getMax() const;
             bool isBounded() const;
             bool contains(const size_t time) const;
+            
+            String asString() const;
         };
     }
 }

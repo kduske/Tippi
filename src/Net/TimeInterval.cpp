@@ -59,5 +59,16 @@ namespace Tippi {
                 return false;
             return true;
         }
+
+        String TimeInterval::asString() const {
+            StringStream str;
+            str << "[" << m_min << ",";
+            if (m_max == Infinity)
+                str << "&infin;";
+            else
+                str << m_min;
+            str << "]";
+            return str.str();
+        }
     }
 }

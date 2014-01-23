@@ -41,33 +41,26 @@ namespace Tippi {
         Interval::Transition::List::const_iterator tIt, tEnd;
         for (tIt = transitions.begin(), tEnd = transitions.end(); tIt != tEnd; ++tIt) {
             const Interval::Transition* transition = *tIt;
+            const size_t index = transition->getIndex();
             const bool inputSend = transition->isInputSend();
             const bool inputRead = transition->isInputRead();
             const bool outputSend = transition->isOutputSend();
             const bool outputRead = transition->isOutputRead();
             
-            size_t count = 0;
-            if (inputSend)
-                ++count;
-            if (inputRead)
-                ++count;
-            if (outputSend)
-                ++count;
-            if (outputRead)
-                ++count;
-            if (count > 1)
+            if (!(!inputSend && !inputRead && !outputSend && !outputRead) &&
+                !( inputSend  ^  inputRead  ^  outputSend  ^  outputRead))
                 throw ClosureException("Transition '" + transition->getName() + "' is connected to more than one interface place");
             
             if (inputSend)
-                m_transitionTypes[transition->getIndex()] = InputSend;
+                m_transitionTypes[index] = InputSend;
             else if (inputRead)
-                m_transitionTypes[transition->getIndex()] = InputRead;
+                m_transitionTypes[index] = InputRead;
             else if (outputSend)
-                m_transitionTypes[transition->getIndex()] = OutputSend;
+                m_transitionTypes[index] = OutputSend;
             else if (outputRead)
-                m_transitionTypes[transition->getIndex()] = OutputRead;
+                m_transitionTypes[index] = OutputRead;
             else
-                m_transitionTypes[transition->getIndex()] = Internal;
+                m_transitionTypes[index] = Internal;
         }
     }
 

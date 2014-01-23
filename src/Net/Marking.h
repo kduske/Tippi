@@ -42,6 +42,7 @@ namespace Tippi {
         static Marking createMarking(size_t m1, size_t m2, size_t m3);
         static Marking createMarking(size_t m1, size_t m2, size_t m3, size_t m4);
         static Marking createMarking(size_t m1, size_t m2, size_t m3, size_t m4, size_t m5);
+        static Marking createMarking(size_t m1, size_t m2, size_t m3, size_t m4, size_t m5, size_t m6);
         
         bool operator<(const Marking& rhs) const;
         bool operator==(const Marking& rhs) const;

@@ -53,6 +53,8 @@ namespace Tippi {
             m_stream << getNodeId(transition) << " [";
             printAttribute("label", transition->getName());
             m_stream << ",";
+            printAttribute("xlabel", transition->getInterval().asString());
+            m_stream << ",";
             printAttribute("shape", "square");
             m_stream << "];" << std::endl;
         }

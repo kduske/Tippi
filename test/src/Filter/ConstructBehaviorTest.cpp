@@ -24,8 +24,6 @@
 #include "Behavior.h"
 
 namespace Tippi {
-    static const size_t D = Interval::NetState::DisabledTransition;
-    
     bool hasMarking(const Behavior::State* state,
                     const size_t A, const size_t B, const size_t C, const size_t a, const size_t b,
                     const size_t t1, const size_t t2, const size_t ta, const size_t tb) {
@@ -56,6 +54,7 @@ namespace Tippi {
     }
     
     TEST(ConstructBehaviorTest, simpleNet) {
+        static const size_t D = Interval::NetState::DisabledTransition;
         using Interval::Net;
         using Interval::Place;
         using Interval::Transition;
@@ -99,7 +98,7 @@ namespace Tippi {
         ASSERT_TRUE(i != NULL);
         ASSERT_TRUE(hasMarking(i,
                                1, 0, 0, 0, 0,
-                               0,D,D,0));
+                               0, D, D, 0));
         ASSERT_EQ(2u, i->getOutgoing().size());
         ASSERT_TRUE(hasOutgoingTimeEdge(i));
         ASSERT_TRUE(hasOutgoingEdge(i, tb));
