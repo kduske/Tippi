@@ -57,14 +57,14 @@ int main(int argc, const char * argv[]) {
     ConstructBehavior::BehPtr behavior = constructBehavior(net);
     
     ConstructClosureAutomaton::ClPtr closureAutomaton = constructClosureAutomaton(net);
-    // removeDeadlocks(closureAutomaton);
-    // removeUnreachable(closureAutomaton);
+    removeDeadlocks(closureAutomaton);
+    removeUnreachable(closureAutomaton);
     
     ConstructRegionAutomaton::RePtr regionAutomaton = constructRegionAutomaton(closureAutomaton);
     
     // RenderIntervalNet renderNet;
     // RenderBehavior renderBehavior;
-    RenderClosureAutomaton renderClosure;
+    RenderClosureAutomaton renderClosure(true);
     renderClosure(closureAutomaton, regionAutomaton, std::cout);
     
     // RenderRegionAutomaton renderRegion;

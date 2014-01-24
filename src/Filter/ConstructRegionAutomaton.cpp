@@ -29,7 +29,8 @@ namespace Tippi {
         ClState::resetVisited(clStates.begin(), clStates.end());
         
         ClState* initialCl = closureAutomaton->getInitialState();
-        buildRegion(initialCl, regionAutomaton);
+        if (initialCl != NULL)
+            buildRegion(initialCl, regionAutomaton);
         
         return regionAutomaton;
     }

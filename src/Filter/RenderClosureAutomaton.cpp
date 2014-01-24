@@ -42,13 +42,13 @@ namespace Tippi {
         RenderClosureAutomaton::RePtr m_regionAutomaton;
         bool m_showEmptyState;
     public:
-        ClosureVisitor(std::ostream& stream, size_t maxDeadlockDistance, RenderClosureAutomaton::RePtr regionAutomaton = RenderClosureAutomaton::RePtr()) :
+        ClosureVisitor(std::ostream& stream, const size_t maxDeadlockDistance, const bool showEmptyState, RenderClosureAutomaton::RePtr regionAutomaton = RenderClosureAutomaton::RePtr()) :
         m_stream(stream),
         m_stateId(1),
         m_regionIndex(0),
         m_maxDeadlockDistance(maxDeadlockDistance),
         m_regionAutomaton(regionAutomaton),
-        m_showEmptyState(true) {}
+        m_showEmptyState(showEmptyState) {}
         
         void operator()(const ClState* state) {
             if (m_showEmptyState || !state->isEmpty()) {
@@ -153,10 +153,13 @@ namespace Tippi {
         }
     };
     
+    RenderClosureAutomaton::RenderClosureAutomaton(const bool showEmptyState) :
+    m_showEmptyState(showEmptyState) {}
+
     void RenderClosureAutomaton::operator()(const ClPtr automaton, std::ostream& stream) {
         stream << "digraph {" << std::endl;
         
-        ClosureVisitor visitor(stream, automaton->getMaxDeadlockDistance());
+        ClosureVisitor visitor(stream, automaton->getMaxDeadlockDistance(), m_showEmptyState);
         const ClState::Set& states = automaton->getStates();
         ClState::resetVisited(states.begin(), states.end());
         
@@ -172,7 +175,7 @@ namespace Tippi {
     void RenderClosureAutomaton::operator()(const ClPtr closureAutomaton, const RePtr regionAutomaton, std::ostream& stream) {
         stream << "digraph {" << std::endl;
         
-        ClosureVisitor visitor(stream, closureAutomaton->getMaxDeadlockDistance(), regionAutomaton);
+        ClosureVisitor visitor(stream, closureAutomaton->getMaxDeadlockDistance(), m_showEmptyState, regionAutomaton);
         const ClState::Set& states = closureAutomaton->getStates();
         ClState::resetVisited(states.begin(), states.end());
         
