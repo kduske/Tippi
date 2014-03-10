@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2013 Kristian Duske
+ Copyright (C) 2013-2014 Kristian Duske
  
  This file is part of Tippi.
  
@@ -20,6 +20,7 @@
 #ifndef __Tippi__Behavior__
 #define __Tippi__Behavior__
 
+#include "Automaton.h"
 #include "StringUtils.h"
 #include "Graph/GraphEdge.h"
 #include "Graph/GraphNode.h"
@@ -32,23 +33,19 @@ namespace Tippi {
     namespace Behavior {
         class State;
         
-        class Edge : public GraphEdge<State, State> {
+        class Edge : public AutomatonEdge<State> {
         public:
             typedef std::vector<Edge*> List;
             typedef std::set<Edge*, Utils::UniCmp<Edge> > Set;
-        private:
-            String m_label;
         public:
-            Edge(State* source, State* target, const String& label);
+            Edge(State* source, State* target, const String& label, bool tauEdge);
             
             bool operator<(const Edge& rhs) const;
             bool operator<(const Edge* rhs) const;
             int compare(const Edge& rhs) const;
-            
-            const String& getLabel() const;
         };
         
-        class State : public GraphNode<Edge, Edge> {
+        class State : public AutomatonState<Edge> {
         public:
             typedef std::set<State*, Utils::UniCmp<State> > Set;
         private:
@@ -72,12 +69,8 @@ namespace Tippi {
             String asString(const String separator = " ") const;
         };
         
-        class Automaton {
+        class Automaton : public Tippi::Automaton<State, Edge> {
         private:
-            State::Set m_states;
-            Edge::Set m_edges;
-            State* m_initialState;
-            State::Set m_finalStates;
             State* m_boundViolationState;
         public:
             Automaton();
@@ -86,22 +79,6 @@ namespace Tippi {
             State* createState(const Interval::NetState& netState);
             std::pair<State*, bool> findOrCreateState(const Interval::NetState& netState);
             State* findOrCreateBoundViolationState();
-            Edge* connect(State* source, State* target, const String& label);
-            
-            void deleteState(State* state);
-            void disconnect(Edge* edge);
-            
-            void setInitialState(State* state);
-            void addFinalState(State* state);
-            
-            const State::Set& getStates() const;
-            const State* findState(const Interval::NetState& netState) const;
-            
-            State* getInitialState() const;
-            const State::Set& getFinalStates() const;
-        private:
-            void deleteIncomingEdges(State* state);
-            void deleteOutgoingEdges(State* state);
         };
     }
 }

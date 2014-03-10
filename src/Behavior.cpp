@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2013 Kristian Duske
+ Copyright (C) 2013-2014 Kristian Duske
  
  This file is part of Tippi.
  
@@ -26,9 +26,35 @@
 
 namespace Tippi {
     namespace Behavior {
-        Edge::Edge(State* source, State* target, const String& label) :
-        GraphEdge(source, target),
-        m_label(label) {}
+        class StateNetStateComparator {
+        public:
+            bool operator()(const State* lhs, const State* rhs) const {
+                if (rhs == NULL)
+                    return false;
+                if (lhs == NULL)
+                    return true;
+                return lhs->getNetState() < rhs->getNetState();
+            }
+            
+            bool operator()(const State* lhs, const Interval::NetState& rhs) const {
+                if (lhs == NULL)
+                    return true;
+                return lhs->getNetState() < rhs;
+            }
+            
+            bool operator()(const Interval::NetState& lhs, const State* rhs) const {
+                if (rhs == NULL)
+                    return false;
+                return lhs < rhs->getNetState();
+            }
+            
+            bool operator()(const Interval::NetState& lhs, const Interval::NetState& rhs) const {
+                return lhs < rhs;
+            }
+        };
+
+        Edge::Edge(State* source, State* target, const String& label, const bool tau) :
+        AutomatonEdge<State>(source, target, label, tau) {}
         
         bool Edge::operator<(const Edge& rhs) const {
             return compare(rhs) < 0;
@@ -51,11 +77,7 @@ namespace Tippi {
                 return 1;
             return m_label.compare(rhs.m_label);
         }
-        
-        const String& Edge::getLabel() const {
-            return m_label;
-        }
-        
+
         State::State(const Interval::NetState& netState) :
         m_netState(netState),
         m_final(false),
@@ -108,7 +130,7 @@ namespace Tippi {
                 if (edge->getLabel() == edgeLabel)
                     return edge->getTarget();
             }
-            throw AutomatonException("No successor with edge label '" + edgeLabel + "' found");
+            return NULL;
         }
         
         String State::asString(const String separator) const {
@@ -117,24 +139,7 @@ namespace Tippi {
             return m_netState.asString(separator);
         }
         
-        class StateNetStateComparator {
-        public:
-            bool operator()(const State* lhs, const State* rhs) const {
-                return lhs < rhs;
-            }
-            bool operator()(const State* lhs, const Interval::NetState& rhs) const {
-                return lhs->getNetState() < rhs;
-            }
-            bool operator()(const Interval::NetState& lhs, const State* rhs) const {
-                return lhs < rhs->getNetState();
-            }
-            bool operator()(const Interval::NetState& lhs, const Interval::NetState& rhs) const {
-                return lhs < rhs;
-            }
-        };
-        
         Automaton::Automaton() :
-        m_initialState(NULL),
         m_boundViolationState(NULL) {}
         
         Automaton::~Automaton() {
@@ -172,106 +177,6 @@ namespace Tippi {
                 m_states.insert(m_boundViolationState);
             }
             return m_boundViolationState;
-        }
-        
-        Edge* Automaton::connect(State* source, State* target, const String& label) {
-            assert(source != NULL);
-            assert(source != m_boundViolationState);
-            assert(target != NULL);
-            assert(m_states.count(source) == 1);
-            assert(m_states.count(target) == 1);
-            
-            Edge* edge = new Edge(source, target, label);
-            Edge::Set::iterator it = m_edges.lower_bound(edge);
-            if (it != m_edges.end() && SetUtils::equals(m_edges, edge, *it)) {
-                delete edge;
-                return *it;
-            }
-            
-            m_edges.insert(it, edge);
-            source->addOutgoing(edge);
-            target->addIncoming(edge);
-            return edge;
-        }
-        
-        void Automaton::deleteState(State* state) {
-            assert(state != NULL);
-            assert(state != m_boundViolationState);
-            State::Set::iterator it = m_states.lower_bound(state);
-            assert(it != m_states.end() && SetUtils::equals(m_states, state, *it));
-            
-            deleteIncomingEdges(state);
-            deleteOutgoingEdges(state);
-            m_states.erase(it);
-            
-            if (m_initialState == state)
-                m_initialState = NULL;
-            SetUtils::remove(m_finalStates, state);
-            delete state;
-        }
-        
-        void Automaton::disconnect(Edge* edge) {
-            assert(edge != NULL);
-
-            Edge::Set::iterator it = m_edges.find(edge);
-            assert(it != m_edges.end());
-            
-            edge->removeFromSource();
-            edge->removeFromTarget();
-            m_edges.erase(it);
-            delete edge;
-        }
-        
-        void Automaton::setInitialState(State* state) {
-            m_initialState = state;
-        }
-        
-        void Automaton::addFinalState(State* state) {
-            if (!state->isFinal())
-                throw AutomatonException("State is not a final state: '" + state->asString() + "'");
-            m_finalStates.insert(state);
-        }
-        
-        const State::Set& Automaton::getStates() const {
-            return m_states;
-        }
-        
-        const State* Automaton::findState(const Interval::NetState& netState) const {
-            State query(netState);
-            State::Set::iterator it = m_states.find(&query);
-            if (it == m_states.end())
-                return NULL;
-            return *it;
-        }
-        
-        State* Automaton::getInitialState() const {
-            return m_initialState;
-        }
-        
-        const State::Set& Automaton::getFinalStates() const {
-            return m_finalStates;
-        }
-        
-        void Automaton::deleteIncomingEdges(State* state) {
-            const State::IncomingList& incomingEdges = state->getIncoming();
-            State::IncomingList::const_iterator it, end;
-            for (it = incomingEdges.begin(), end = incomingEdges.end(); it != end; ++it) {
-                Edge* edge = *it;
-                SetUtils::remove(m_edges, edge);
-                edge->removeFromSource();
-                delete edge;
-            }
-        }
-        
-        void Automaton::deleteOutgoingEdges(State* state) {
-            const State::OutgoingList& outgoingEdges = state->getOutgoing();
-            State::OutgoingList::const_iterator it, end;
-            for (it = outgoingEdges.begin(), end = outgoingEdges.end(); it != end; ++it) {
-                Edge* edge = *it;
-                SetUtils::remove(m_edges, edge);
-                edge->removeFromTarget();
-                delete edge;
-            }
         }
     }
 }

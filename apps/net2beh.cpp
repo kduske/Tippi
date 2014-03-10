@@ -42,4 +42,3 @@ int main(int argc, const char* argv[]) {
     LoadIntervalNet::NetPtr net = loader(std::cin);
     render(behavior(maximal(net)), std::cout);
 }
-

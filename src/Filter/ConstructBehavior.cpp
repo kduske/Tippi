@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2013 Kristian Duske
+ Copyright (C) 2013-2014 Kristian Duske
  
  This file is part of Tippi.
  
@@ -80,7 +80,11 @@ namespace Tippi {
             }
         }
         
-        if (succState != NULL)
-            automaton->connect(state, succState, edgeLabel);
+        if (succState != NULL) {
+            if (edgeLabel.empty())
+                automaton->connectWithTauEdge(state, succState);
+            else
+                automaton->connectWithLabeledEdge(state, succState, edgeLabel);
+        }
     }
 }

@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2013 Kristian Duske
+ Copyright (C) 2013-2014 Kristian Duske
  
  This file is part of Tippi.
  
@@ -26,9 +26,11 @@
 #include "Net/IntervalNetState.h"
 #include "Net/Marking.h"
 
+#include <limits>
+
 namespace Tippi {
     namespace Interval {
-        static const size_t _ = NetState::DisabledTransition;
+        static const size_t _ = std::numeric_limits<size_t>::max(); // Attention! Must be adapted if NetState::DisabledTransition changes!
         
         struct LabelingFunction {
             String operator()(const Transition* transition) const {

@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2013 Kristian Duske
+ Copyright (C) 2013-2014 Kristian Duske
  
  This file is part of Tippi.
  
@@ -189,6 +189,8 @@ namespace Tippi {
             Interval::Transition::List::const_iterator it, end;
             for (it = fireableTransitions.begin(), end = fireableTransitions.end(); it != end; ++it) {
                 const Interval::Transition* transition = *it;
+                assert(state.checkPlaceEnabled(transition));
+                assert(isFireable(transition, state));
                 if (VectorUtils::contains(labels, transition->getLabel())) {
                     const Interval::NetState next = fireTransition(transition, state);
                     if (!buildClosureRecurse(next, labels, states))

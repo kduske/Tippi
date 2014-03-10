@@ -1,5 +1,5 @@
 /*
- Copyright (C) 2013 Kristian Duske
+ Copyright (C) 2013-2014 Kristian Duske
  
  This file is part of Tippi.
  
@@ -93,7 +93,7 @@ namespace Tippi {
         net->setInitialMarking(initialMarking);
         net->addFinalMarking(finalMarking);
         
-        ConstructBehavior::BehPtr beh = ConstructBehavior()(net);
+        ConstructBehavior::BehPtr beh = ConstructBehavior(true)(net);
         const State* i = beh->getInitialState();
         ASSERT_TRUE(i != NULL);
         ASSERT_TRUE(hasMarking(i,
