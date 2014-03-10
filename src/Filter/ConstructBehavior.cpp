@@ -26,6 +26,9 @@
 #include <cassert>
 
 namespace Tippi {
+    ConstructBehavior::ConstructBehavior(const bool createBoundViolationState) :
+    m_createBoundViolationState(createBoundViolationState) {}
+
     ConstructBehavior::BehPtr ConstructBehavior::operator()(const NetPtr net) const {
         BehPtr automaton(new Behavior::Automaton());
         
@@ -62,7 +65,8 @@ namespace Tippi {
 
         Behavior::State* succState = NULL;
         if (!succNetState.isBounded(*net)) {
-            succState = automaton->findOrCreateBoundViolationState();
+            if (m_createBoundViolationState)
+                succState = automaton->findOrCreateBoundViolationState();
         } else {
             std::pair<Behavior::State*, bool> result = automaton->findOrCreateState(succNetState);
             succState = result.first;
@@ -76,6 +80,7 @@ namespace Tippi {
             }
         }
         
-        automaton->connect(state, succState, edgeLabel);
+        if (succState != NULL)
+            automaton->connect(state, succState, edgeLabel);
     }
 }

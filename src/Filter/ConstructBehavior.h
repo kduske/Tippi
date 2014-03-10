@@ -38,9 +38,13 @@ namespace Tippi {
     }
     
     struct ConstructBehavior {
+    private:
+        bool m_createBoundViolationState;
+    public:
         typedef std::tr1::shared_ptr<Interval::Net> NetPtr;
         typedef std::tr1::shared_ptr<Behavior::Automaton> BehPtr;
 
+        ConstructBehavior(bool createBoundViolationState);
         BehPtr operator()(const NetPtr net) const;
     private:
         void handleState(const NetPtr net, const Interval::FiringRule& rule, Behavior::State* state, Behavior::Automaton* automaton) const;

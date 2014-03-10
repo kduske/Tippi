@@ -131,7 +131,7 @@ namespace Tippi {
                 if (succDL || succ->isEmpty())
                     ++pdl;
             }
-            sdl |= (edge->isServiceAction() || edge->isTimeAction()) && succDL;
+            sdl |= ((edge->isServiceAction() || edge->isTimeAction()) && succDL);
             if (succDL || succ == state || succ->isEmpty())
                 ++odl;
         }
