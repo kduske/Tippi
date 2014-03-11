@@ -23,8 +23,8 @@
 #include "SharedPointer.h"
 #include "StringUtils.h"
 #include "Closure.h"
-#include "Net/IntervalNet.h"
-#include "Net/IntervalNetState.h"
+#include "IntervalNet.h"
+#include "IntervalNetState.h"
 
 #include <iostream>
 

@@ -20,11 +20,11 @@
 #include <gtest/gtest.h>
 
 #include "CollectionUtils.h"
-#include "Net/IntervalNet.h"
-#include "Net/IntervalNetFiringRule.h"
-#include "Net/IntervalNetParser.h"
-#include "Net/IntervalNetState.h"
-#include "Net/Marking.h"
+#include "IntervalNet.h"
+#include "IntervalNetFiringRule.h"
+#include "IntervalNetParser.h"
+#include "IntervalNetState.h"
+#include "Marking.h"
 
 #include <limits>
 

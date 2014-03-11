@@ -17,16 +17,16 @@
  along with Tippi. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "LoadIntervalNet.h"
+#ifndef __Tippi__Behavior2Dot__
+#define __Tippi__Behavior2Dot__
 
-#include "StringUtils.h"
-#include "Net/IntervalNet.h"
-#include "Net/IntervalNetParser.h"
+#include "Behavior.h"
+#include <iostream>
 
 namespace Tippi {
-    LoadIntervalNet::NetPtr LoadIntervalNet::operator()(std::istream& stream) const {
-        const String str((std::istreambuf_iterator<char>(stream)), std::istreambuf_iterator<char>());
-        Interval::NetParser parser(str);
-        return NetPtr(parser.parse());
-    }
+    struct Behavior2Dot {
+        void operator()(const Behavior::Ptr behavior, std::ostream& stream);
+    };
 }
+
+#endif /* defined(__Tippi__Behavior2Dot__) */

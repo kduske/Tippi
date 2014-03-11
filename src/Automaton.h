@@ -22,11 +22,13 @@
 
 #include "CollectionUtils.h"
 #include "Exceptions.h"
+#include "SharedPointer.h"
 #include "StringUtils.h"
-#include "Graph/GraphEdge.h"
-#include "Graph/GraphNode.h"
+#include "GraphEdge.h"
+#include "GraphNode.h"
 
 #include <cassert>
+#include <vector>
 
 namespace Tippi {
     template <class State>
@@ -54,11 +56,30 @@ namespace Tippi {
     template <class Edge>
     class AutomatonState : public GraphNode<Edge, Edge> {
     protected:
-        AutomatonState() {}
+        String m_name;
+    protected:
+        AutomatonState(const String& name) :
+        m_name(name) {}
     public:
         virtual ~AutomatonState() {}
         
-        const typename Edge::Target* getSuccessor(const String& label) const {
+        const String& getName() const {
+            return m_name;
+        }
+        
+        const std::vector<typename Edge::Target*> getDirectSuccessors(const String& label) const {
+            std::vector<typename Edge::Target*> result;
+            const typename GraphNode<Edge, Edge>::OutgoingList& edges = GraphNode<Edge, Edge>::getOutgoing();
+            typename GraphNode<Edge, Edge>::OutgoingList::const_iterator it, end;
+            for (it = edges.begin(), end = edges.end(); it != end; ++it) {
+                const Edge* edge = *it;
+                if (edge->getLabel() == label)
+                    result.push_back(edge->getTarget());
+            }
+            return result;
+        }
+        
+        const typename Edge::Target* findDirectSuccessor(const String& label) const {
             const typename GraphNode<Edge, Edge>::OutgoingList& edges = GraphNode<Edge, Edge>::getOutgoing();
             typename GraphNode<Edge, Edge>::OutgoingList::const_iterator it, end;
             for (it = edges.begin(), end = edges.end(); it != end; ++it) {
@@ -66,13 +87,57 @@ namespace Tippi {
                 if (edge->getLabel() == label)
                     return edge->getTarget();
             }
-            throw AutomatonException("No successor with edge label '" + label + "' found");
+            return NULL;
+        }
+        
+        const std::vector<typename Edge::Target*> getIndirectSuccessors(const String& label) const {
+            std::vector<typename Edge::Target*> result;
+            getIndirectSuccessors(label, result);
+            return result;
+        }
+
+        const typename Edge::Target* findIndirectSuccessor(const String& label) const {
+            const typename GraphNode<Edge, Edge>::OutgoingList& edges = GraphNode<Edge, Edge>::getOutgoing();
+            typename GraphNode<Edge, Edge>::OutgoingList::const_iterator it, end;
+            
+            // first look for direct successors
+            for (it = edges.begin(), end = edges.end(); it != end; ++it) {
+                const Edge* edge = *it;
+                if (!edge->isTau() && edge->getLabel() == label)
+                    return edge->getTarget();
+            }
+            
+            // now recursively look for indirect successors
+            for (it = edges.begin(), end = edges.end(); it != end; ++it) {
+                const Edge* edge = *it;
+                if (edge->isTau()) {
+                    const typename Edge::Target* target = edge->getTarget();
+                    const typename Edge::Target* successor = target->findIndirectSuccessor(label);
+                    if (successor != NULL)
+                        return successor;
+                }
+            }
+            return NULL;
+        }
+    private:
+        void getIndirectSuccessors(const String& label, std::vector<typename Edge::Target*>& result) {
+            const typename GraphNode<Edge, Edge>::OutgoingList& edges = GraphNode<Edge, Edge>::getOutgoing();
+            typename GraphNode<Edge, Edge>::OutgoingList::const_iterator it, end;
+            for (it = edges.begin(), end = edges.end(); it != end; ++it) {
+                const Edge* edge = *it;
+                const typename Edge::Target* successor = edge->getTarget();
+                if (edge->isTau())
+                    successor->getIndirectSuccessors(label, result);
+                else if (edge->getLabel() == label)
+                    result.push_back(successor);
+            }
         }
     };
     
     template <class StateT, class EdgeT>
     class Automaton {
     public:
+        typedef std::tr1::shared_ptr<Automaton<StateT,EdgeT> > Ptr;
         typedef StateT State;
         typedef EdgeT Edge;
     protected:
@@ -139,6 +204,10 @@ namespace Tippi {
         const typename StateT::Set& getStates() const {
             return m_states;
         }
+        
+        const typename EdgeT::Set& getEdges() const {
+            return m_edges;
+        }
 
         StateT* getInitialState() const {
             return m_initialState;
@@ -150,18 +219,20 @@ namespace Tippi {
         
         template <class Other>
         bool simulates(const Other& other) const {
-            if (m_initialState == NULL)
-                return false;
-            
-            const typename Other::State* otherInit = other.getInitialState();
-            if (otherInit == NULL)
-                return false;
-
             typedef std::pair<const StateT*, const typename Other::State*> Pair;
             typedef std::set<Pair> Relation;
             Relation relation;
-
-            return simulates(m_initialState, otherInit, relation);
+            
+            return simulates(m_initialState, other.getInitialState(), relation);
+        }
+        
+        template <class Other>
+        bool weaklySimulates(const Other& other) const {
+            typedef std::pair<const StateT*, const typename Other::State*> Pair;
+            typedef std::set<Pair> Relation;
+            Relation relation;
+            
+            return weaklySimulates(m_initialState, other.getInitialState(), relation);
         }
     private:
         EdgeT* connect(StateT* source, StateT* target, const String& label, const bool tau) {
@@ -207,22 +278,64 @@ namespace Tippi {
 
         template <typename Other, typename Relation>
         bool simulates(const StateT* mine, const Other* other, Relation& relation) const {
+            if (mine == NULL || other == NULL)
+                return false;
+            
             assert(mine != NULL);
             assert(other != NULL);
             if (!relation.insert(std::make_pair(mine, other)).second)
                 return true;
             
-            typename Other::OutgoingList::const_iterator it, end;
+            typename StateT::OutgoingList::const_iterator mIt, mEnd;
+            typename Other::OutgoingList::const_iterator oIt, oEnd;
+            
             const typename Other::OutgoingList& otherEdges = other->getOutgoing();
-            for (it = otherEdges.begin(), end = otherEdges.end(); it != end; ++it) {
-                const typename Other::Outgoing* otherEdge = *it;
-                const StateT* mySuccessor = mine->getSuccessor(otherEdge->getLabel());
-                if (mySuccessor == NULL)
-                    return false;
-                
+            
+            for (oIt = otherEdges.begin(), oEnd = otherEdges.end(); oIt != oEnd; ++oIt) {
+                const typename Other::Outgoing* otherEdge = *oIt;
                 const Other* otherSuccessor = otherEdge->getTarget();
-                if (!simulates(mySuccessor, otherSuccessor, relation))
+                const String& label = otherEdge->getLabel();
+                
+                const StateT* mineSuccessor = mine->findDirectSuccessor(label);
+                if (mineSuccessor == NULL)
                     return false;
+                if (!simulates(mineSuccessor, otherSuccessor, relation))
+                    return false;
+            }
+            
+            return true;
+        }
+        
+        template <typename Other, typename Relation>
+        bool weaklySimulates(const StateT* mine, const Other* other, Relation& relation) const {
+            if (mine == NULL || other == NULL)
+                return false;
+            
+            assert(mine != NULL);
+            assert(other != NULL);
+            if (!relation.insert(std::make_pair(mine, other)).second)
+                return true;
+            
+            typename StateT::OutgoingList::const_iterator mIt, mEnd;
+            typename Other::OutgoingList::const_iterator oIt, oEnd;
+            
+            const typename Other::OutgoingList& otherEdges = other->getOutgoing();
+            
+            for (oIt = otherEdges.begin(), oEnd = otherEdges.end(); oIt != oEnd; ++oIt) {
+                const typename Other::Outgoing* otherEdge = *oIt;
+                const Other* otherSuccessor = otherEdge->getTarget();
+                if (otherEdge->isTau()) {
+                    if (!weaklySimulates(mine, otherSuccessor, relation))
+                        return false;
+                } else {
+                    const String& label = otherEdge->getLabel();
+                    
+                    const StateT* mineSuccessor = mine->findIndirectSuccessor(label);
+                    if (mineSuccessor == NULL)
+                        return false;
+                    if (!weaklySimulates(mineSuccessor, otherSuccessor, relation))
+                        return false;
+                }
             }
             
             return true;

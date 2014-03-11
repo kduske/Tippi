@@ -20,8 +20,8 @@
 #ifndef __Tippi__IntervalNetFiringRule__
 #define __Tippi__IntervalNetFiringRule__
 
-#include "Net/IntervalNet.h"
-#include "Net/IntervalNetState.h"
+#include "IntervalNet.h"
+#include "IntervalNetState.h"
 
 namespace Tippi {
     namespace Interval {

@@ -22,9 +22,9 @@
 
 #include "CollectionUtils.h"
 #include "StringUtils.h"
-#include "Graph/GraphEdge.h"
-#include "Graph/GraphNode.h"
-#include "Net/IntervalNetState.h"
+#include "GraphEdge.h"
+#include "GraphNode.h"
+#include "IntervalNetState.h"
 
 #include <set>
 #include <vector>

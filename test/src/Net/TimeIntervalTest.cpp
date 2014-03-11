@@ -19,7 +19,7 @@
 
 #include <gtest/gtest.h>
 
-#include "Net/TimeInterval.h"
+#include "TimeInterval.h"
 #include "Exceptions.h"
 
 namespace Tippi {

@@ -19,7 +19,7 @@
 
 #include "Marking.h"
 
-#include "Net/NetNode.h"
+#include "NetNode.h"
 
 #include <cassert>
 #include <cstdarg>

@@ -19,7 +19,7 @@
 
 #include <gtest/gtest.h>
 
-#include "Net/IntervalNet.h"
+#include "IntervalNet.h"
 #include "Exceptions.h"
 
 namespace Tippi {

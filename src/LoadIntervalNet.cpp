@@ -17,22 +17,16 @@
  along with Tippi. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __Tippi__RenderBehavior__
-#define __Tippi__RenderBehavior__
+#include "LoadIntervalNet.h"
 
-#include "SharedPointer.h"
-
-#include <iostream>
+#include "StringUtils.h"
+#include "IntervalNet.h"
+#include "IntervalNetParser.h"
 
 namespace Tippi {
-    namespace Behavior {
-        class Automaton;
+    LoadIntervalNet::NetPtr LoadIntervalNet::operator()(std::istream& stream) const {
+        const String str((std::istreambuf_iterator<char>(stream)), std::istreambuf_iterator<char>());
+        Interval::NetParser parser(str);
+        return NetPtr(parser.parse());
     }
-    
-    struct RenderBehavior {
-        typedef std::tr1::shared_ptr<Behavior::Automaton> BehPtr;
-        void operator()(const BehPtr behavior, std::ostream& stream);
-    };
 }
-
-#endif /* defined(__Tippi__RenderBehavior__) */

@@ -17,13 +17,13 @@
  along with Tippi. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "Filter/ConstructClosureAutomaton.h"
-#include "Filter/ConstructMaximalNet.h"
-#include "Filter/ConstructRegionAutomaton.h"
-#include "Filter/LoadIntervalNet.h"
-#include "Filter/RemoveDeadlocks.h"
-#include "Filter/RemoveUnreachableStates.h"
-#include "Filter/RenderClosureAutomaton.h"
+#include "ConstructClosureAutomaton.h"
+#include "ConstructMaximalNet.h"
+#include "ConstructRegionAutomaton.h"
+#include "LoadIntervalNet.h"
+#include "RemoveDeadlocks.h"
+#include "RemoveUnreachableStates.h"
+#include "RenderClosureAutomaton.h"
 
 #include <getoptpp/getopt_pp.h>
 #include <cassert>

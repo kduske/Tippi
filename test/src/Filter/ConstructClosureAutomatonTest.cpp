@@ -19,8 +19,8 @@
 
 #include <gtest/gtest.h>
 
-#include "Filter/ConstructClosureAutomaton.h"
-#include "Net/IntervalNet.h"
+#include "ConstructClosureAutomaton.h"
+#include "IntervalNet.h"
 #include "Closure.h"
 
 namespace Tippi {

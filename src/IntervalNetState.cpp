@@ -19,7 +19,7 @@
 
 #include "IntervalNetState.h"
 
-#include "Net/IntervalNet.h"
+#include "IntervalNet.h"
 
 #include <cassert>
 #include <limits>

@@ -21,8 +21,8 @@
 #define __Tippi__IntervalNetState__
 
 #include "StringUtils.h"
-#include "Net/IntervalNet.h"
-#include "Net/Marking.h"
+#include "IntervalNet.h"
+#include "Marking.h"
 
 #include <set>
 

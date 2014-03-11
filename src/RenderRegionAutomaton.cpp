@@ -22,7 +22,7 @@
 #include "CollectionUtils.h"
 #include "Closure.h"
 #include "Region.h"
-#include "Graph/GraphAlgorithms.h"
+#include "GraphAlgorithms.h"
 
 namespace Tippi {
     class RegionVisitor {

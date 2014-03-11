@@ -19,9 +19,8 @@
 
 #include "ConstructBehavior.h"
 
-#include "Behavior.h"
-#include "Net/IntervalNetFiringRule.h"
-#include "Net/IntervalNet.h"
+#include "IntervalNetFiringRule.h"
+#include "IntervalNet.h"
 
 #include <cassert>
 
@@ -29,22 +28,22 @@ namespace Tippi {
     ConstructBehavior::ConstructBehavior(const bool createBoundViolationState) :
     m_createBoundViolationState(createBoundViolationState) {}
 
-    ConstructBehavior::BehPtr ConstructBehavior::operator()(const NetPtr net) const {
-        BehPtr automaton(new Behavior::Automaton());
+    Behavior::Ptr ConstructBehavior::operator()(const NetPtr net) const {
+        Behavior::Ptr behavior(new Behavior());
         
         const Interval::NetState initialState = Interval::NetState::createInitialState(*net);
-        Behavior::State* behState = automaton->createState(initialState);
-        automaton->setInitialState(behState);
+        BehaviorState* behState = behavior->createState(initialState);
+        behavior->setInitialState(behState);
 
         const Interval::FiringRule rule(*net);
-        handleState(net, rule, behState, automaton.get());
+        handleState(net, rule, behState, behavior.get());
         
-        return automaton;
+        return behavior;
     }
 
-    void ConstructBehavior::handleState(const NetPtr net, const Interval::FiringRule& rule, Behavior::State* state, Behavior::Automaton* automaton) const {
+    void ConstructBehavior::handleState(const NetPtr net, const Interval::FiringRule& rule, BehaviorState* state, Behavior* behavior) const {
         assert(state != NULL);
-        assert(automaton != NULL);
+        assert(behavior != NULL);
         
         const Interval::NetState& netState = state->getNetState();
         const Interval::Transition::List fireableTransitions = rule.getFireableTransitions(netState);
@@ -52,39 +51,39 @@ namespace Tippi {
         for (it = fireableTransitions.begin(), end = fireableTransitions.end(); it != end; ++it) {
             Interval::Transition* transition = *it;
             const Interval::NetState succNetState = rule.fireTransition(transition, netState);
-            handleNetState(net, rule, state, succNetState, transition->getLabel(), automaton);
+            handleNetState(net, rule, state, succNetState, transition->getLabel(), behavior);
         }
         
         if (rule.canMakeTimeStep(netState)) {
             const Interval::NetState succNetState = rule.makeTimeStep(netState);
-            handleNetState(net, rule, state, succNetState, "1", automaton);
+            handleNetState(net, rule, state, succNetState, "1", behavior);
         }
     }
 
-    void ConstructBehavior::handleNetState(const NetPtr net, const Interval::FiringRule& rule, Behavior::State* state, const Interval::NetState& succNetState, const String& edgeLabel, Behavior::Automaton* automaton) const {
+    void ConstructBehavior::handleNetState(const NetPtr net, const Interval::FiringRule& rule, BehaviorState* state, const Interval::NetState& succNetState, const String& edgeLabel, Behavior* behavior) const {
 
-        Behavior::State* succState = NULL;
+        BehaviorState* succState = NULL;
         if (!succNetState.isBounded(*net)) {
             if (m_createBoundViolationState)
-                succState = automaton->findOrCreateBoundViolationState();
+                succState = behavior->findOrCreateBoundViolationState();
         } else {
-            std::pair<Behavior::State*, bool> result = automaton->findOrCreateState(succNetState);
+            std::pair<Behavior::State*, bool> result = behavior->findOrCreateState(succNetState);
             succState = result.first;
 
             if (result.second) {
                 if (succNetState.isFinalMarking(*net)) {
                     succState->setFinal(true);
-                    automaton->addFinalState(succState);
+                    behavior->addFinalState(succState);
                 }
-                handleState(net, rule, succState, automaton);
+                handleState(net, rule, succState, behavior);
             }
         }
         
         if (succState != NULL) {
             if (edgeLabel.empty())
-                automaton->connectWithTauEdge(state, succState);
+                behavior->connectWithTauEdge(state, succState);
             else
-                automaton->connectWithLabeledEdge(state, succState, edgeLabel);
+                behavior->connectWithLabeledEdge(state, succState, edgeLabel);
         }
     }
 }

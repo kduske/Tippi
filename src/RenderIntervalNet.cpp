@@ -20,11 +20,11 @@
 #include "RenderIntervalNet.h"
 
 #include "CollectionUtils.h"
-#include "Graph/GraphAlgorithms.h"
-#include "Graph/GraphNode.h"
-#include "Graph/GraphEdge.h"
-#include "Net/IntervalNet.h"
-#include "Net/NetNode.h"
+#include "GraphAlgorithms.h"
+#include "GraphNode.h"
+#include "GraphEdge.h"
+#include "IntervalNet.h"
+#include "NetNode.h"
 
 #include <map>
 

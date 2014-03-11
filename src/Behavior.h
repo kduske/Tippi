@@ -22,65 +22,68 @@
 
 #include "Automaton.h"
 #include "StringUtils.h"
-#include "Graph/GraphEdge.h"
-#include "Graph/GraphNode.h"
-#include "Net/IntervalNetState.h"
+#include "SharedPointer.h"
+#include "GraphEdge.h"
+#include "GraphNode.h"
+#include "IntervalNetState.h"
 
 #include <set>
 #include <vector>
 
 namespace Tippi {
-    namespace Behavior {
-        class State;
+    class BehaviorState;
+    
+    class BehaviorEdge : public AutomatonEdge<BehaviorState> {
+    public:
+        typedef std::vector<BehaviorEdge*> List;
+        typedef std::set<BehaviorEdge*, Utils::UniCmp<BehaviorEdge> > Set;
+    public:
+        BehaviorEdge(BehaviorState* source, BehaviorState* target, const String& label, bool tauEdge);
         
-        class Edge : public AutomatonEdge<State> {
-        public:
-            typedef std::vector<Edge*> List;
-            typedef std::set<Edge*, Utils::UniCmp<Edge> > Set;
-        public:
-            Edge(State* source, State* target, const String& label, bool tauEdge);
-            
-            bool operator<(const Edge& rhs) const;
-            bool operator<(const Edge* rhs) const;
-            int compare(const Edge& rhs) const;
-        };
+        bool operator<(const BehaviorEdge& rhs) const;
+        bool operator<(const BehaviorEdge* rhs) const;
+        int compare(const BehaviorEdge& rhs) const;
+    };
+    
+    class BehaviorState : public AutomatonState<BehaviorEdge> {
+    public:
+        typedef std::set<BehaviorState*, Utils::UniCmp<BehaviorState> > Set;
+    private:
+        Interval::NetState m_netState;
+        bool m_final;
+        bool m_boundViolation;
+    public:
+        BehaviorState(const String& name, const Interval::NetState& netState);
+        BehaviorState(const String& name);
         
-        class State : public AutomatonState<Edge> {
-        public:
-            typedef std::set<State*, Utils::UniCmp<State> > Set;
-        private:
-            Interval::NetState m_netState;
-            bool m_final;
-            bool m_boundViolation;
-        public:
-            State(const Interval::NetState& netState);
-            State();
-            
-            bool operator<(const State& rhs) const;
-            bool operator<(const State* rhs) const;
-            int compare(const State& rhs) const;
-            
-            const Interval::NetState& getNetState() const;
-            bool isFinal() const;
-            void setFinal(bool final);
-            bool isBoundViolation() const;
-            
-            const Behavior::State* getSuccessor(const String& edgeLabel) const;
-            String asString(const String separator = " ") const;
-        };
+        bool operator<(const BehaviorState& rhs) const;
+        bool operator<(const BehaviorState* rhs) const;
+        int compare(const BehaviorState& rhs) const;
         
-        class Automaton : public Tippi::Automaton<State, Edge> {
-        private:
-            State* m_boundViolationState;
-        public:
-            Automaton();
-            ~Automaton();
-            
-            State* createState(const Interval::NetState& netState);
-            std::pair<State*, bool> findOrCreateState(const Interval::NetState& netState);
-            State* findOrCreateBoundViolationState();
-        };
-    }
+        const Interval::NetState& getNetState() const;
+        bool isFinal() const;
+        void setFinal(bool final);
+        bool isBoundViolation() const;
+        
+        String asString(const String separator = " ") const;
+    };
+    
+    class Behavior : public Automaton<BehaviorState, BehaviorEdge> {
+    public:
+        typedef std::tr1::shared_ptr<Behavior> Ptr;
+    private:
+        unsigned long m_stateIndex;
+        State* m_boundViolationState;
+    public:
+        Behavior();
+        ~Behavior();
+        
+        BehaviorState* createState(const Interval::NetState& netState);
+        std::pair<BehaviorState*, bool> findOrCreateState(const Interval::NetState& netState);
+        BehaviorState* findOrCreateBoundViolationState();
+    private:
+        String makeStateName();
+    };
 }
 
 #endif /* defined(__Tippi__Behavior__) */

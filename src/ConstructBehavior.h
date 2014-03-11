@@ -20,17 +20,12 @@
 #ifndef __Tippi__ConstructBehavior__
 #define __Tippi__ConstructBehavior__
 
-#include "SharedPointer.h"
 #include "StringUtils.h"
+#include "Behavior.h"
 
 #include <iostream>
 
 namespace Tippi {
-    namespace Behavior {
-        class Automaton;
-        class State;
-    }
-    
     namespace Interval {
         class FiringRule;
         class Net;
@@ -42,13 +37,12 @@ namespace Tippi {
         bool m_createBoundViolationState;
     public:
         typedef std::tr1::shared_ptr<Interval::Net> NetPtr;
-        typedef std::tr1::shared_ptr<Behavior::Automaton> BehPtr;
 
         ConstructBehavior(bool createBoundViolationState);
-        BehPtr operator()(const NetPtr net) const;
+        Behavior::Ptr operator()(const NetPtr net) const;
     private:
-        void handleState(const NetPtr net, const Interval::FiringRule& rule, Behavior::State* state, Behavior::Automaton* automaton) const;
-        void handleNetState(const NetPtr net, const Interval::FiringRule& rule, Behavior::State* state, const Interval::NetState& succNetState, const String& edgeLabel, Behavior::Automaton* automaton) const;
+        void handleState(const NetPtr net, const Interval::FiringRule& rule, Behavior::State* state, Behavior* behavior) const;
+        void handleNetState(const NetPtr net, const Interval::FiringRule& rule, BehaviorState* state, const Interval::NetState& succNetState, const String& edgeLabel, Behavior* behavior) const;
     };
 }
 

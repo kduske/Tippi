@@ -20,10 +20,10 @@
 #include <gtest/gtest.h>
 
 #include "StringUtils.h"
-#include "Net/IntervalNet.h"
-#include "Net/IntervalNetParser.h"
-#include "Net/IntervalNetState.h"
-#include "Net/Marking.h"
+#include "IntervalNet.h"
+#include "IntervalNetParser.h"
+#include "IntervalNetState.h"
+#include "Marking.h"
 
 namespace Tippi {
     namespace Interval {

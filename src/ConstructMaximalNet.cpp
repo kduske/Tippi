@@ -19,7 +19,7 @@
 
 #include "ConstructMaximalNet.h"
 
-#include "Net/IntervalNet.h"
+#include "IntervalNet.h"
 
 namespace Tippi {
     struct LabelingFunction {

@@ -23,8 +23,8 @@
 #include "CollectionUtils.h"
 #include "StringUtils.h"
 #include "Closure.h"
-#include "Graph/GraphEdge.h"
-#include "Graph/GraphNode.h"
+#include "GraphEdge.h"
+#include "GraphNode.h"
 
 #include <set>
 #include <vector>

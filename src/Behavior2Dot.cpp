@@ -17,16 +17,15 @@
  along with Tippi. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "RenderBehavior.h"
+#include "Behavior2Dot.h"
 
 #include "CollectionUtils.h"
-#include "Behavior.h"
-#include "Graph/GraphAlgorithms.h"
+#include "GraphAlgorithms.h"
 
 namespace Tippi {
     class BehaviorVisitor {
     private:
-        typedef std::map<const Behavior::State*, size_t> IdMap;
+        typedef std::map<const BehaviorState*, size_t> IdMap;
         
         std::ostream& m_stream;
         size_t m_stateId;
@@ -36,7 +35,7 @@ namespace Tippi {
         m_stream(stream),
         m_stateId(1) {}
         
-        void operator()(const Behavior::State* state) {
+        void operator()(const BehaviorState* state) {
             m_stream << getStateId(state) << " [";
             printAttribute("label", state->asString("\n"));
             m_stream << ",";
@@ -48,16 +47,16 @@ namespace Tippi {
             m_stream << "];" << std::endl;
         }
         
-        void operator()(const Behavior::Edge* edge) {
-            const Behavior::State* source = edge->getSource();
-            const Behavior::State* target = edge->getTarget();
+        void operator()(const BehaviorEdge* edge) {
+            const BehaviorState* source = edge->getSource();
+            const BehaviorState* target = edge->getTarget();
             
             m_stream << getStateId(source) << " -> " << getStateId(target) << " [";
             printAttribute("label", edge->getLabel());
             m_stream << "];" << std::endl;
         }
     private:
-        size_t getStateId(const Behavior::State* state) {
+        size_t getStateId(const BehaviorState* state) {
             std::pair<IdMap::iterator, bool> insertPos = MapUtils::findInsertPos(m_stateIdMap, state);
             if (insertPos.second)
                 return insertPos.first->second;
@@ -71,16 +70,16 @@ namespace Tippi {
         }
     };
     
-    void RenderBehavior::operator()(const BehPtr behavior, std::ostream& stream) {
+    void Behavior2Dot::operator()(const Behavior::Ptr behavior, std::ostream& stream) {
         stream << "digraph {" << std::endl;
         
         BehaviorVisitor visitor(stream);
-        const Behavior::State::Set& states = behavior->getStates();
-        Behavior::State::resetVisited(states.begin(), states.end());
+        const BehaviorState::Set& states = behavior->getStates();
+        BehaviorState::resetVisited(states.begin(), states.end());
         
-        Behavior::State::Set::const_iterator it, end;
+        BehaviorState::Set::const_iterator it, end;
         for (it = states.begin(), end = states.end(); it != end; ++it) {
-            const Behavior::State* state = *it;
+            const BehaviorState* state = *it;
             visitNode(state, visitor, visitor);
         }
         

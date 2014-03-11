@@ -23,9 +23,9 @@
 #include <cassert>
 #include <cstring>
 
-#include "Net/IntervalNet.h"
-#include "Net/Marking.h"
-#include "Net/TimeInterval.h"
+#include "IntervalNet.h"
+#include "Marking.h"
+#include "TimeInterval.h"
 
 namespace Tippi {
     namespace Interval {

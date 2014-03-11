@@ -21,11 +21,11 @@
 #define __Tippi__IntervalNet__
 
 #include "StringUtils.h"
-#include "Graph/GraphEdge.h"
-#include "Graph/GraphNode.h"
-#include "Net/Marking.h"
-#include "Net/NetNode.h"
-#include "Net/TimeInterval.h"
+#include "GraphEdge.h"
+#include "GraphNode.h"
+#include "Marking.h"
+#include "NetNode.h"
+#include "TimeInterval.h"
 
 #include <exception>
 #include <map>

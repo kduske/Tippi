@@ -19,34 +19,35 @@
 
 #include <gtest/gtest.h>
 
-#include "Filter/ConstructBehavior.h"
-#include "Net/IntervalNet.h"
+#include "Behavior.h"
+#include "ConstructBehavior.h"
+#include "IntervalNet.h"
 #include "Behavior.h"
 
 namespace Tippi {
-    bool hasMarking(const Behavior::State* state,
+    bool hasMarking(const BehaviorState* state,
                     const size_t A, const size_t B, const size_t C, const size_t a, const size_t b,
                     const size_t t1, const size_t t2, const size_t ta, const size_t tb) {
         return (state->getNetState().hasPlaceMarking(Marking::createMarking(A, B, C, a, b)) &&
                 state->getNetState().hasTimeMarking(Marking::createMarking(t1, t2, ta, tb)));
     }
     
-    bool hasOutgoingEdge(const Behavior::State* state, const Interval::Transition* transition) {
-        const Behavior::State::OutgoingList& edges = state->getOutgoing();
-        Behavior::State::OutgoingList::const_iterator it, end;
+    bool hasOutgoingEdge(const BehaviorState* state, const Interval::Transition* transition) {
+        const BehaviorState::OutgoingList& edges = state->getOutgoing();
+        BehaviorState::OutgoingList::const_iterator it, end;
         for (it = edges.begin(), end = edges.end(); it != end; ++it) {
-            const Behavior::Edge* edge = *it;
+            const BehaviorEdge* edge = *it;
             if (edge->getLabel() == transition->getName())
                 return true;
         }
         return false;
     }
     
-    bool hasOutgoingTimeEdge(const Behavior::State* state) {
-        const Behavior::State::OutgoingList& edges = state->getOutgoing();
-        Behavior::State::OutgoingList::const_iterator it, end;
+    bool hasOutgoingTimeEdge(const BehaviorState* state) {
+        const BehaviorState::OutgoingList& edges = state->getOutgoing();
+        BehaviorState::OutgoingList::const_iterator it, end;
         for (it = edges.begin(), end = edges.end(); it != end; ++it) {
-            const Behavior::Edge* edge = *it;
+            const BehaviorEdge* edge = *it;
             if (edge->getLabel() == "1")
                 return true;
         }
@@ -59,8 +60,6 @@ namespace Tippi {
         using Interval::Place;
         using Interval::Transition;
         using Interval::TimeInterval;
-        using Behavior::State;
-        using Behavior::Edge;
         
         ConstructBehavior::NetPtr net(new Net());
         
@@ -93,8 +92,8 @@ namespace Tippi {
         net->setInitialMarking(initialMarking);
         net->addFinalMarking(finalMarking);
         
-        ConstructBehavior::BehPtr beh = ConstructBehavior(true)(net);
-        const State* i = beh->getInitialState();
+        Behavior::Ptr beh = ConstructBehavior(true)(net);
+        const BehaviorState* i = beh->getInitialState();
         ASSERT_TRUE(i != NULL);
         ASSERT_TRUE(hasMarking(i,
                                1, 0, 0, 0, 0,
@@ -103,16 +102,16 @@ namespace Tippi {
         ASSERT_TRUE(hasOutgoingTimeEdge(i));
         ASSERT_TRUE(hasOutgoingEdge(i, tb));
         
-        const State* i_tb = i->getSuccessor("tb");
+        const BehaviorState* i_tb = i->findDirectSuccessor("tb");
         ASSERT_TRUE(hasMarking(i_tb,
                                1, 0, 0, 0, 1,
                                0, D, D, 0));
         ASSERT_TRUE(hasOutgoingTimeEdge(i_tb));
         ASSERT_TRUE(hasOutgoingEdge(i_tb, tb));
         ASSERT_EQ(2u, i_tb->getOutgoing().size());
-        ASSERT_EQ(beh->findOrCreateBoundViolationState(), i_tb->getSuccessor("tb"));
+        ASSERT_EQ(beh->findOrCreateBoundViolationState(), i_tb->findDirectSuccessor("tb"));
         
-        const State* i_tb_1 = i_tb->getSuccessor("1");
+        const BehaviorState* i_tb_1 = i_tb->findDirectSuccessor("1");
         ASSERT_TRUE(hasMarking(i_tb_1,
                                1, 0, 0, 0, 1,
                                1, D, D, 0));
@@ -120,18 +119,18 @@ namespace Tippi {
         ASSERT_TRUE(hasOutgoingEdge(i_tb_1, t1));
         ASSERT_TRUE(hasOutgoingEdge(i_tb_1, tb));
         ASSERT_EQ(3u, i_tb_1->getOutgoing().size());
-        ASSERT_EQ(beh->findOrCreateBoundViolationState(), i_tb_1->getSuccessor("tb"));
+        ASSERT_EQ(beh->findOrCreateBoundViolationState(), i_tb_1->findDirectSuccessor("tb"));
         
-        const State* i_tb_2 = i_tb_1->getSuccessor("1");
+        const BehaviorState* i_tb_2 = i_tb_1->findDirectSuccessor("1");
         ASSERT_TRUE(hasMarking(i_tb_2,
                                1, 0, 0, 0, 1,
                                2, D, D, 0));
         ASSERT_TRUE(hasOutgoingEdge(i_tb_2, t1));
         ASSERT_TRUE(hasOutgoingEdge(i_tb_2, tb));
         ASSERT_EQ(2u, i_tb_2->getOutgoing().size());
-        ASSERT_EQ(beh->findOrCreateBoundViolationState(), i_tb_2->getSuccessor("tb"));
+        ASSERT_EQ(beh->findOrCreateBoundViolationState(), i_tb_2->findDirectSuccessor("tb"));
         
-        const State* i_tb_12_t1 = i_tb_1->getSuccessor("t1");
+        const BehaviorState* i_tb_12_t1 = i_tb_1->findDirectSuccessor("t1");
         ASSERT_TRUE(hasMarking(i_tb_12_t1,
                                0, 1, 0, 1, 1,
                                D, 0, 0, 0));
@@ -139,10 +138,10 @@ namespace Tippi {
         ASSERT_TRUE(hasOutgoingEdge(i_tb_12_t1, ta));
         ASSERT_TRUE(hasOutgoingEdge(i_tb_12_t1, tb));
         ASSERT_EQ(3u, i_tb_12_t1->getOutgoing().size());
-        ASSERT_EQ(beh->findOrCreateBoundViolationState(), i_tb_12_t1->getSuccessor("tb"));
-        ASSERT_EQ(i_tb_12_t1, i_tb_2->getSuccessor("t1"));
+        ASSERT_EQ(beh->findOrCreateBoundViolationState(), i_tb_12_t1->findDirectSuccessor("tb"));
+        ASSERT_EQ(i_tb_12_t1, i_tb_2->findDirectSuccessor("t1"));
         
-        const State* i_tb_12_t1_t2 = i_tb_12_t1->getSuccessor("t2");
+        const BehaviorState* i_tb_12_t1_t2 = i_tb_12_t1->findDirectSuccessor("t2");
         ASSERT_TRUE(hasMarking(i_tb_12_t1_t2,
                                0, 0, 1, 1, 0,
                                D, D, 0, 0));
@@ -150,9 +149,9 @@ namespace Tippi {
         ASSERT_TRUE(hasOutgoingEdge(i_tb_12_t1_t2, tb));
         ASSERT_TRUE(hasOutgoingTimeEdge(i_tb_12_t1_t2));
         ASSERT_EQ(3u, i_tb_12_t1_t2->getOutgoing().size());
-        ASSERT_EQ(i_tb_12_t1_t2, i_tb_12_t1_t2->getSuccessor("1"));
+        ASSERT_EQ(i_tb_12_t1_t2, i_tb_12_t1_t2->findDirectSuccessor("1"));
         
-        const State* i_tb_12_t1_t2_tb = i_tb_12_t1_t2->getSuccessor("tb");
+        const BehaviorState* i_tb_12_t1_t2_tb = i_tb_12_t1_t2->findDirectSuccessor("tb");
         ASSERT_TRUE(hasMarking(i_tb_12_t1_t2_tb,
                                0, 0, 1, 1, 1,
                                D, D, 0, 0));
@@ -160,28 +159,28 @@ namespace Tippi {
         ASSERT_TRUE(hasOutgoingEdge(i_tb_12_t1_t2_tb, tb));
         ASSERT_TRUE(hasOutgoingTimeEdge(i_tb_12_t1_t2_tb));
         ASSERT_EQ(3u, i_tb_12_t1_t2_tb->getOutgoing().size());
-        ASSERT_EQ(beh->findOrCreateBoundViolationState(), i_tb_12_t1_t2_tb->getSuccessor("tb"));
-        ASSERT_EQ(i_tb_12_t1_t2_tb, i_tb_12_t1_t2_tb->getSuccessor("1"));
+        ASSERT_EQ(beh->findOrCreateBoundViolationState(), i_tb_12_t1_t2_tb->findDirectSuccessor("tb"));
+        ASSERT_EQ(i_tb_12_t1_t2_tb, i_tb_12_t1_t2_tb->findDirectSuccessor("1"));
         
-        const State* i_1 = i->getSuccessor("1");
+        const BehaviorState* i_1 = i->findDirectSuccessor("1");
         ASSERT_TRUE(hasMarking(i_1,
                                1, 0, 0, 0, 0,
                                1, D, D, 0));
         ASSERT_TRUE(hasOutgoingTimeEdge(i_1));
         ASSERT_TRUE(hasOutgoingEdge(i_1, t1));
         ASSERT_TRUE(hasOutgoingEdge(i_1, tb));
-        ASSERT_EQ(i_tb_1, i_1->getSuccessor("tb"));
+        ASSERT_EQ(i_tb_1, i_1->findDirectSuccessor("tb"));
         
-        const State* i_2 = i_1->getSuccessor("1");
+        const BehaviorState* i_2 = i_1->findDirectSuccessor("1");
         ASSERT_TRUE(hasMarking(i_2,
                                1, 0, 0, 0, 0,
                                2, D, D, 0));
         ASSERT_TRUE(hasOutgoingEdge(i_2, tb));
         ASSERT_TRUE(hasOutgoingEdge(i_2, t1));
         ASSERT_EQ(2u, i_2->getOutgoing().size());
-        ASSERT_EQ(i_tb_2, i_2->getSuccessor("tb"));
+        ASSERT_EQ(i_tb_2, i_2->findDirectSuccessor("tb"));
         
-        const State* i_12_t1 = i_1->getSuccessor("t1");
+        const BehaviorState* i_12_t1 = i_1->findDirectSuccessor("t1");
         ASSERT_TRUE(hasMarking(i_12_t1,
                                0,1,0,1,0,
                                D, D, 0, 0));
@@ -189,49 +188,49 @@ namespace Tippi {
         ASSERT_TRUE(hasOutgoingEdge(i_12_t1, tb));
         ASSERT_TRUE(hasOutgoingTimeEdge(i_12_t1));
         ASSERT_EQ(3u, i_12_t1->getOutgoing().size());
-        ASSERT_EQ(i_12_t1, i_2->getSuccessor("t1"));
-        ASSERT_EQ(i_12_t1, i_12_t1->getSuccessor("1"));
+        ASSERT_EQ(i_12_t1, i_2->findDirectSuccessor("t1"));
+        ASSERT_EQ(i_12_t1, i_12_t1->findDirectSuccessor("1"));
         
-        ASSERT_EQ(i_tb_12_t1, i_12_t1->getSuccessor("tb"));
+        ASSERT_EQ(i_tb_12_t1, i_12_t1->findDirectSuccessor("tb"));
         
-        const State* i_12_t1_ta = i_12_t1->getSuccessor("ta");
+        const BehaviorState* i_12_t1_ta = i_12_t1->findDirectSuccessor("ta");
         ASSERT_TRUE(hasMarking(i_12_t1_ta,
                                0, 1, 0, 0, 0,
                                D, D, D, 0));
         ASSERT_TRUE(hasOutgoingEdge(i_12_t1_ta, tb));
         ASSERT_TRUE(hasOutgoingTimeEdge(i_12_t1_ta));
         ASSERT_EQ(2u, i_12_t1_ta->getOutgoing().size());
-        ASSERT_EQ(i_12_t1_ta, i_12_t1_ta->getSuccessor("1"));
+        ASSERT_EQ(i_12_t1_ta, i_12_t1_ta->findDirectSuccessor("1"));
         
-        const State* i_12_t1_ta_tb = i_12_t1_ta->getSuccessor("tb");
+        const BehaviorState* i_12_t1_ta_tb = i_12_t1_ta->findDirectSuccessor("tb");
         ASSERT_TRUE(hasMarking(i_12_t1_ta_tb,
                                0, 1, 0, 0, 1,
                                D, 0, D, 0));
         ASSERT_TRUE(hasOutgoingEdge(i_12_t1_ta_tb, t2));
         ASSERT_TRUE(hasOutgoingEdge(i_12_t1_ta_tb, tb));
         ASSERT_EQ(2u, i_12_t1_ta_tb->getOutgoing().size());
-        ASSERT_EQ(beh->findOrCreateBoundViolationState(), i_12_t1_ta_tb->getSuccessor("tb"));
-        ASSERT_EQ(i_12_t1_ta_tb, i_tb_12_t1->getSuccessor("ta"));
+        ASSERT_EQ(beh->findOrCreateBoundViolationState(), i_12_t1_ta_tb->findDirectSuccessor("tb"));
+        ASSERT_EQ(i_12_t1_ta_tb, i_tb_12_t1->findDirectSuccessor("ta"));
         
-        const State* i_12_t1_ta_tb_t2 = i_12_t1_ta_tb->getSuccessor("t2");
-        ASSERT_EQ(i_12_t1_ta_tb_t2, i_tb_12_t1_t2->getSuccessor("ta"));
+        const BehaviorState* i_12_t1_ta_tb_t2 = i_12_t1_ta_tb->findDirectSuccessor("t2");
+        ASSERT_EQ(i_12_t1_ta_tb_t2, i_tb_12_t1_t2->findDirectSuccessor("ta"));
         ASSERT_TRUE(hasMarking(i_12_t1_ta_tb_t2,
                                0, 0, 1, 0, 0,
                                D, D, D, 0));
         ASSERT_TRUE(hasOutgoingEdge(i_12_t1_ta_tb_t2, tb));
         ASSERT_TRUE(hasOutgoingTimeEdge(i_12_t1_ta_tb_t2));
         ASSERT_EQ(2u, i_12_t1_ta_tb_t2->getOutgoing().size());
-        ASSERT_EQ(i_12_t1_ta_tb_t2, i_12_t1_ta_tb_t2->getSuccessor("1"));
+        ASSERT_EQ(i_12_t1_ta_tb_t2, i_12_t1_ta_tb_t2->findDirectSuccessor("1"));
         
-        const State* i_12_t1_ta_tb_t2_tb = i_12_t1_ta_tb_t2->getSuccessor("tb");
-        ASSERT_EQ(i_12_t1_ta_tb_t2_tb, i_tb_12_t1_t2_tb->getSuccessor("ta"));
+        const BehaviorState* i_12_t1_ta_tb_t2_tb = i_12_t1_ta_tb_t2->findDirectSuccessor("tb");
+        ASSERT_EQ(i_12_t1_ta_tb_t2_tb, i_tb_12_t1_t2_tb->findDirectSuccessor("ta"));
         ASSERT_TRUE(hasMarking(i_12_t1_ta_tb_t2_tb,
                                0, 0, 1, 0, 1,
                                D, D, D, 0));
         ASSERT_TRUE(hasOutgoingEdge(i_12_t1_ta_tb_t2_tb, tb));
         ASSERT_TRUE(hasOutgoingTimeEdge(i_12_t1_ta_tb_t2_tb));
         ASSERT_EQ(2u, i_12_t1_ta_tb_t2_tb->getOutgoing().size());
-        ASSERT_EQ(beh->findOrCreateBoundViolationState(), i_12_t1_ta_tb_t2_tb->getSuccessor("tb"));
-        ASSERT_EQ(i_12_t1_ta_tb_t2_tb, i_12_t1_ta_tb_t2_tb->getSuccessor("1"));
+        ASSERT_EQ(beh->findOrCreateBoundViolationState(), i_12_t1_ta_tb_t2_tb->findDirectSuccessor("tb"));
+        ASSERT_EQ(i_12_t1_ta_tb_t2_tb, i_12_t1_ta_tb_t2_tb->findDirectSuccessor("1"));
     }
 }

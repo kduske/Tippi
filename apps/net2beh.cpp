@@ -17,28 +17,44 @@
  along with Tippi. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "Filter/ConstructBehavior.h"
-#include "Filter/ConstructMaximalNet.h"
-#include "Filter/LoadIntervalNet.h"
-#include "Filter/RenderBehavior.h"
+#include "StringUtils.h"
+#include "ConstructBehavior.h"
+#include "ConstructMaximalNet.h"
+#include "LoadIntervalNet.h"
+#include "Behavior2Dot.h"
+#include "Automaton2Text.h"
 
 #include <getoptpp/getopt_pp.h>
 #include <cassert>
 #include <iostream>
+
+void printUsage() {
+    std::cout << "Usage:" << std::endl;
+}
 
 int main(int argc, const char* argv[]) {
     using namespace Tippi;
     using namespace GetOpt;
     
     bool showBoundViolations = false;
+    String format = "text";
     GetOpt_pp ops(argc, argv);
     ops >> OptionPresent('b', "showBoundViolations", showBoundViolations);
+    ops >> Option('f', "format", format);
     
     LoadIntervalNet loader;
+    LoadIntervalNet::NetPtr net = loader(std::cin);
+
     ConstructMaximalNet maximal;
     ConstructBehavior behavior(showBoundViolations);
-    RenderBehavior render;
-    
-    LoadIntervalNet::NetPtr net = loader(std::cin);
-    render(behavior(maximal(net)), std::cout);
+    if (format == "text") {
+        Automaton2Text render;
+        Automaton<BehaviorState,BehaviorEdge>::Ptr automaton = behavior(maximal(net));
+        render(automaton.get(), std::cout);
+    } else if (format == "dot") {
+        Behavior2Dot render;
+        render(behavior(maximal(net)), std::cout);
+    } else {
+        printUsage();
+    }
 }

@@ -20,7 +20,7 @@
 #include "ConstructClosureAutomaton.h"
 
 #include "Closure.h"
-#include "Net/IntervalNetFiringRule.h"
+#include "IntervalNetFiringRule.h"
 #include "Exceptions.h"
 
 #include <cassert>

@@ -21,7 +21,7 @@
 
 #include "CollectionUtils.h"
 #include "Closure.h"
-#include "Graph/GraphAlgorithms.h"
+#include "GraphAlgorithms.h"
 #include "Region.h"
 
 #include <iomanip>

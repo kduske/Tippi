@@ -19,8 +19,8 @@
 
 #include <gtest/gtest.h>
 
-#include "Net/IntervalNetParser.h"
-#include "Net/IntervalNet.h"
+#include "IntervalNetParser.h"
+#include "IntervalNet.h"
 #include "StringUtils.h"
 
 namespace Tippi {
