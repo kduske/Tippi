@@ -25,33 +25,6 @@
 #include <cassert>
 
 namespace Tippi {
-    class StateNetStateComparator {
-    public:
-        bool operator()(const BehaviorState* lhs, const BehaviorState* rhs) const {
-            if (rhs == NULL)
-                return false;
-            if (lhs == NULL)
-                return true;
-            return lhs->getNetState() < rhs->getNetState();
-        }
-        
-        bool operator()(const BehaviorState* lhs, const Interval::NetState& rhs) const {
-            if (lhs == NULL)
-                return true;
-            return lhs->getNetState() < rhs;
-        }
-        
-        bool operator()(const Interval::NetState& lhs, const BehaviorState* rhs) const {
-            if (rhs == NULL)
-                return false;
-            return lhs < rhs->getNetState();
-        }
-        
-        bool operator()(const Interval::NetState& lhs, const Interval::NetState& rhs) const {
-            return lhs < rhs;
-        }
-    };
-    
     BehaviorEdge::BehaviorEdge(BehaviorState* source, BehaviorState* target, const String& label, const bool tau) :
     AutomatonEdge<BehaviorState>(source, target, label, tau) {}
     
@@ -63,30 +36,14 @@ namespace Tippi {
         return compare(*rhs) < 0;
     }
     
-    int BehaviorEdge::compare(const BehaviorEdge& rhs) const {
-        const int sourceResult = getSource()->compare(*rhs.getSource());
-        if (sourceResult < 0)
-            return -1;
-        if (sourceResult > 0)
-            return 1;
-        const int targetResult = getTarget()->compare(*rhs.getTarget());
-        if (targetResult < 0)
-            return -1;
-        if (targetResult > 0)
-            return 1;
-        return m_label.compare(rhs.m_label);
-    }
-    
     BehaviorState::BehaviorState(const String& name, const Interval::NetState& netState) :
     AutomatonState(name),
     m_netState(netState),
-    m_final(false),
     m_boundViolation(false) {}
     
     BehaviorState::BehaviorState(const String& name) :
     AutomatonState(name),
     m_netState(0, 0),
-    m_final(false),
     m_boundViolation(true) {}
     
     bool BehaviorState::operator<(const BehaviorState& rhs) const {
@@ -111,14 +68,6 @@ namespace Tippi {
         return m_netState;
     }
     
-    bool BehaviorState::isFinal() const {
-        return m_final;
-    }
-    
-    void BehaviorState::setFinal(bool final) {
-        m_final = final;
-    }
-    
     bool BehaviorState::isBoundViolation() const {
         return m_boundViolation;
     }
@@ -130,46 +79,38 @@ namespace Tippi {
     }
     
     Behavior::Behavior() :
-    m_stateIndex(0),
     m_boundViolationState(NULL) {}
-    
-    Behavior::~Behavior() {
-        SetUtils::clearAndDelete(m_states);
-        SetUtils::clearAndDelete(m_edges);
-        m_initialState = NULL;
-        m_finalStates.clear();
-    }
     
     BehaviorState* Behavior::createState(const Interval::NetState& netState) {
         State* state = new State(makeStateName(), netState);
-        State::Set::iterator it = m_states.lower_bound(state);
-        if (it != m_states.end() && SetUtils::equals(m_states, state, *it)) {
+        try {
+            addState(state);
+            return state;
+        } catch (...) {
             delete state;
-            throw AutomatonException("Behavior already contains a state with net state '" + netState.asString() + "'");
+            throw;
         }
-        m_states.insert(it, state);
-        return state;
     }
     
     std::pair<BehaviorState*, bool> Behavior::findOrCreateState(const Interval::NetState& netState) {
         State* state = new State(makeStateName(), netState);
-        State::Set::iterator it = m_states.lower_bound(state);
-        if (it != m_states.end() && SetUtils::equals(m_states, state, *it)) {
-            delete state;
-            return std::make_pair(*it, false);
-        }
-        m_states.insert(it, state);
-        return std::make_pair(state, true);
+        return findOrAddState(state);
     }
     
     BehaviorState* Behavior::findOrCreateBoundViolationState() {
-        if (m_boundViolationState == NULL) {
-            m_boundViolationState = new State("!!!");
-            m_states.insert(m_boundViolationState);
+        try {
+            if (m_boundViolationState == NULL) {
+                m_boundViolationState = new State("!!!");
+                addState(m_boundViolationState);
+            }
+            return m_boundViolationState;
+        } catch (...) {
+            delete m_boundViolationState;
+            m_boundViolationState = NULL;
+            throw;
         }
-        return m_boundViolationState;
     }
-
+    
     String Behavior::makeStateName() {
         static StringStream str;
         str.str("");

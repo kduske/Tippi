@@ -138,13 +138,13 @@ namespace VectorUtils {
         return &(*it);
     }
     
-    template <typename T>
-    bool contains(const std::vector<T>& vec, const T& item) {
+    template <typename T, typename U>
+    bool contains(const std::vector<T>& vec, const U& item) {
         return std::find(vec.begin(), vec.end(), item) != vec.end();
     }
     
-    template <typename T>
-    bool contains(std::vector<T*>& vec, const T* item) {
+    template <typename T, typename U>
+    bool contains(std::vector<T*>& vec, const U* item) {
         typedef std::vector<T*> VecType;
         typedef typename VecType::const_iterator VecIter;
         

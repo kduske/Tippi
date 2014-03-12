@@ -44,6 +44,23 @@ namespace Tippi {
     public:
         virtual ~AutomatonEdge() {}
 
+        int compare(const AutomatonEdge& rhs) const {
+            const State* source = GraphEdge<State, State>::getSource();
+            const int sourceResult = source->compare(*rhs.getSource());
+            if (sourceResult < 0)
+                return -1;
+            if (sourceResult > 0)
+                return 1;
+            
+            const State* target = GraphEdge<State, State>::getTarget();
+            const int targetResult = target->compare(*rhs.getTarget());
+            if (targetResult < 0)
+                return -1;
+            if (targetResult > 0)
+                return 1;
+            return m_label.compare(rhs.m_label);
+        }
+
         const String& getLabel() const {
             return m_label;
         }
@@ -57,22 +74,36 @@ namespace Tippi {
     class AutomatonState : public GraphNode<Edge, Edge> {
     protected:
         String m_name;
+        bool m_final;
     protected:
         AutomatonState(const String& name) :
-        m_name(name) {}
+        m_name(name),
+        m_final(false) {}
     public:
         virtual ~AutomatonState() {}
-        
+
+        int compare(const AutomatonState& rhs) const {
+            return m_name.compare(rhs.m_name);
+        }
+
         const String& getName() const {
             return m_name;
         }
         
+        bool isFinal() const {
+            return m_final;
+        }
+        
+        void setFinal(const bool final) {
+            m_final = final;
+        }
+
         const std::vector<typename Edge::Target*> getDirectSuccessors(const String& label) const {
             std::vector<typename Edge::Target*> result;
             const typename GraphNode<Edge, Edge>::OutgoingList& edges = GraphNode<Edge, Edge>::getOutgoing();
             typename GraphNode<Edge, Edge>::OutgoingList::const_iterator it, end;
             for (it = edges.begin(), end = edges.end(); it != end; ++it) {
-                const Edge* edge = *it;
+                Edge* edge = *it;
                 if (edge->getLabel() == label)
                     result.push_back(edge->getTarget());
             }
@@ -140,20 +171,54 @@ namespace Tippi {
         typedef std::tr1::shared_ptr<Automaton<StateT,EdgeT> > Ptr;
         typedef StateT State;
         typedef EdgeT Edge;
-    protected:
+    private:
         typename StateT::Set m_states;
         typename EdgeT::Set m_edges;
         StateT* m_initialState;
         typename StateT::Set m_finalStates;
+        
+        typedef std::map<String, StateT*> StringToStateMap;
+        StringToStateMap m_statesByName;
     protected:
         Automaton() :
         m_initialState(NULL) {}
+        
+        void addState(StateT* state) {
+            assert(state != NULL);
+            
+            const bool newState = m_states.insert(state).second;
+            const bool newName = m_statesByName.insert(std::make_pair(state->getName(), state)).second;
+            if (!newState)
+                throw AutomatonException("State " + state->getName() + " already added to automaton");
+            if (!newName)
+                throw AutomatonException("A state with name " + state->getName()  + " already added to automaton");
+        }
+
+        std::pair<StateT*, bool> findOrAddState(StateT* state) {
+            assert(state != NULL);
+            
+            typename StateT::Set::iterator it = m_states.lower_bound(state);
+            if (it != m_states.end() && SetUtils::equals(m_states, state, *it)) {
+                delete state;
+                return std::make_pair(*it, false);
+            }
+            
+            m_states.insert(it, state);
+            return std::make_pair(state, true);
+        }
     public:
         virtual ~Automaton() {
             SetUtils::clearAndDelete(m_states);
             SetUtils::clearAndDelete(m_edges);
             m_initialState = NULL;
             m_finalStates.clear();
+        }
+        
+        StateT* findState(const String& name) const {
+            const typename StringToStateMap::const_iterator it = m_statesByName.find(name);
+            if (it == m_statesByName.end())
+                return NULL;
+            return it->second;
         }
         
         EdgeT* connectWithLabeledEdge(StateT* source, StateT* target, const String& label) {
@@ -197,7 +262,7 @@ namespace Tippi {
         
         void addFinalState(StateT* state) {
             if (!state->isFinal())
-                throw AutomatonException("State is not a final state: '" + state->asString() + "'");
+                throw AutomatonException("State is not a final state: '" + state->getName() + "'");
             m_finalStates.insert(state);
         }
         

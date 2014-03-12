@@ -42,7 +42,6 @@ namespace Tippi {
         
         bool operator<(const BehaviorEdge& rhs) const;
         bool operator<(const BehaviorEdge* rhs) const;
-        int compare(const BehaviorEdge& rhs) const;
     };
     
     class BehaviorState : public AutomatonState<BehaviorEdge> {
@@ -50,7 +49,6 @@ namespace Tippi {
         typedef std::set<BehaviorState*, Utils::UniCmp<BehaviorState> > Set;
     private:
         Interval::NetState m_netState;
-        bool m_final;
         bool m_boundViolation;
     public:
         BehaviorState(const String& name, const Interval::NetState& netState);
@@ -61,8 +59,6 @@ namespace Tippi {
         int compare(const BehaviorState& rhs) const;
         
         const Interval::NetState& getNetState() const;
-        bool isFinal() const;
-        void setFinal(bool final);
         bool isBoundViolation() const;
         
         String asString(const String separator = " ") const;
@@ -76,7 +72,6 @@ namespace Tippi {
         State* m_boundViolationState;
     public:
         Behavior();
-        ~Behavior();
         
         BehaviorState* createState(const Interval::NetState& netState);
         std::pair<BehaviorState*, bool> findOrCreateState(const Interval::NetState& netState);

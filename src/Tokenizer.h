@@ -108,7 +108,7 @@ namespace Tippi {
         void reset() {
             m_state = State(m_begin);
         }
-    protected:
+
         size_t line() const {
             return m_state.line;
         }
@@ -116,7 +116,7 @@ namespace Tippi {
         size_t column() const {
             return m_state.column;
         }
-        
+    protected:
         bool eof() const {
             return m_state.cur >= m_end;
         }
