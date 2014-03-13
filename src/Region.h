@@ -21,81 +21,56 @@
 #define __Tippi__Region__
 
 #include "CollectionUtils.h"
+#include "SharedPointer.h"
 #include "StringUtils.h"
+#include "Automaton.h"
 #include "Closure.h"
-#include "GraphEdge.h"
-#include "GraphNode.h"
 
 #include <set>
 #include <vector>
 
 namespace Tippi {
-    class ReState;
+    class RegionState;
     
-    class ReEdge : public GraphEdge<ReState, ReState> {
+    class RegionEdge : public AutomatonEdge<RegionState> {
     public:
-        typedef std::vector<ReEdge*> List;
-        typedef std::set<ReEdge*, Utils::UniCmp<ReEdge> > Set;
-    private:
-        String m_label;
+        typedef std::vector<RegionEdge*> List;
     public:
-        ReEdge(ReState* source, ReState* target, const String& label);
-        
-        bool operator<(const ReEdge& rhs) const;
-        bool operator==(const ReEdge& rhs) const;
-        int compare(const ReEdge& rhs) const;
-        
-        const String& getLabel() const;
+        RegionEdge(RegionState* source, RegionState* target, const String& label, bool tau);
     };
+
+    typedef ClosureAutomaton::StateSet Region;
     
-    class ReState : public GraphNode<ReEdge, ReEdge> {
+    class RegionState : public AutomatonState<RegionEdge> {
     public:
-        typedef std::set<ReState*, Utils::UniCmp<ReState> > Set;
+        typedef Region Key;
+        struct KeyCmp {
+            ClosureState::KeyCmp m_cmp;
+            int operator() (const Key& lhs, const Key& rhs) const;
+        };
     private:
-        ClState::Set m_region;
-        bool m_final;
+        Region m_region;
     public:
-        ReState(const ClState::Set& region);
-        
-        bool operator<(const ReState& rhs) const;
-        bool operator==(const ReState& rhs) const;
-        int compare(const ReState& rhs) const;
-        
-        const ClState::Set& getRegion() const;
-        bool isFinal() const;
-        void setFinal(bool final);
+        RegionState(const Region& region);
+        static const Key getKey(const RegionState* state);
+
+        const Region& getRegion() const;
         bool isEmpty() const;
     };
     
-    class ReAutomaton {
+    class RegionAutomaton : public Automaton<RegionState, RegionEdge> {
+    public:
+        typedef std::tr1::shared_ptr<RegionAutomaton> Ptr;
     private:
-        typedef std::map<const ClState*, ReState*> RegionMap;
-        
-        ReState::Set m_states;
-        ReEdge::Set m_edges;
-        ReState* m_initialState;
-        ReState::Set m_finalStates;
+        typedef std::map<const ClosureState*, RegionState*> RegionMap;
         RegionMap m_regions;
     public:
-        ReAutomaton();
-        ~ReAutomaton();
-        
-        ReState* createState(const ClState::Set& region);
-        std::pair<ReState*, bool> findOrCreateState(const ClState::Set& region);
-        ReEdge* connect(ReState* source, ReState* target, const String& label);
-        
-        void setInitialState(ReState* state);
-        void addFinalState(ReState* state);
-        
-        const ReState::Set& getStates() const;
-        const ReState* findState(const ClState::Set& region) const;
-        const ReState* findRegion(const ClState* state) const;
-        ReState* findRegion(const ClState* state);
-        
-        ReState* getInitialState() const;
-        const ReState::Set& getFinalStates() const;
+        const RegionState* findState(const Region& region) const;
+        const RegionState* findRegion(const ClosureState* state) const;
+        RegionState* findRegion(const ClosureState* state);
     private:
-        void updateRegionMap(ReState* state);
+        void stateWasAdded(RegionState* state);
+        void updateRegionMap(RegionState* state);
     };
 }
 

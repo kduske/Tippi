@@ -22,6 +22,7 @@
 
 #include "SharedPointer.h"
 #include "Closure.h"
+#include "Region.h"
 
 #include <iostream>
 #include <map>
@@ -29,26 +30,23 @@
 
 namespace Tippi {
     class ReAutomaton;
-    class ReState;
+    class RegionState;
     
     struct ConstructRegionAutomaton {
     private:
-        typedef std::map<ReState*, String> SuccessorMap;
-        typedef std::map<ClState*, ReState*> StateRegionMap;
+        typedef std::map<RegionState*, String> SuccessorMap;
+        typedef std::map<ClosureState*, RegionState*> StateRegionMap;
         
         StateRegionMap m_regions;
     public:
-        typedef std::tr1::shared_ptr<ClAutomaton> ClPtr;
-        typedef std::tr1::shared_ptr<ReAutomaton> RePtr;
-        
-        RePtr operator()(const ClPtr closureAutomaton);
+        RegionAutomaton::Ptr operator()(const ClosureAutomaton::Ptr closureAutomaton);
     private:
-        ReState* buildRegion(ClState* state, RePtr automaton) const;
-        void buildSuccessors(ReState* region, RePtr automaton) const;
-        void buildSuccessors(ReState* region, ClState* state, RePtr automaton) const;
-        void growRegion(ClState* state, ClState::Set& region) const;
-        void growIncoming(const ClEdge::List& incoming, ClState::Set& region) const;
-        void growOutgoing(const ClEdge::List& outgoing, ClState::Set& region) const;
+        RegionState* buildRegion(ClosureState* state, RegionAutomaton::Ptr automaton) const;
+        void buildSuccessors(RegionState* region, RegionAutomaton::Ptr automaton) const;
+        void buildSuccessors(RegionState* region, ClosureState* state, RegionAutomaton::Ptr automaton) const;
+        void growRegion(ClosureState* state, ClosureAutomaton::StateSet& region) const;
+        void growIncoming(const ClosureEdge::List& incoming, ClosureAutomaton::StateSet& region) const;
+        void growOutgoing(const ClosureEdge::List& outgoing, ClosureAutomaton::StateSet& region) const;
     };
 }
 

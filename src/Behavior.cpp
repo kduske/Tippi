@@ -28,42 +28,37 @@ namespace Tippi {
     BehaviorEdge::BehaviorEdge(BehaviorState* source, BehaviorState* target, const String& label, const bool tau) :
     AutomatonEdge<BehaviorState>(source, target, label, tau) {}
     
-    bool BehaviorEdge::operator<(const BehaviorEdge& rhs) const {
-        return compare(rhs) < 0;
+    BehaviorState::Key::Key(const Interval::NetState& i_netState, const bool i_boundViolation) :
+    netState(i_netState),
+    boundViolation(i_boundViolation) {}
+
+    BehaviorState::Key::Key(const BehaviorState* state) :
+    netState(state->getNetState()),
+    boundViolation(state->isBoundViolation()) {}
+
+    int BehaviorState::KeyCmp::operator() (const Key& lhs, const Key& rhs) const {
+        if (lhs.boundViolation) {
+            if (rhs.boundViolation)
+                return 0;
+            return -1;
+        } else if (rhs.boundViolation) {
+            return 1;
+        }
+        return lhs.netState.compare(rhs.netState);
     }
-    
-    bool BehaviorEdge::operator<(const BehaviorEdge* rhs) const {
-        return compare(*rhs) < 0;
-    }
-    
-    BehaviorState::BehaviorState(const String& name, const Interval::NetState& netState) :
-    AutomatonState(name),
+
+    BehaviorState::BehaviorState(const Interval::NetState& netState) :
     m_netState(netState),
     m_boundViolation(false) {}
     
-    BehaviorState::BehaviorState(const String& name) :
-    AutomatonState(name),
+    BehaviorState::BehaviorState() :
     m_netState(0, 0),
     m_boundViolation(true) {}
     
-    bool BehaviorState::operator<(const BehaviorState& rhs) const {
-        return compare(rhs) < 0;
+    const BehaviorState::Key BehaviorState::getKey(const BehaviorState* state) {
+        return Key(state->getNetState(), state->isBoundViolation());
     }
-    
-    bool BehaviorState::operator<(const BehaviorState* rhs) const {
-        return compare(*rhs) < 0;
-    }
-    
-    int BehaviorState::compare(const BehaviorState& rhs) const {
-        if (m_boundViolation) {
-            if (rhs.m_boundViolation)
-                return 0;
-            return -1;
-        } else if (rhs.m_boundViolation)
-            return 1;
-        return m_netState.compare(rhs.m_netState);
-    }
-    
+
     const Interval::NetState& BehaviorState::getNetState() const {
         return m_netState;
     }
@@ -81,40 +76,15 @@ namespace Tippi {
     Behavior::Behavior() :
     m_boundViolationState(NULL) {}
     
-    BehaviorState* Behavior::createState(const Interval::NetState& netState) {
-        State* state = new State(makeStateName(), netState);
-        try {
-            addState(state);
-            return state;
-        } catch (...) {
-            delete state;
-            throw;
-        }
-    }
-    
-    std::pair<BehaviorState*, bool> Behavior::findOrCreateState(const Interval::NetState& netState) {
-        State* state = new State(makeStateName(), netState);
-        return findOrAddState(state);
-    }
-    
     BehaviorState* Behavior::findOrCreateBoundViolationState() {
         try {
-            if (m_boundViolationState == NULL) {
-                m_boundViolationState = new State("!!!");
-                addState(m_boundViolationState);
-            }
+            if (m_boundViolationState == NULL)
+                m_boundViolationState = createState();
             return m_boundViolationState;
         } catch (...) {
             delete m_boundViolationState;
             m_boundViolationState = NULL;
             throw;
         }
-    }
-    
-    String Behavior::makeStateName() {
-        static StringStream str;
-        str.str("");
-        str << m_stateIndex++;
-        return str.str();
     }
 }

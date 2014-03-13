@@ -40,26 +40,13 @@ namespace Tippi {
         AutomatonEdge(State* source, State* target, const String& label, bool tau) :
         GraphEdge<State, State>(source, target),
         m_label(label),
-        m_tau(tau) {}
+        m_tau(tau) {
+            assert(source != NULL);
+            assert(target != NULL);
+            assert(!tau || label.empty());
+        }
     public:
         virtual ~AutomatonEdge() {}
-
-        int compare(const AutomatonEdge& rhs) const {
-            const State* source = GraphEdge<State, State>::getSource();
-            const int sourceResult = source->compare(*rhs.getSource());
-            if (sourceResult < 0)
-                return -1;
-            if (sourceResult > 0)
-                return 1;
-            
-            const State* target = GraphEdge<State, State>::getTarget();
-            const int targetResult = target->compare(*rhs.getTarget());
-            if (targetResult < 0)
-                return -1;
-            if (targetResult > 0)
-                return 1;
-            return m_label.compare(rhs.m_label);
-        }
 
         const String& getLabel() const {
             return m_label;
@@ -73,21 +60,23 @@ namespace Tippi {
     template <class Edge>
     class AutomatonState : public GraphNode<Edge, Edge> {
     protected:
-        String m_name;
+        size_t m_id;
         bool m_final;
     protected:
-        AutomatonState(const String& name) :
-        m_name(name),
+        AutomatonState() :
+        m_id(0),
         m_final(false) {}
     public:
         virtual ~AutomatonState() {}
 
-        int compare(const AutomatonState& rhs) const {
-            return m_name.compare(rhs.m_name);
+        size_t getId() const {
+            assert(m_id > 0);
+            return m_id;
         }
-
-        const String& getName() const {
-            return m_name;
+        
+        void setId(const size_t i_id) {
+            assert(i_id > 0);
+            m_id = i_id;
         }
         
         bool isFinal() const {
@@ -98,6 +87,37 @@ namespace Tippi {
             m_final = final;
         }
 
+        bool hasIncomingEdge(const String& label) const {
+            return findDirectPredecessor(label) != NULL;
+        }
+        
+        bool hasOutgoingEdge(const String& label) const {
+            return findDirectSuccessor(label) != NULL;
+        }
+        
+        const std::vector<typename Edge::Source*> getDirectPredecessors(const String& label) const {
+            std::vector<typename Edge::Target*> result;
+            const typename GraphNode<Edge, Edge>::IncomingList& edges = GraphNode<Edge, Edge>::getIncoming();
+            typename GraphNode<Edge, Edge>::IncomingList::const_iterator it, end;
+            for (it = edges.begin(), end = edges.end(); it != end; ++it) {
+                Edge* edge = *it;
+                if (edge->getLabel() == label)
+                    result.push_back(edge->getSource());
+            }
+            return result;
+        }
+        
+        const typename Edge::Source* findDirectPredecessor(const String& label) const {
+            const typename GraphNode<Edge, Edge>::IncomingList& edges = GraphNode<Edge, Edge>::getIncoming();
+            typename GraphNode<Edge, Edge>::IncomingList::const_iterator it, end;
+            for (it = edges.begin(), end = edges.end(); it != end; ++it) {
+                const Edge* edge = *it;
+                if (edge->getLabel() == label)
+                    return edge->getSource();
+            }
+            return NULL;
+        }
+        
         const std::vector<typename Edge::Target*> getDirectSuccessors(const String& label) const {
             std::vector<typename Edge::Target*> result;
             const typename GraphNode<Edge, Edge>::OutgoingList& edges = GraphNode<Edge, Edge>::getOutgoing();
@@ -167,45 +187,68 @@ namespace Tippi {
     
     template <class StateT, class EdgeT>
     class Automaton {
-    public:
-        typedef std::tr1::shared_ptr<Automaton<StateT,EdgeT> > Ptr;
-        typedef StateT State;
-        typedef EdgeT Edge;
     private:
-        typename StateT::Set m_states;
-        typename EdgeT::Set m_edges;
-        StateT* m_initialState;
-        typename StateT::Set m_finalStates;
-        
-        typedef std::map<String, StateT*> StringToStateMap;
-        StringToStateMap m_statesByName;
-    protected:
-        Automaton() :
-        m_initialState(NULL) {}
-        
-        void addState(StateT* state) {
-            assert(state != NULL);
+        struct StateLess {
+            typename StateT::KeyCmp m_cmp;
             
-            const bool newState = m_states.insert(state).second;
-            const bool newName = m_statesByName.insert(std::make_pair(state->getName(), state)).second;
-            if (!newState)
-                throw AutomatonException("State " + state->getName() + " already added to automaton");
-            if (!newName)
-                throw AutomatonException("A state with name " + state->getName()  + " already added to automaton");
-        }
-
-        std::pair<StateT*, bool> findOrAddState(StateT* state) {
-            assert(state != NULL);
-            
-            typename StateT::Set::iterator it = m_states.lower_bound(state);
-            if (it != m_states.end() && SetUtils::equals(m_states, state, *it)) {
-                delete state;
-                return std::make_pair(*it, false);
+            bool operator() (const StateT* lhs, const StateT* rhs) const {
+                assert(lhs != NULL);
+                assert(rhs != NULL);
+                const int result = m_cmp(StateT::getKey(lhs), StateT::getKey(rhs));
+                return result < 0;
             }
             
-            m_states.insert(it, state);
-            return std::make_pair(state, true);
-        }
+            bool operator() (const typename StateT::Key& lhs, const StateT* rhs) const {
+                assert(rhs != NULL);
+                return m_cmp(lhs, StateT::getKey(rhs)) < 0;
+            }
+            
+            bool operator() (const StateT* lhs, const typename StateT::Key& rhs) const {
+                assert(lhs != NULL);
+                return m_cmp(StateT::getKey(lhs), rhs) < 0;
+            }
+            
+            bool operator() (const typename StateT::Key& lhs, const typename StateT::Key& rhs) const {
+                return m_cmp(lhs, rhs) < 0;
+            }
+        };
+        struct EdgeLess {
+            typename StateT::KeyCmp m_stateCmp;
+            
+            bool operator() (const EdgeT* lhs, const EdgeT* rhs) const {
+                assert(lhs != NULL);
+                assert(rhs != NULL);
+
+                const int sourceResult = m_stateCmp(StateT::getKey(lhs->getSource()), StateT::getKey(rhs->getSource()));
+                if (sourceResult < 0)
+                    return -1;
+                if (sourceResult > 0)
+                    return 1;
+                
+                const int targetResult = m_stateCmp(StateT::getKey(lhs->getTarget()), StateT::getKey(rhs->getTarget()));
+                if (targetResult < 0)
+                    return -1;
+                if (targetResult > 0)
+                    return 1;
+                return lhs->getLabel().compare(rhs->getLabel());
+            }
+        };
+    public:
+        typedef StateT State;
+        typedef EdgeT Edge;
+        typedef std::set<StateT*, StateLess> StateSet;
+        typedef std::set<EdgeT*, EdgeLess> EdgeSet;
+    private:
+        StateSet m_states;
+        EdgeSet m_edges;
+        StateT* m_initialState;
+        StateSet m_finalStates;
+        
+        size_t m_nextId;
+    protected:
+        Automaton() :
+        m_initialState(NULL),
+        m_nextId(1) {}
     public:
         virtual ~Automaton() {
             SetUtils::clearAndDelete(m_states);
@@ -214,24 +257,65 @@ namespace Tippi {
             m_finalStates.clear();
         }
         
-        StateT* findState(const String& name) const {
-            const typename StringToStateMap::const_iterator it = m_statesByName.find(name);
-            if (it == m_statesByName.end())
-                return NULL;
-            return it->second;
+        size_t getMaxId() const {
+            return m_nextId - 1;
         }
         
-        EdgeT* connectWithLabeledEdge(StateT* source, StateT* target, const String& label) {
-            return connect(source, target, label, false);
+        template <typename A1>
+        StateT* findState(const A1& a1) const {
+            State state(a1);
+            return findState(state);
         }
         
-        EdgeT* connectWithTauEdge(StateT* source, StateT* target) {
-            return connect(source, target, "", true);
+        template <typename A1, typename A2>
+        StateT* findState(const A1& a1, const A2& a2) const {
+            State state(a1, a2);
+            return findState(state);
+        }
+        
+        template <typename A1, typename A2, typename A3>
+        StateT* findState(const A1& a1, const A2& a2, const A3& a3) const {
+            State state(a1, a2, a3);
+            return findState(state);
         }
 
+        StateT* createState() {
+            return addState(new State());
+        }
+        
+        template <typename A1>
+        StateT* createState(const A1& a1) {
+            return addState(new State(a1));
+        }
+        
+        template <typename A1, typename A2>
+        StateT* createState(const A1& a1, const A2& a2) {
+            return addState(new State(a1, a2));
+        }
+        
+        template <typename A1, typename A2, typename A3>
+        StateT* createState(const A1& a1, const A2& a2, const A3& a3) {
+            return addState(new State(a1, a3));
+        }
+        
+        template <typename A1>
+        std::pair<StateT*, bool> findOrCreateState(const A1& a1) {
+            return findOrAddState(new State(a1));
+        }
+        
+        template <typename A1, typename A2>
+        std::pair<StateT*, bool> findOrCreateState(const A1& a1, const A2& a2) {
+            return findOrAddState(new State(a1, a2));
+        }
+        
+        template <typename A1, typename A2, typename A3>
+        std::pair<StateT*, bool> findOrCreateState(const A1& a1, const A2& a2, const A3& a3) {
+            return findOrAddState(new State(a1, a3));
+        }
+        
         void deleteState(StateT* state) {
             assert(state != NULL);
-            typename StateT::Set::iterator it = m_states.lower_bound(state);
+            typename StateSet::iterator it = m_states.lower_bound(state);
             assert(it != m_states.end() && SetUtils::equals(m_states, state, *it));
             
             deleteIncomingEdges(state);
@@ -242,6 +326,52 @@ namespace Tippi {
                 m_initialState = NULL;
             SetUtils::remove(m_finalStates, state);
             delete state;
+        }
+        
+        template <typename I>
+        void deleteStates(I cur, I end) {
+            while (cur != end) {
+                deleteState(*cur);
+                ++cur;
+            }
+        }
+        
+        EdgeT* connectWithLabeledEdge(StateT* source, StateT* target, const String& label) {
+            return connect(new EdgeT(source, target, label, false));
+        }
+        
+        template <typename A1>
+        EdgeT* connectWithLabeledEdge(StateT* source, StateT* target, const String& label, const A1& a1) {
+            return connect(new EdgeT(source, target, label, false, a1));
+        }
+        
+        template <typename A1, typename A2>
+        EdgeT* connectWithLabeledEdge(StateT* source, StateT* target, const String& label, const A1& a1, const A2& a2) {
+            return connect(new EdgeT(source, target, label, false, a1, a2));
+        }
+        
+        template <typename A1, typename A2, typename A3>
+        EdgeT* connectWithLabeledEdge(StateT* source, StateT* target, const String& label, const A1& a1, const A2& a2, const A3& a3) {
+            return connect(new EdgeT(source, target, label, false, a1, a2, a3));
+        }
+        
+        EdgeT* connectWithTauEdge(StateT* source, StateT* target) {
+            return connect(new EdgeT(source, target, "", true));
+        }
+        
+        template <typename A1>
+        EdgeT* connectWithTauEdge(StateT* source, StateT* target, const A1& a1) {
+            return connect(new EdgeT(source, target, "", true, a1));
+        }
+        
+        template <typename A1, typename A2>
+        EdgeT* connectWithTauEdge(StateT* source, StateT* target, const A1& a1, const A2& a2) {
+            return connect(new EdgeT(source, target, "", true, a1, a2));
+        }
+        
+        template <typename A1, typename A2, typename A3>
+        EdgeT* connectWithTauEdge(StateT* source, StateT* target, const A1& a1, const A2& a2, const A3& a3) {
+            return connect(new EdgeT(source, target, "", true, a1, a2, a3));
         }
 
         void disconnect(EdgeT* edge) {
@@ -262,15 +392,15 @@ namespace Tippi {
         
         void addFinalState(StateT* state) {
             if (!state->isFinal())
-                throw AutomatonException("State is not a final state: '" + state->getName() + "'");
+                throw AutomatonException("Cannot add nonfinal state to set of final states");
             m_finalStates.insert(state);
         }
         
-        const typename StateT::Set& getStates() const {
+        const StateSet& getStates() const {
             return m_states;
         }
         
-        const typename EdgeT::Set& getEdges() const {
+        const EdgeSet& getEdges() const {
             return m_edges;
         }
 
@@ -278,7 +408,7 @@ namespace Tippi {
             return m_initialState;
         }
         
-        const typename StateT::Set& getFinalStates() const {
+        const StateSet& getFinalStates() const {
             return m_finalStates;
         }
         
@@ -300,24 +430,65 @@ namespace Tippi {
             return weaklySimulates(m_initialState, other.getInitialState(), relation);
         }
     private:
-        EdgeT* connect(StateT* source, StateT* target, const String& label, const bool tau) {
-            assert(source != NULL);
-            assert(target != NULL);
-            assert(m_states.count(source) == 1);
-            assert(m_states.count(target) == 1);
+        StateT* findState(StateT& state) const {
+            typename StateSet::const_iterator it = m_states.lower_bound(&state);
+            if (it == m_states.end() || !SetUtils::equals(m_states, &state, *it))
+                return NULL;
+            return *it;
+        }
+        
+        StateT* addState(StateT* state) {
+            assert(state != NULL);
             
-            EdgeT* edge = new EdgeT(source, target, label, tau);
-            typename EdgeT::Set::iterator it = m_edges.lower_bound(edge);
+            if (!m_states.insert(state).second) {
+                delete state;
+                throw AutomatonException("Cannot add the same state twice");
+            }
+            setStateId(state);
+            stateWasAdded(state);
+            return state;
+        }
+        
+        std::pair<StateT*, bool> findOrAddState(StateT* state) {
+            assert(state != NULL);
+            
+            typename StateSet::iterator it = m_states.lower_bound(state);
+            if (it != m_states.end() && SetUtils::equals(m_states, state, *it)) {
+                delete state;
+                return std::make_pair(*it, false);
+            }
+            
+            m_states.insert(it, state);
+            setStateId(state);
+            stateWasAdded(state);
+            return std::make_pair(state, true);
+        }
+
+        void setStateId(StateT* state) {
+            state->setId(m_nextId++);
+        }
+        
+        virtual void stateWasAdded(StateT* state) {}
+        
+        EdgeT* connect(EdgeT* edge) {
+            assert(m_states.count(edge->getSource()) == 1);
+            assert(m_states.count(edge->getTarget()) == 1);
+
+            typename EdgeSet::iterator it = m_edges.lower_bound(edge);
             if (it != m_edges.end() && SetUtils::equals(m_edges, edge, *it)) {
                 delete edge;
                 return *it;
             }
             
+            edge->getSource()->addOutgoing(edge);
+            edge->getTarget()->addIncoming(edge);
             m_edges.insert(it, edge);
-            source->addOutgoing(edge);
-            target->addIncoming(edge);
+            
+            edgeWasAdded(edge);
             return edge;
         }
+        
+        virtual void edgeWasAdded(EdgeT* edge) {}
 
         void deleteIncomingEdges(StateT* state) {
             const typename StateT::IncomingList& incomingEdges = state->getIncoming();

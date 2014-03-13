@@ -92,7 +92,10 @@ namespace Tippi {
         net->setInitialMarking(initialMarking);
         net->addFinalMarking(finalMarking);
         
-        Behavior::Ptr beh = ConstructBehavior(true)(net);
+        ConstructBehavior constructBehavior;
+        constructBehavior.createBoundViolationState();
+        
+        Behavior::Ptr beh = constructBehavior(net);
         const BehaviorState* i = beh->getInitialState();
         ASSERT_TRUE(i != NULL);
         ASSERT_TRUE(hasMarking(i,

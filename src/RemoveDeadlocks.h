@@ -26,16 +26,15 @@
 namespace Tippi {
     struct RemoveDeadlocks {
     public:
-        typedef std::tr1::shared_ptr<ClAutomaton> ClPtr;
-        
-        ClPtr operator()(ClPtr automaton) const;
+        ClosureAutomaton::Ptr operator()(ClosureAutomaton::Ptr automaton) const;
     private:
-        ClState::Set findAndMarkPotentialDeadlocks(ClPtr automaton) const;
-        ClState::Set findInitialDeadlocks(const ClPtr automaton) const;
-        ClState::Set findAdditionalDeadlocks(const ClState::Set& states) const;
-        ClState::Set findDeadlockCandidates(const ClState::Set& states) const;
-        bool isPotentialDeadlock(const ClState* state) const;
-        void markDeadlockDistance(const ClState::Set& states, size_t distance) const;
+        ClosureAutomaton::StateSet findAndMarkPotentialDeadlocks(ClosureAutomaton::Ptr automaton) const;
+        ClosureAutomaton::StateSet findInitialDeadlocks(const ClosureAutomaton::Ptr automaton) const;
+        ClosureAutomaton::StateSet findAdditionalDeadlocks(const ClosureAutomaton::StateSet& states) const;
+        ClosureAutomaton::StateSet findDeadlockCandidates(const ClosureAutomaton::StateSet& states) const;
+        
+        bool isPotentialDeadlock(const ClosureState* state) const;
+        void markDeadlockDistance(const ClosureAutomaton::StateSet& states, size_t distance) const;
     };
 }
 

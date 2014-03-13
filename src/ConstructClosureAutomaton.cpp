@@ -26,10 +26,17 @@
 #include <cassert>
 
 namespace Tippi {
-    ConstructClosureAutomaton::ClPtr ConstructClosureAutomaton::operator()(const NetPtr net) {
+    ConstructClosureAutomaton::ConstructClosureAutomaton() :
+    m_useAnonymousStateNames(false) {}
+    
+    void ConstructClosureAutomaton::setUseAnonymousStateNames() {
+        m_useAnonymousStateNames = true;
+    }
+
+    ClosureAutomaton::Ptr ConstructClosureAutomaton::operator()(const NetPtr net) {
         updateTransitionTypes(net);
         
-        ClPtr automaton(new ClAutomaton());
+        ClosureAutomaton::Ptr automaton(new ClosureAutomaton());
         buildAutomaton(net, automaton);
         return automaton;
     }
@@ -64,14 +71,14 @@ namespace Tippi {
         }
     }
 
-    void ConstructClosureAutomaton::buildAutomaton(const NetPtr net, ClPtr automaton) const {
+    void ConstructClosureAutomaton::buildAutomaton(const NetPtr net, ClosureAutomaton::Ptr automaton) const {
         Interval::FiringRule rule(*net);
         const Interval::NetState initialState = Interval::NetState::createInitialState(*net);
         
         const ClResult initialResult = rule.buildClosure(initialState);
         if (initialResult.second) {
             const Closure closure(initialResult.first);
-            ClState* initialState = automaton->createState(closure);
+            ClosureState* initialState = automaton->createState(closure);
             automaton->setInitialState(initialState);
             handleState(net, rule, initialState, automaton);
         }
@@ -79,8 +86,8 @@ namespace Tippi {
 
     void ConstructClosureAutomaton::handleState(const NetPtr net,
                                                 const Interval::FiringRule& rule,
-                                                ClState* state,
-                                                ClPtr automaton) const {
+                                                ClosureState* state,
+                                                ClosureAutomaton::Ptr automaton) const {
         
         const Closure& closure = state->getClosure();
 
@@ -91,25 +98,25 @@ namespace Tippi {
             if (m_transitionTypes[transition->getIndex()] != Internal) {
                 const Interval::NetState::Set successors = getSuccessorsForObservableTransition(net, rule, closure.getStates(), transition);
                 const String& label = transition->getLabel();
-                const ClEdge::Type type = getEdgeType(transition);
+                const ClosureEdge::Type type = getEdgeType(transition);
                 handleSuccessors(net, rule, state, successors, label, type, automaton);
             }
         }
         
         const Interval::NetState::Set successors = getSuccessorsForTimeStep(net, rule, closure.getStates());
-        handleSuccessors(net, rule, state, successors, "1", ClEdge::Time, automaton);
+        handleSuccessors(net, rule, state, successors, "1", ClosureEdge::Time, automaton);
     }
     
-    ClEdge::Type ConstructClosureAutomaton::getEdgeType(const Interval::Transition* transition) const {
+    ClosureEdge::Type ConstructClosureAutomaton::getEdgeType(const Interval::Transition* transition) const {
         switch (m_transitionTypes[transition->getIndex()]) {
             case InputSend:
-                return ClEdge::InputSend;
+                return ClosureEdge::InputSend;
             case InputRead:
-                return ClEdge::InputRead;
+                return ClosureEdge::InputRead;
             case OutputSend:
-                return ClEdge::OutputSend;
+                return ClosureEdge::OutputSend;
             case OutputRead:
-                return ClEdge::OutputRead;
+                return ClosureEdge::OutputRead;
             default:
                 throw ClosureException("Unknown transition type");
         }
@@ -117,20 +124,20 @@ namespace Tippi {
 
     void ConstructClosureAutomaton::handleSuccessors(const NetPtr net,
                                                      const Interval::FiringRule& rule,
-                                                     ClState* state,
+                                                     ClosureState* state,
                                                      const Interval::NetState::Set& successors,
                                                      const String& label,
-                                                     const ClEdge::Type type,
-                                                     ClPtr automaton) const {
-        typedef std::pair<ClState*, bool> ClStateResult;
+                                                     const ClosureEdge::Type type,
+                                                     ClosureAutomaton::Ptr automaton) const {
+        typedef std::pair<ClosureState*, bool> ClosureStateResult;
         
         const ClResult succResult = rule.buildClosure(successors);
         if (succResult.second) {
-            const Interval::NetState::Set& succClStates = succResult.first;
-            const Closure succClosure(succClStates);
-            const ClStateResult succStateResult = automaton->findOrCreateState(succClosure);
-            ClState* succState = succStateResult.first;
-            automaton->connect(state, succState, label, type);
+            const Interval::NetState::Set& succClosureStates = succResult.first;
+            const Closure succClosure(succClosureStates);
+            const ClosureStateResult succStateResult = automaton->findOrCreateState(succClosure);
+            ClosureState* succState = succStateResult.first;
+            automaton->connectWithLabeledEdge(state, succState, label, type);
             if (succStateResult.second) {
                 if (isFinalState(net, succState)) {
                     succState->setFinal(true);
@@ -141,7 +148,7 @@ namespace Tippi {
         }
     }
     
-    bool ConstructClosureAutomaton::isFinalState(const NetPtr net, const ClState* state) const {
+    bool ConstructClosureAutomaton::isFinalState(const NetPtr net, const ClosureState* state) const {
         const Marking::List& finalMarkings = net->getFinalMarkings();
         const Interval::NetState::Set& states = state->getClosure().getStates();
         

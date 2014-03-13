@@ -20,39 +20,28 @@
 #include "RenderClosureAutomaton.h"
 
 #include "CollectionUtils.h"
-#include "Closure.h"
 #include "GraphAlgorithms.h"
-#include "Region.h"
 
 #include <iomanip>
 
 namespace Tippi {
     class ClosureVisitor {
     private:
-        typedef std::map<const ClState*, size_t> ClIdMap;
-        typedef std::map<const ReState*, size_t> ReIndexMap;
-        
         std::ostream& m_stream;
-        size_t m_stateId;
-        ClIdMap m_stateIdMap;
-        size_t m_regionIndex;
-        ReIndexMap m_regionIndexes;
         
         size_t m_maxDeadlockDistance;
-        RenderClosureAutomaton::RePtr m_regionAutomaton;
+        RegionAutomaton::Ptr m_regionAutomaton;
         bool m_showEmptyState;
     public:
-        ClosureVisitor(std::ostream& stream, const size_t maxDeadlockDistance, const bool showEmptyState, RenderClosureAutomaton::RePtr regionAutomaton = RenderClosureAutomaton::RePtr()) :
+        ClosureVisitor(std::ostream& stream, const size_t maxDeadlockDistance, const bool showEmptyState, RegionAutomaton::Ptr regionAutomaton = RegionAutomaton::Ptr()) :
         m_stream(stream),
-        m_stateId(1),
-        m_regionIndex(0),
         m_maxDeadlockDistance(maxDeadlockDistance),
         m_regionAutomaton(regionAutomaton),
         m_showEmptyState(showEmptyState) {}
         
-        void operator()(const ClState* state) {
+        void operator()(const ClosureState* state) {
             if (m_showEmptyState || !state->isEmpty()) {
-                m_stream << getStateId(state) << " [";
+                m_stream << "" << state->getId() << " [";
                 printAttribute("label", state->asString("\n", "\n"));
                 m_stream << ",";
                 printAttribute("shape", "ellipse");
@@ -78,10 +67,10 @@ namespace Tippi {
                         printColorAttribute("fillcolor", 255, gb, gb);
                     }
                 } else if (!state->isEmpty()) {
-                    const ReState* region = m_regionAutomaton->findRegion(state);
-                    const size_t index = getRegionIndex(region);
-                    const size_t count = m_regionAutomaton->getStates().size();
-                    const float hue = static_cast<float>(index) / static_cast<float>(count);
+                    const RegionState* region = m_regionAutomaton->findRegion(state);
+                    const size_t stateId = region->getId();
+                    const size_t maxId = m_regionAutomaton->getMaxId();
+                    const float hue = static_cast<float>(stateId) / static_cast<float>(maxId);
                     m_stream << ",";
                     printAttribute("style", "filled");
                     m_stream << ",";
@@ -91,14 +80,14 @@ namespace Tippi {
             }
         }
         
-        void operator()(const ClEdge* edge) {
-            const ClState* source = edge->getSource();
-            const ClState* target = edge->getTarget();
+        void operator()(const ClosureEdge* edge) {
+            const ClosureState* source = edge->getSource();
+            const ClosureState* target = edge->getTarget();
             
             if (m_showEmptyState ||
                 (!source->isEmpty() &&
                  !target->isEmpty())) {
-                    m_stream << getStateId(source) << " -> " << getStateId(target) << " [";
+                    m_stream << source->getId() << " -> " << target->getId() << " [";
                     printAttribute("label", edge->getLabel());
                     
                     if (source->isEmpty() || target->isEmpty()) {
@@ -120,24 +109,6 @@ namespace Tippi {
             
         }
     private:
-        size_t getStateId(const ClState* state) {
-            std::pair<ClIdMap::iterator, bool> insertPos = MapUtils::findInsertPos(m_stateIdMap, state);
-            if (insertPos.second)
-                return insertPos.first->second;
-            const size_t stateId = m_stateId++;
-            m_stateIdMap.insert(insertPos.first, std::make_pair(state, stateId));
-            return stateId;
-        }
-        
-        size_t getRegionIndex(const ReState* region) {
-            std::pair<ReIndexMap::iterator, bool> insertPos = MapUtils::findInsertPos(m_regionIndexes, region);
-            if (insertPos.second)
-                return insertPos.first->second;
-            const size_t index = m_regionIndex++;
-            m_regionIndexes.insert(insertPos.first, std::make_pair(region, index));
-            return index;
-        }
-        
         void printAttribute(const String& name, const String& value) {
             m_stream << name << "=\"" << value << "\"";
         }
@@ -156,32 +127,32 @@ namespace Tippi {
     RenderClosureAutomaton::RenderClosureAutomaton(const bool showEmptyState) :
     m_showEmptyState(showEmptyState) {}
 
-    void RenderClosureAutomaton::operator()(const ClPtr automaton, std::ostream& stream) {
+    void RenderClosureAutomaton::operator()(const ClosureAutomaton::Ptr automaton, std::ostream& stream) {
         stream << "digraph {" << std::endl;
         
         ClosureVisitor visitor(stream, automaton->getMaxDeadlockDistance(), m_showEmptyState);
-        const ClState::Set& states = automaton->getStates();
-        ClState::resetVisited(states.begin(), states.end());
+        const ClosureAutomaton::StateSet& states = automaton->getStates();
+        ClosureState::resetVisited(states.begin(), states.end());
         
-        ClState::Set::const_iterator it, end;
+        ClosureAutomaton::StateSet::const_iterator it, end;
         for (it = states.begin(), end = states.end(); it != end; ++it) {
-            const ClState* state = *it;
+            const ClosureState* state = *it;
             visitNode(state, visitor, visitor);
         }
         
         stream << "}" << std::endl;
     }
     
-    void RenderClosureAutomaton::operator()(const ClPtr closureAutomaton, const RePtr regionAutomaton, std::ostream& stream) {
+    void RenderClosureAutomaton::operator()(const ClosureAutomaton::Ptr closureAutomaton, const RegionAutomaton::Ptr regionAutomaton, std::ostream& stream) {
         stream << "digraph {" << std::endl;
         
         ClosureVisitor visitor(stream, closureAutomaton->getMaxDeadlockDistance(), m_showEmptyState, regionAutomaton);
-        const ClState::Set& states = closureAutomaton->getStates();
-        ClState::resetVisited(states.begin(), states.end());
+        const ClosureAutomaton::StateSet& states = closureAutomaton->getStates();
+        ClosureState::resetVisited(states.begin(), states.end());
         
-        ClState::Set::const_iterator it, end;
+        ClosureAutomaton::StateSet::const_iterator it, end;
         for (it = states.begin(), end = states.end(); it != end; ++it) {
-            const ClState* state = *it;
+            const ClosureState* state = *it;
             visitNode(state, visitor, visitor);
         }
         

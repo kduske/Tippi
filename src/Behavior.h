@@ -27,7 +27,6 @@
 #include "GraphNode.h"
 #include "IntervalNetState.h"
 
-#include <set>
 #include <vector>
 
 namespace Tippi {
@@ -36,27 +35,28 @@ namespace Tippi {
     class BehaviorEdge : public AutomatonEdge<BehaviorState> {
     public:
         typedef std::vector<BehaviorEdge*> List;
-        typedef std::set<BehaviorEdge*, Utils::UniCmp<BehaviorEdge> > Set;
     public:
         BehaviorEdge(BehaviorState* source, BehaviorState* target, const String& label, bool tauEdge);
-        
-        bool operator<(const BehaviorEdge& rhs) const;
-        bool operator<(const BehaviorEdge* rhs) const;
     };
     
     class BehaviorState : public AutomatonState<BehaviorEdge> {
     public:
-        typedef std::set<BehaviorState*, Utils::UniCmp<BehaviorState> > Set;
+        struct Key {
+            const Interval::NetState& netState;
+            const bool boundViolation;
+            Key(const Interval::NetState& i_netState, bool i_boundViolation = false);
+            Key(const BehaviorState* state);
+        };
+        struct KeyCmp {
+            int operator() (const Key& lhs, const Key& rhs) const;
+        };
     private:
         Interval::NetState m_netState;
         bool m_boundViolation;
     public:
-        BehaviorState(const String& name, const Interval::NetState& netState);
-        BehaviorState(const String& name);
-        
-        bool operator<(const BehaviorState& rhs) const;
-        bool operator<(const BehaviorState* rhs) const;
-        int compare(const BehaviorState& rhs) const;
+        BehaviorState(const Interval::NetState& netState);
+        BehaviorState();
+        static const Key getKey(const BehaviorState* state);
         
         const Interval::NetState& getNetState() const;
         bool isBoundViolation() const;
@@ -68,16 +68,10 @@ namespace Tippi {
     public:
         typedef std::tr1::shared_ptr<Behavior> Ptr;
     private:
-        unsigned long m_stateIndex;
-        State* m_boundViolationState;
+        BehaviorState* m_boundViolationState;
     public:
         Behavior();
-        
-        BehaviorState* createState(const Interval::NetState& netState);
-        std::pair<BehaviorState*, bool> findOrCreateState(const Interval::NetState& netState);
         BehaviorState* findOrCreateBoundViolationState();
-    private:
-        String makeStateName();
     };
 }
 

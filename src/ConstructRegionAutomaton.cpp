@@ -19,94 +19,92 @@
 
 #include "ConstructRegionAutomaton.h"
 
-#include "Region.h"
-
 namespace Tippi {
-    ConstructRegionAutomaton::RePtr ConstructRegionAutomaton::operator()(const ClPtr closureAutomaton) {
-        RePtr regionAutomaton(new ReAutomaton());
+    RegionAutomaton::Ptr ConstructRegionAutomaton::operator()(const ClosureAutomaton::Ptr closureAutomaton) {
+        RegionAutomaton::Ptr regionAutomaton(new RegionAutomaton());
         
-        const ClState::Set& clStates = closureAutomaton->getStates();
-        ClState::resetVisited(clStates.begin(), clStates.end());
+        const ClosureAutomaton::StateSet& clStates = closureAutomaton->getStates();
+        ClosureState::resetVisited(clStates.begin(), clStates.end());
         
-        ClState* initialCl = closureAutomaton->getInitialState();
+        ClosureState* initialCl = closureAutomaton->getInitialState();
         if (initialCl != NULL)
             buildRegion(initialCl, regionAutomaton);
         
         return regionAutomaton;
     }
     
-    ReState* ConstructRegionAutomaton::buildRegion(ClState* state, RePtr automaton) const {
+    RegionState* ConstructRegionAutomaton::buildRegion(ClosureState* state, RegionAutomaton::Ptr automaton) const {
         assert(state != NULL);
         assert(!state->isEmpty());
         if (state->isVisited()) {
-            ReState* regionState = automaton->findRegion(state);
+            RegionState* regionState = automaton->findRegion(state);
             assert(regionState != NULL);
             return regionState;
         }
         
-        ClState::Set region;
+        ClosureAutomaton::StateSet region;
         growRegion(state, region);
-        ReState* regionState = automaton->createState(region);
+        RegionState* regionState = automaton->createState(region);
         buildSuccessors(regionState, automaton);
         return regionState;
     }
     
-    void ConstructRegionAutomaton::buildSuccessors(ReState* region, RePtr automaton) const {
-        const ClState::Set& clStates = region->getRegion();
-        ClState::Set::const_iterator it, end;
+    void ConstructRegionAutomaton::buildSuccessors(RegionState* region, RegionAutomaton::Ptr automaton) const {
+        const ClosureAutomaton::StateSet& clStates = region->getRegion();
+        ClosureAutomaton::StateSet::const_iterator it, end;
         for (it = clStates.begin(), end = clStates.end(); it != end; ++it) {
-            ClState* clState = *it;
+            ClosureState* clState = *it;
             buildSuccessors(region, clState, automaton);
         }
     }
 
-    void ConstructRegionAutomaton::buildSuccessors(ReState* region, ClState* state, RePtr automaton) const {
-        const ClEdge::List& outgoing = state->getOutgoing();
-        ClEdge::List::const_iterator it, end;
+    void ConstructRegionAutomaton::buildSuccessors(RegionState* region, ClosureState* state, RegionAutomaton::Ptr automaton) const {
+        const ClosureEdge::List& outgoing = state->getOutgoing();
+        ClosureEdge::List::const_iterator it, end;
         for (it = outgoing.begin(), end = outgoing.end(); it != end; ++it) {
-            ClEdge* edge = *it;
+            ClosureEdge* edge = *it;
             if (edge->isPartnerAction()) {
-                ClState* target = edge->getTarget();
+                ClosureState* target = edge->getTarget();
                 if (!target->isEmpty()) {
-                    ReState* succRegion = buildRegion(target, automaton);
-                    automaton->connect(region, succRegion, edge->getLabel());
+                    RegionState* succRegion = buildRegion(target, automaton);
+                    automaton->connectWithLabeledEdge(region, succRegion, edge->getLabel());
                 }
             }
         }
     }
 
-    void ConstructRegionAutomaton::growRegion(ClState* state, ClState::Set& region) const {
+    void ConstructRegionAutomaton::growRegion(ClosureState* state, ClosureAutomaton::StateSet& region) const {
         if (!state->isVisited() && !state->isEmpty()) {
             region.insert(state);
             state->setVisited(true);
             
-            const ClEdge::List& incoming = state->getIncoming();
-            const ClEdge::List& outgoing = state->getOutgoing();
+            const ClosureEdge::List& incoming = state->getIncoming();
+            const ClosureEdge::List& outgoing = state->getOutgoing();
             
             growIncoming(incoming, region);
             growOutgoing(outgoing, region);
         }
     }
     
-    void ConstructRegionAutomaton::growIncoming(const ClEdge::List& incoming, ClState::Set& region) const {
-        ClEdge::List::const_iterator it, end;
+    void ConstructRegionAutomaton::growIncoming(const ClosureEdge::List& incoming, ClosureAutomaton::StateSet& region) const {
+        ClosureEdge::List::const_iterator it, end;
         for (it = incoming.begin(), end = incoming.end(); it != end; ++it) {
-            ClEdge* edge = *it;
+            ClosureEdge* edge = *it;
             if (edge->isServiceAction() || edge->isTimeAction()) {
-                ClState* source = edge->getSource();
+                ClosureState* source = edge->getSource();
                 growRegion(source, region);
             }
         }
     }
     
-    void ConstructRegionAutomaton::growOutgoing(const ClEdge::List& outgoing, ClState::Set& region) const {
+    void ConstructRegionAutomaton::growOutgoing(const ClosureEdge::List& outgoing, ClosureAutomaton::StateSet& region) const {
         typedef std::pair<SuccessorMap::iterator, bool> InsertPos;
         
-        ClEdge::List::const_iterator it, end;
+        ClosureEdge::List::const_iterator it, end;
         for (it = outgoing.begin(), end = outgoing.end(); it != end; ++it) {
-            ClEdge* edge = *it;
+            ClosureEdge* edge = *it;
             if (edge->isServiceAction() || edge->isTimeAction()) {
-                ClState* target = edge->getTarget();
+                ClosureState* target = edge->getTarget();
                 growRegion(target, region);
             }
         }

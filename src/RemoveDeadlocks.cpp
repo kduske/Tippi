@@ -20,18 +20,18 @@
 #include "RemoveDeadlocks.h"
 
 namespace Tippi {
-    RemoveDeadlocks::ClPtr RemoveDeadlocks::operator()(ClPtr automaton) const {
-        const ClState::Set& states = automaton->getStates();
-        ClState::resetVisited(states.begin(), states.end());
+    ClosureAutomaton::Ptr RemoveDeadlocks::operator()(ClosureAutomaton::Ptr automaton) const {
+        const ClosureAutomaton::StateSet& states = automaton->getStates();
+        ClosureState::resetVisited(states.begin(), states.end());
         
-        const ClState::Set deadlocks = findAndMarkPotentialDeadlocks(automaton);
+        const ClosureAutomaton::StateSet deadlocks = findAndMarkPotentialDeadlocks(automaton);
         automaton->deleteStates(deadlocks.begin(), deadlocks.end());
         
         return automaton;
     }
     
-    ClState::Set RemoveDeadlocks::findAndMarkPotentialDeadlocks(ClPtr automaton) const {
-        ClState::Set potentialDeadlocks = findInitialDeadlocks(automaton);
+    ClosureAutomaton::StateSet RemoveDeadlocks::findAndMarkPotentialDeadlocks(ClosureAutomaton::Ptr automaton) const {
+        ClosureAutomaton::StateSet potentialDeadlocks = findInitialDeadlocks(automaton);
         if (!potentialDeadlocks.empty()) {
             size_t previousSize;
             size_t iteration = 1;
@@ -39,7 +39,7 @@ namespace Tippi {
             ++iteration;
             do {
                 previousSize = potentialDeadlocks.size();
-                const ClState::Set additionalDeadlocks = findAdditionalDeadlocks(potentialDeadlocks);
+                const ClosureAutomaton::StateSet additionalDeadlocks = findAdditionalDeadlocks(potentialDeadlocks);
                 markDeadlockDistance(additionalDeadlocks, iteration);
                 potentialDeadlocks.insert(additionalDeadlocks.begin(), additionalDeadlocks.end());
                 ++iteration;
@@ -49,13 +49,13 @@ namespace Tippi {
         return potentialDeadlocks;
     }
 
-    ClState::Set RemoveDeadlocks::findInitialDeadlocks(const ClPtr automaton) const {
-        ClState::Set initialDeadlocks;
+    ClosureAutomaton::StateSet RemoveDeadlocks::findInitialDeadlocks(const ClosureAutomaton::Ptr automaton) const {
+        ClosureAutomaton::StateSet initialDeadlocks;
         
-        const ClState::Set& states = automaton->getStates();
-        ClState::Set::const_iterator it, end;
+        const ClosureAutomaton::StateSet& states = automaton->getStates();
+        ClosureAutomaton::StateSet::const_iterator it, end;
         for (it = states.begin(), end = states.end(); it != end; ++it) {
-            ClState* state = *it;
+            ClosureState* state = *it;
             if (state->isDeadlock()) {
                 state->setVisited(true);
                 initialDeadlocks.insert(state);
@@ -65,13 +65,13 @@ namespace Tippi {
         return initialDeadlocks;
     }
 
-    ClState::Set RemoveDeadlocks::findAdditionalDeadlocks(const ClState::Set& states) const {
-        ClState::Set additional;
+    ClosureAutomaton::StateSet RemoveDeadlocks::findAdditionalDeadlocks(const ClosureAutomaton::StateSet& states) const {
+        ClosureAutomaton::StateSet additional;
         
-        const ClState::Set candidates = findDeadlockCandidates(states);
-        ClState::Set::const_iterator it, end;
+        const ClosureAutomaton::StateSet candidates = findDeadlockCandidates(states);
+        ClosureAutomaton::StateSet::const_iterator it, end;
         for (it = candidates.begin(), end = candidates.end(); it != end; ++it) {
-            ClState* state = *it;
+            ClosureState* state = *it;
             if (isPotentialDeadlock(state)) {
                 // std::cout << "     Found additional deadlock: " << state->asString(",", ";") << std::endl;
                 state->setVisited(true);
@@ -82,17 +82,17 @@ namespace Tippi {
         return additional;
     }
 
-    ClState::Set RemoveDeadlocks::findDeadlockCandidates(const ClState::Set& states) const {
-        ClState::Set candidates;
+    ClosureAutomaton::StateSet RemoveDeadlocks::findDeadlockCandidates(const ClosureAutomaton::StateSet& states) const {
+        ClosureAutomaton::StateSet candidates;
         
-        ClState::Set::const_iterator sIt, sEnd;
+        ClosureAutomaton::StateSet::const_iterator sIt, sEnd;
         for (sIt = states.begin(), sEnd = states.end(); sIt != sEnd; ++sIt) {
-            ClState* state = *sIt;
-            const ClEdge::List& incoming = state->getIncoming();
-            ClEdge::List::const_iterator eIt, eEnd;
+            ClosureState* state = *sIt;
+            const ClosureEdge::List& incoming = state->getIncoming();
+            ClosureEdge::List::const_iterator eIt, eEnd;
             for (eIt = incoming.begin(), eEnd = incoming.end(); eIt != eEnd; ++eIt) {
-                ClEdge* edge = *eIt;
-                ClState* predecessor = edge->getSource();
+                ClosureEdge* edge = *eIt;
+                ClosureState* predecessor = edge->getSource();
                 if (predecessor != state) {
                     if (!predecessor->isVisited())
                         candidates.insert(predecessor);
@@ -104,7 +104,7 @@ namespace Tippi {
         return candidates;
     }
     
-    bool RemoveDeadlocks::isPotentialDeadlock(const ClState* state) const {
+    bool RemoveDeadlocks::isPotentialDeadlock(const ClosureState* state) const {
         assert(!state->isVisited());
         assert(!state->getClosure().getStates().empty());
         
@@ -120,11 +120,11 @@ namespace Tippi {
         // this is the number of edges which lead to a potential DL, to the given state or to the empty state
         size_t odl = 0;
         
-        const ClEdge::List& outgoing = state->getOutgoing();
-        ClEdge::List::const_iterator it, end;
+        const ClosureEdge::List& outgoing = state->getOutgoing();
+        ClosureEdge::List::const_iterator it, end;
         for (it = outgoing.begin(), end = outgoing.end(); it != end; ++it) {
-            const ClEdge* edge = *it;
-            const ClState* succ = edge->getTarget();
+            const ClosureEdge* edge = *it;
+            const ClosureState* succ = edge->getTarget();
             const bool succDL = succ->isVisited();
             if (edge->isPartnerAction()) {
                 ++pc;
@@ -139,10 +139,10 @@ namespace Tippi {
         return (pdl == pc && sdl) || (odl == outgoing.size());
     }
 
-    void RemoveDeadlocks::markDeadlockDistance(const ClState::Set& states, size_t distance) const {
-        ClState::Set::const_iterator it, end;
+    void RemoveDeadlocks::markDeadlockDistance(const ClosureAutomaton::StateSet& states, size_t distance) const {
+        ClosureAutomaton::StateSet::const_iterator it, end;
         for (it = states.begin(), end = states.end(); it != end; ++it) {
-            ClState* state = *it;
+            ClosureState* state = *it;
             if (state->getDeadlockDistance() == 0)
                 state->setDeadlockDistance(distance);
         }

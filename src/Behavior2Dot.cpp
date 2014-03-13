@@ -74,10 +74,10 @@ namespace Tippi {
         stream << "digraph {" << std::endl;
         
         BehaviorVisitor visitor(stream);
-        const BehaviorState::Set& states = behavior->getStates();
+        const Behavior::StateSet& states = behavior->getStates();
         BehaviorState::resetVisited(states.begin(), states.end());
         
-        BehaviorState::Set::const_iterator it, end;
+        Behavior::StateSet::const_iterator it, end;
         for (it = states.begin(), end = states.end(); it != end; ++it) {
             const BehaviorState* state = *it;
             visitNode(state, visitor, visitor);

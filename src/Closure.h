@@ -20,22 +20,17 @@
 #ifndef __Tippi__Behavior__
 #define __Tippi__Behavior__
 
-#include "CollectionUtils.h"
+#include "SharedPointer.h"
 #include "StringUtils.h"
-#include "GraphEdge.h"
-#include "GraphNode.h"
+#include "Automaton.h"
 #include "IntervalNetState.h"
 
-#include <set>
-#include <vector>
-
 namespace Tippi {
-    class ClState;
+    class ClosureState;
     
-    class ClEdge : public GraphEdge<ClState, ClState> {
+    class ClosureEdge : public AutomatonEdge<ClosureState> {
     public:
-        typedef std::vector<ClEdge*> List;
-        typedef std::set<ClEdge*, Utils::UniCmp<ClEdge> > Set;
+        typedef std::vector<ClosureEdge*> List;
         
         typedef enum {
             InputSend,
@@ -45,16 +40,10 @@ namespace Tippi {
             Time
         } Type;
     private:
-        String m_label;
         Type m_type;
     public:
-        ClEdge(ClState* source, ClState* target, const String& label, Type type);
+        ClosureEdge(ClosureState* source, ClosureState* target, const String& label, bool tau, Type type);
         
-        bool operator<(const ClEdge& rhs) const;
-        bool operator==(const ClEdge& rhs) const;
-        int compare(const ClEdge& rhs) const;
-        
-        const String& getLabel() const;
         Type getType() const;
         bool isServiceAction() const;
         bool isPartnerAction() const;
@@ -78,84 +67,49 @@ namespace Tippi {
         String asString(const String& markingSeparator, const String& stateSeparator) const;
     };
     
-    class ClState : public GraphNode<ClEdge, ClEdge> {
+    class ClosureState : public AutomatonState<ClosureEdge> {
     public:
-        typedef std::set<ClState*, Utils::UniCmp<ClState> > Set;
+        typedef Closure Key;
+        struct KeyCmp {
+            int operator() (const Key& lhs, const Key& rhs) const;
+        };
     private:
         Closure m_closure;
-        bool m_final;
         size_t m_deadlockDistance;
         bool m_reachable;
     public:
-        ClState(const Closure& closure);
-        
-        bool operator<(const ClState& rhs) const;
-        bool operator==(const ClState& rhs) const;
-        int compare(const ClState& rhs) const;
+        ClosureState(const Closure& closure);
+        static const Key& getKey(const ClosureState* state);
         
         const Closure& getClosure() const;
         bool isEmpty() const;
-        bool isFinal() const;
-        void setFinal(bool final);
+
         bool isDeadlock() const;
-        
         size_t getDeadlockDistance() const;
         void setDeadlockDistance(size_t deadlockDistance);
         
         bool isReachable() const;
         void setReachable(bool reachable);
-        
-        bool hasIncomingEdge(const String& edgeLabel) const;
-        bool hasOutgoingEdge(const String& edgeLabel) const;
-        Set getPredecessors(const String& edgeLabel) const;
-        const ClState* getSuccessor(const String& edgeLabel) const;
+
         String asString(const String& markingSeparator, const String& stateSeparator) const;
     };
     
-    class ClAutomaton {
+    class ClosureAutomaton : public Automaton<ClosureState, ClosureEdge> {
+    public:
+        typedef std::tr1::shared_ptr<ClosureAutomaton> Ptr;
     private:
-        ClState::Set m_states;
-        ClEdge::Set m_edges;
-        ClState* m_initialState;
-        ClState::Set m_finalStates;
         size_t m_maxDeadlockDistance;
     public:
-        ClAutomaton();
-        ~ClAutomaton();
+        ClosureAutomaton();
         
-        ClState* createState(const Closure& closure);
-        std::pair<ClState*, bool> findOrCreateState(const Closure& closure);
-        ClEdge* connect(ClState* source, ClState* target, const String& label, ClEdge::Type type);
-        
-        void deleteState(ClState* state);
-        
-        template <typename I>
-        void deleteStates(I cur, I end) {
-            while (cur != end) {
-                deleteState(*cur);
-                ++cur;
-            }
-        }
-        
-        void disconnect(ClEdge* edge);
-        
-        void setInitialState(ClState* state);
-        void addFinalState(ClState* state);
-        
-        const ClState::Set& getStates() const;
-        const ClState* findState(const Closure& closure) const;
-        
-        ClState* getInitialState() const;
-        const ClState::Set& getFinalStates() const;
+        const ClosureState* findState(const Closure& closure) const;
 
         size_t getMaxDeadlockDistance() const;
         void setMaxDeadlockDistnace(size_t maxDeadlockDistance);
         
-        ClState::Set findUnreachableStates() const;
+        StateSet findUnreachableStates() const;
     private:
-        void doFindUnreachableStates(ClState::Set& unreachable) const;
-        void deleteIncomingEdges(ClState* state);
-        void deleteOutgoingEdges(ClState* state);
+        void doFindUnreachableStates(StateSet& unreachable) const;
     };
 }
 

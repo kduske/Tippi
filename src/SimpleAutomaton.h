@@ -23,33 +23,33 @@
 #include "StringUtils.h"
 #include "Automaton.h"
 
+#include <vector>
+
 namespace Tippi {
     class SimpleAutomatonState;
     class SimpleAutomatonEdge : public AutomatonEdge<SimpleAutomatonState> {
     public:
         typedef std::vector<SimpleAutomatonEdge*> List;
-        typedef std::set<SimpleAutomatonEdge*, Utils::UniCmp<SimpleAutomatonEdge> > Set;
     public:
         SimpleAutomatonEdge(SimpleAutomatonState* source, SimpleAutomatonState* target, const String& label, bool tau);
-
-        bool operator<(const SimpleAutomatonEdge& rhs) const;
-        bool operator<(const SimpleAutomatonEdge* rhs) const;
     };
     
     class SimpleAutomatonState : public AutomatonState<SimpleAutomatonEdge> {
     public:
-        typedef std::set<SimpleAutomatonState*, Utils::UniCmp<SimpleAutomatonState> > Set;
+        typedef String Key;
+        struct KeyCmp {
+            int operator() (const Key& lhs, const Key& rhs) const;
+        };
+    private:
+        const String m_name;
     public:
         SimpleAutomatonState(const String& name);
-
-        bool operator<(const SimpleAutomatonState& rhs) const;
-        bool operator<(const SimpleAutomatonState* rhs) const;
+        static const Key& getKey(const SimpleAutomatonState* state);
+        
+        const String& getName() const;
     };
     
-    class SimpleAutomaton : public Automaton<SimpleAutomatonState, SimpleAutomatonEdge> {
-    public:
-        SimpleAutomatonState* createState(const String& name);
-    };
+    class SimpleAutomaton : public Automaton<SimpleAutomatonState, SimpleAutomatonEdge> {};
 }
 
 #endif /* defined(__Tippi__SimpleAutomaton__) */

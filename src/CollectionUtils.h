@@ -405,8 +405,8 @@ namespace VectorUtils {
 }
 
 namespace SetUtils {
-    template <typename T, typename Cmp>
-    bool equals(const std::set<T, Cmp>& set, const T& lhs, const T& rhs) {
+    template <typename T1, typename T2, typename Cmp>
+    bool equals(const std::set<T1, Cmp>& set, const T1& lhs, const T2& rhs) {
         return !set.key_comp()(lhs, rhs) && !set.key_comp()(rhs, lhs);
     }
     

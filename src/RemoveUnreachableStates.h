@@ -26,9 +26,7 @@
 namespace Tippi {
     struct RemoveUnreachableStates {
     public:
-        typedef std::tr1::shared_ptr<ClAutomaton> ClPtr;
-        
-        ClPtr operator()(ClPtr automaton) const;
+        ClosureAutomaton::Ptr operator()(ClosureAutomaton::Ptr automaton) const;
     };
 }
 

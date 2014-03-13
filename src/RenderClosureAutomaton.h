@@ -20,7 +20,8 @@
 #ifndef __Tippi__RenderClosureAutomaton__
 #define __Tippi__RenderClosureAutomaton__
 
-#include "SharedPointer.h"
+#include "Closure.h"
+#include "Region.h"
 
 #include <iostream>
 
@@ -29,15 +30,12 @@ namespace Tippi {
     class ReAutomaton;
     
     struct RenderClosureAutomaton {
-    public:
-        typedef std::tr1::shared_ptr<ClAutomaton> ClPtr;
-        typedef std::tr1::shared_ptr<ReAutomaton> RePtr;
     private:
         bool m_showEmptyState;
     public:
         RenderClosureAutomaton(bool showEmptyState);
-        void operator()(const ClPtr automaton, std::ostream& stream);
-        void operator()(const ClPtr closureAutomaton, const RePtr regionAutomaton, std::ostream& stream);
+        void operator()(const ClosureAutomaton::Ptr automaton, std::ostream& stream);
+        void operator()(const ClosureAutomaton::Ptr closureAutomaton, const RegionAutomaton::Ptr regionAutomaton, std::ostream& stream);
     };
 }
 

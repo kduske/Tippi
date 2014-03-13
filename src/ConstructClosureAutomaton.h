@@ -46,34 +46,37 @@ namespace Tippi {
             Internal
         } TransitionType;
         
+        bool m_useAnonymousStateNames;
+        
         typedef std::vector<TransitionType> TransitionTypes;
         TransitionTypes m_transitionTypes;
     public:
         typedef std::tr1::shared_ptr<Interval::Net> NetPtr;
-        typedef std::tr1::shared_ptr<ClAutomaton> ClPtr;
         
-        ClPtr operator()(const NetPtr net);
+        ConstructClosureAutomaton();
+        void setUseAnonymousStateNames();
+        ClosureAutomaton::Ptr operator()(const NetPtr net);
     private:
         void updateTransitionTypes(const NetPtr net);
         
-        void buildAutomaton(const NetPtr net, ClPtr automaton) const;
+        void buildAutomaton(const NetPtr net, ClosureAutomaton::Ptr automaton) const;
         
         void handleState(const NetPtr net,
                          const Interval::FiringRule& rule,
-                         ClState* state,
-                         ClPtr automaton) const;
+                         ClosureState* state,
+                         ClosureAutomaton::Ptr automaton) const;
         
-        ClEdge::Type getEdgeType(const Interval::Transition* transition) const;
+        ClosureEdge::Type getEdgeType(const Interval::Transition* transition) const;
         
         void handleSuccessors(const NetPtr net,
                               const Interval::FiringRule& rule,
-                              ClState* state,
+                              ClosureState* state,
                               const Interval::NetState::Set& successors,
                               const String& label,
-                              ClEdge::Type type,
-                              ClPtr automaton) const;
+                              ClosureEdge::Type type,
+                              ClosureAutomaton::Ptr automaton) const;
         
-        bool isFinalState(const NetPtr net, const ClState* state) const;
+        bool isFinalState(const NetPtr net, const ClosureState* state) const;
         
         Interval::NetState::Set getSuccessorsForObservableTransition(const NetPtr net,
                                                                      const Interval::FiringRule& rule,

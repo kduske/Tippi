@@ -22,58 +22,23 @@
 #include "Exceptions.h"
 
 namespace Tippi {
-    ReEdge::ReEdge(ReState* source, ReState* target, const String& label) :
-    GraphEdge(source, target),
-    m_label(label) {}
+    RegionEdge::RegionEdge(RegionState* source, RegionState* target, const String& label, const bool tau) :
+    AutomatonEdge(source, target, label, tau) {}
     
-    bool ReEdge::operator<(const ReEdge& rhs) const {
-        return compare(rhs) < 0;
-    }
+    RegionState::RegionState(const Region& region) :
+    m_region(region) {}
     
-    bool ReEdge::operator==(const ReEdge& rhs) const {
-        return compare(rhs) == 0;
-    }
-    
-    int ReEdge::compare(const ReEdge& rhs) const {
-        const int sourceResult = getSource()->compare(*rhs.getSource());
-        if (sourceResult < 0)
-            return -1;
-        if (sourceResult > 0)
-            return 1;
-        const int targetResult = getTarget()->compare(*rhs.getTarget());
-        if (targetResult < 0)
-            return -1;
-        if (targetResult > 0)
-            return 1;
-        return m_label.compare(rhs.m_label);
-    }
-    
-    const String& ReEdge::getLabel() const {
-        return m_label;
-    }
-
-    ReState::ReState(const ClState::Set& region) :
-    m_region(region),
-    m_final(false) {}
-    
-    bool ReState::operator<(const ReState& rhs) const {
-        return compare(rhs) < 0;
-    }
-    
-    bool ReState::operator==(const ReState& rhs) const {
-        return compare(rhs) == 0;
-    }
-    
-    int ReState::compare(const ReState& rhs) const {
-        ClState::Set::const_iterator lit = m_region.begin();
-        const ClState::Set::const_iterator lend = m_region.end();
-        ClState::Set::const_iterator rit = rhs.m_region.begin();
-        const ClState::Set::const_iterator rend = rhs.m_region.end();
+    int RegionState::KeyCmp::operator() (const Key& lhs, const Key& rhs) const {
+        Region::const_iterator lit = lhs.begin();
+        const Region::const_iterator lend = rhs.end();
+        Region::const_iterator rit = rhs.begin();
+        const Region::const_iterator rend = rhs.end();
         
         while (lit != lend && rit != rend) {
-            const ClState* lstate = *lit;
-            const ClState* rstate = *rit;
-            const int cmp = lstate->compare(*rstate);
+            const ClosureState* lstate = *lit;
+            const ClosureState* rstate = *rit;
+            const int cmp = m_cmp(ClosureState::getKey(lstate),
+                                  ClosureState::getKey(rstate));
             if (cmp < 0)
                 return -1;
             if (cmp > 0)
@@ -87,125 +52,47 @@ namespace Tippi {
             return -1;
         return 0;
     }
-    
-    const ClState::Set& ReState::getRegion() const {
+
+    const Region& RegionState::getRegion() const {
         return m_region;
     }
-    
-    bool ReState::isFinal() const {
-        return m_final;
-    }
-    
-    void ReState::setFinal(bool final) {
-        m_final = final;
-    }
 
-    bool ReState::isEmpty() const {
+    bool RegionState::isEmpty() const {
         return m_region.empty();
     }
-
-    ReAutomaton::ReAutomaton() :
-    m_initialState(NULL) {}
     
-    ReAutomaton::~ReAutomaton() {
-        SetUtils::clearAndDelete(m_states);
-        SetUtils::clearAndDelete(m_edges);
-        m_initialState = NULL;
-        m_finalStates.clear();
-    }
-    
-    ReState* ReAutomaton::createState(const ClState::Set& region) {
-        ReState* state = new ReState(region);
-        ReState::Set::iterator it = m_states.lower_bound(state);
-        if (it != m_states.end() && SetUtils::equals(m_states, state, *it)) {
-            delete state;
-            throw AutomatonException("Region automaton already contains a state with the given closure");
-        }
-        m_states.insert(it, state);
-        updateRegionMap(state);
-        return state;
-    }
-    
-    std::pair<ReState*, bool> ReAutomaton::findOrCreateState(const ClState::Set& region) {
-        ReState* state = new ReState(region);
-        ReState::Set::iterator it = m_states.lower_bound(state);
-        if (it != m_states.end() && SetUtils::equals(m_states, state, *it)) {
-            delete state;
-            return std::make_pair(*it, false);
-        }
-        m_states.insert(it, state);
-        updateRegionMap(state);
-        return std::make_pair(state, true);
-    }
-    
-    ReEdge* ReAutomaton::connect(ReState* source, ReState* target, const String& label) {
-        assert(source != NULL);
-        assert(target != NULL);
-        assert(m_states.count(source) == 1);
-        assert(m_states.count(target) == 1);
-        
-        ReEdge* edge = new ReEdge(source, target, label);
-        ReEdge::Set::iterator it = m_edges.lower_bound(edge);
-        if (it != m_edges.end() && SetUtils::equals(m_edges, edge, *it)) {
-            delete edge;
-            return *it;
-        }
-        
-        m_edges.insert(it, edge);
-        source->addOutgoing(edge);
-        target->addIncoming(edge);
-        return edge;
-    }
-    
-    void ReAutomaton::setInitialState(ReState* state) {
-        m_initialState = state;
-    }
-    
-    void ReAutomaton::addFinalState(ReState* state) {
-        m_finalStates.insert(state);
-    }
-    
-    const ReState::Set& ReAutomaton::getStates() const {
-        return m_states;
-    }
-    
-    const ReState* ReAutomaton::findState(const ClState::Set& region) const {
-        ReState query(region);
-        ReState::Set::const_iterator it = m_states.find(&query);
-        if (it == m_states.end())
+    const RegionState* RegionAutomaton::findState(const Region& region) const {
+        RegionState query(region);
+        StateSet::const_iterator it = getStates().find(&query);
+        if (it == getStates().end())
             return NULL;
         return *it;
     }
     
-    const ReState* ReAutomaton::findRegion(const ClState* state) const {
+    const RegionState* RegionAutomaton::findRegion(const ClosureState* state) const {
         const RegionMap::const_iterator it = m_regions.find(state);
         if (it == m_regions.end())
             return NULL;
         return it->second;
     }
 
-    ReState* ReAutomaton::findRegion(const ClState* state) {
+    RegionState* RegionAutomaton::findRegion(const ClosureState* state) {
         const RegionMap::iterator it = m_regions.find(state);
         if (it == m_regions.end())
             return NULL;
         return it->second;
     }
-
-    ReState* ReAutomaton::getInitialState() const {
-        return m_initialState;
-    }
-    
-    const ReState::Set& ReAutomaton::getFinalStates() const {
-        return m_finalStates;
+    void RegionAutomaton::stateWasAdded(RegionState* state) {
+        updateRegionMap(state);
     }
 
-    void ReAutomaton::updateRegionMap(ReState* state) {
+    void RegionAutomaton::updateRegionMap(RegionState* state) {
         typedef std::pair<RegionMap::iterator, bool> InsertPos;
 
-        const ClState::Set& region = state->getRegion();
-        ClState::Set::const_iterator it, end;
+        const Region& region = state->getRegion();
+        Region::const_iterator it, end;
         for (it = region.begin(), end = region.end(); it != end; ++it) {
-            const ClState* clState = *it;
+            const ClosureState* clState = *it;
             
             const InsertPos insertPos = MapUtils::findInsertPos(m_regions, clState);
             assert(!insertPos.second);

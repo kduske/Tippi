@@ -38,7 +38,9 @@ namespace Tippi {
     public:
         typedef std::tr1::shared_ptr<Interval::Net> NetPtr;
 
-        ConstructBehavior(bool createBoundViolationState);
+        ConstructBehavior();
+        void createBoundViolationState();
+        
         Behavior::Ptr operator()(const NetPtr net) const;
     private:
         void handleState(const NetPtr net, const Interval::FiringRule& rule, Behavior::State* state, Behavior* behavior) const;

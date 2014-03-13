@@ -19,37 +19,24 @@
 
 #include "SimpleAutomaton.h"
 
+#include <cassert>
+
 namespace Tippi {
     SimpleAutomatonEdge::SimpleAutomatonEdge(SimpleAutomatonState* source, SimpleAutomatonState* target, const String& label, bool tau) :
     AutomatonEdge(source, target, label, tau) {}
 
-    bool SimpleAutomatonEdge::operator<(const SimpleAutomatonEdge& rhs) const {
-        return compare(rhs) < 0;
-    }
-    
-    bool SimpleAutomatonEdge::operator<(const SimpleAutomatonEdge* rhs) const {
-        return compare(*rhs) < 0;
+    int SimpleAutomatonState::KeyCmp::operator() (const Key& lhs, const Key& rhs) const {
+        return lhs.compare(rhs);
     }
 
     SimpleAutomatonState::SimpleAutomatonState(const String& name) :
-    AutomatonState(name) {}
-
-    bool SimpleAutomatonState::operator<(const SimpleAutomatonState& rhs) const {
-        return compare(rhs) < 0;
-    }
+    m_name(name) {}
     
-    bool SimpleAutomatonState::operator<(const SimpleAutomatonState* rhs) const {
-        return compare(*rhs) < 0;
+    const SimpleAutomatonState::Key& SimpleAutomatonState::getKey(const SimpleAutomatonState* state) {
+        return state->getName();
     }
 
-    SimpleAutomatonState* SimpleAutomaton::createState(const String& name) {
-        SimpleAutomatonState* state = new SimpleAutomatonState(name);
-        try {
-            addState(state);
-            return state;
-        } catch (...) {
-            delete state;
-            throw;
-        }
+    const String& SimpleAutomatonState::getName() const {
+        return m_name;
     }
 }

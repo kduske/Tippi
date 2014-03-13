@@ -26,50 +26,23 @@
 #include <cassert>
 
 namespace Tippi {
-    ClEdge::ClEdge(ClState* source, ClState* target, const String& label, const Type type) :
-    GraphEdge(source, target),
-    m_label(label),
+    ClosureEdge::ClosureEdge(ClosureState* source, ClosureState* target, const String& label, const bool tau, const Type type) :
+    AutomatonEdge(source, target, label, tau),
     m_type(type) {}
     
-    bool ClEdge::operator<(const ClEdge& rhs) const {
-        return compare(rhs) < 0;
-    }
-    
-    bool ClEdge::operator==(const ClEdge& rhs) const {
-        return compare(rhs) == 0;
-    }
-
-    int ClEdge::compare(const ClEdge& rhs) const {
-        const int sourceResult = getSource()->compare(*rhs.getSource());
-        if (sourceResult < 0)
-            return -1;
-        if (sourceResult > 0)
-            return 1;
-        const int targetResult = getTarget()->compare(*rhs.getTarget());
-        if (targetResult < 0)
-            return -1;
-        if (targetResult > 0)
-            return 1;
-        return m_label.compare(rhs.m_label);
-    }
-    
-    const String& ClEdge::getLabel() const {
-        return m_label;
-    }
-    
-    ClEdge::Type ClEdge::getType() const {
+    ClosureEdge::Type ClosureEdge::getType() const {
         return m_type;
     }
     
-    bool ClEdge::isServiceAction() const {
+    bool ClosureEdge::isServiceAction() const {
         return m_type == OutputSend || m_type == InputRead;
     }
     
-    bool ClEdge::isPartnerAction() const {
+    bool ClosureEdge::isPartnerAction() const {
         return m_type == InputSend || m_type == OutputRead;
     }
     
-    bool ClEdge::isTimeAction() const {
+    bool ClosureEdge::isTimeAction() const {
         return m_type == Time;
     }
 
@@ -130,47 +103,38 @@ namespace Tippi {
         return result.str();
     }
 
-    ClState::ClState(const Closure& closure) :
+    int ClosureState::KeyCmp::operator() (const Key& lhs, const Key& rhs) const {
+        return lhs.compare(rhs);
+    }
+
+    ClosureState::ClosureState(const Closure& closure) :
     m_closure(closure),
-    m_final(false),
     m_deadlockDistance(0),
     m_reachable(true) {}
     
-    bool ClState::operator<(const ClState& rhs) const {
-        return compare(rhs) < 0;
+    const ClosureState::Key& ClosureState::getKey(const ClosureState* state) {
+        return state->getClosure();
     }
-    
-    int ClState::compare(const ClState& rhs) const {
-        return m_closure.compare(rhs.m_closure);
-    }
-    
-    const Closure& ClState::getClosure() const {
+
+    const Closure& ClosureState::getClosure() const {
         return m_closure;
     }
     
-    bool ClState::isEmpty() const {
+    bool ClosureState::isEmpty() const {
         return m_closure.isEmpty();
     }
 
-    bool ClState::isFinal() const {
-        return m_final;
-    }
-    
-    void ClState::setFinal(bool final) {
-        m_final = final;
-    }
-    
-    bool ClState::isDeadlock() const {
+    bool ClosureState::isDeadlock() const {
         if (isFinal())
             return false;
         if (m_closure.getStates().empty())
             return false;
         
-        const ClEdge::List& outgoing = getOutgoing();
-        ClEdge::List::const_iterator it, end;
+        const ClosureEdge::List& outgoing = getOutgoing();
+        ClosureEdge::List::const_iterator it, end;
         for (it = outgoing.begin(), end = outgoing.end(); it != end; ++it) {
-            const ClEdge* edge = *it;
-            const ClState* successor = edge->getTarget();
+            const ClosureEdge* edge = *it;
+            const ClosureState* successor = edge->getTarget();
             if (successor != this && !successor->getClosure().getStates().empty())
                 return false;
         }
@@ -178,69 +142,35 @@ namespace Tippi {
         return true;
     }
 
-    size_t ClState::getDeadlockDistance() const {
+    size_t ClosureState::getDeadlockDistance() const {
         return m_deadlockDistance;
     }
     
-    void ClState::setDeadlockDistance(size_t deadlockDistance) {
+    void ClosureState::setDeadlockDistance(size_t deadlockDistance) {
         m_deadlockDistance = deadlockDistance;
     }
 
-    bool ClState::isReachable() const {
+    bool ClosureState::isReachable() const {
         return m_reachable;
     }
     
-    void ClState::setReachable(bool reachable) {
+    void ClosureState::setReachable(bool reachable) {
         m_reachable = reachable;
     }
 
-    bool ClState::hasIncomingEdge(const String& edgeLabel) const {
-        return !getPredecessors(edgeLabel).empty();
-    }
-    
-    bool ClState::hasOutgoingEdge(const String& edgeLabel) const {
-        return getSuccessor(edgeLabel) != NULL;
-    }
-
-    ClState::Set ClState::getPredecessors(const String& edgeLabel) const {
-        Set result;
-        
-        const IncomingList& edges = getIncoming();
-        IncomingList::const_iterator it, end;
-        for (it = edges.begin(), end = edges.end(); it != end; ++it) {
-            ClEdge* edge = *it;
-            if (edge->getLabel() == edgeLabel) {
-                ClState* state = edge->getSource();
-                result.insert(state);
-            }
-        }
-        return result;
-    }
-
-    const ClState* ClState::getSuccessor(const String& edgeLabel) const {
-        const OutgoingList& edges = getOutgoing();
-        OutgoingList::const_iterator it, end;
-        for (it = edges.begin(), end = edges.end(); it != end; ++it) {
-            const ClEdge* edge = *it;
-            if (edge->getLabel() == edgeLabel)
-                return edge->getTarget();
-        }
-        return NULL;
-    }
-    
-    String ClState::asString(const String& markingSeparator, const String& stateSeparator) const {
+    String ClosureState::asString(const String& markingSeparator, const String& stateSeparator) const {
         return m_closure.asString(markingSeparator, stateSeparator);
     }
 
     class StateCmp {
     public:
-        bool operator()(const ClState* lhs, const ClState* rhs) const {
+        bool operator()(const ClosureState* lhs, const ClosureState* rhs) const {
             return lhs < rhs;
         }
-        bool operator()(const ClState* lhs, const Closure& rhs) const {
+        bool operator()(const ClosureState* lhs, const Closure& rhs) const {
             return lhs->getClosure() < rhs;
         }
-        bool operator()(const Closure& lhs, const ClState* rhs) const {
+        bool operator()(const Closure& lhs, const ClosureState* rhs) const {
             return lhs < rhs->getClosure();
         }
         bool operator()(const Closure& lhs, const Closure& rhs) const {
@@ -248,127 +178,27 @@ namespace Tippi {
         }
     };
     
-    ClAutomaton::ClAutomaton() :
-    m_initialState(NULL),
+    ClosureAutomaton::ClosureAutomaton() :
     m_maxDeadlockDistance(0) {}
-    
-    ClAutomaton::~ClAutomaton() {
-        SetUtils::clearAndDelete(m_states);
-        SetUtils::clearAndDelete(m_edges);
-        m_initialState = NULL;
-        m_finalStates.clear();
-    }
-    
-    ClState* ClAutomaton::createState(const Closure& closure) {
-        ClState* state = new ClState(closure);
-        ClState::Set::iterator it = m_states.lower_bound(state);
-        if (it != m_states.end() && SetUtils::equals(m_states, state, *it)) {
-            delete state;
-            throw AutomatonException("Closure automaton already contains a state with the given closure");
-        }
-        m_states.insert(it, state);
-        return state;
-    }
-    
-    std::pair<ClState*, bool> ClAutomaton::findOrCreateState(const Closure& closure) {
-        ClState* state = new ClState(closure);
-        ClState::Set::iterator it = m_states.lower_bound(state);
-        if (it != m_states.end() && SetUtils::equals(m_states, state, *it)) {
-            delete state;
-            return std::make_pair(*it, false);
-        }
-        m_states.insert(it, state);
-        return std::make_pair(state, true);
-    }
-    
-    ClEdge* ClAutomaton::connect(ClState* source, ClState* target, const String& label, const ClEdge::Type type) {
-        assert(source != NULL);
-        assert(target != NULL);
-        assert(m_states.count(source) == 1);
-        assert(m_states.count(target) == 1);
-        
-        ClEdge* edge = new ClEdge(source, target, label, type);
-        ClEdge::Set::iterator it = m_edges.lower_bound(edge);
-        if (it != m_edges.end() && SetUtils::equals(m_edges, edge, *it)) {
-            delete edge;
-            return *it;
-        }
-        
-        m_edges.insert(it, edge);
-        source->addOutgoing(edge);
-        target->addIncoming(edge);
-        return edge;
-    }
-    
-    void ClAutomaton::deleteState(ClState* state) {
-        // std::cout << "   Delete state: " << state->asString(",", ";") << std::endl;
 
-        assert(state != NULL);
-        ClState::Set::iterator it = m_states.lower_bound(state);
-        assert(it != m_states.end() && SetUtils::equals(m_states, state, *it));
-        
-        deleteIncomingEdges(state);
-        deleteOutgoingEdges(state);
-        m_states.erase(it);
-
-        if (m_initialState == state)
-            m_initialState = NULL;
-        SetUtils::remove(m_finalStates, state);
-        delete state;
-    }
-    
-    void ClAutomaton::disconnect(ClEdge* edge) {
-        assert(edge != NULL);
-        
-        ClEdge::Set::iterator it = m_edges.find(edge);
-        assert(it != m_edges.end());
-        
-        edge->removeFromSource();
-        edge->removeFromTarget();
-        m_edges.erase(it);
-        delete edge;
-    }
-    
-    void ClAutomaton::setInitialState(ClState* state) {
-        m_initialState = state;
-    }
-    
-    void ClAutomaton::addFinalState(ClState* state) {
-        if (!state->isFinal())
-            throw AutomatonException("The given state is not a final state");
-        m_finalStates.insert(state);
-    }
-    
-    const ClState::Set& ClAutomaton::getStates() const {
-        return m_states;
-    }
-    
-    const ClState* ClAutomaton::findState(const Closure& closure) const {
-        ClState query(closure);
-        ClState::Set::const_iterator it = m_states.find(&query);
-        if (it == m_states.end())
+    const ClosureState* ClosureAutomaton::findState(const Closure& closure) const {
+        ClosureState query(closure);
+        StateSet::const_iterator it = getStates().find(&query);
+        if (it == getStates().end())
             return NULL;
         return *it;
     }
     
-    ClState* ClAutomaton::getInitialState() const {
-        return m_initialState;
-    }
-    
-    const ClState::Set& ClAutomaton::getFinalStates() const {
-        return m_finalStates;
-    }
-    
-    size_t ClAutomaton::getMaxDeadlockDistance() const {
+    size_t ClosureAutomaton::getMaxDeadlockDistance() const {
         return m_maxDeadlockDistance;
     }
     
-    void ClAutomaton::setMaxDeadlockDistnace(size_t maxDeadlockDistance) {
+    void ClosureAutomaton::setMaxDeadlockDistnace(size_t maxDeadlockDistance) {
         m_maxDeadlockDistance = maxDeadlockDistance;
     }
 
-    ClState::Set ClAutomaton::findUnreachableStates() const {
-        ClState::Set unreachable;
+    ClosureAutomaton::StateSet ClosureAutomaton::findUnreachableStates() const {
+        StateSet unreachable;
         
         size_t count;
         do {
@@ -379,37 +209,16 @@ namespace Tippi {
         return unreachable;
     }
 
-    void ClAutomaton::doFindUnreachableStates(ClState::Set& unreachable) const {
-        ClState::Set::const_iterator it, end;
-        for (it = m_states.begin(), end = m_states.end(); it != end; ++it) {
-            ClState* state = *it;
-            if (state != m_initialState &&
+    void ClosureAutomaton::doFindUnreachableStates(StateSet& unreachable) const {
+        const StateSet& states = getStates();
+        StateSet::const_iterator it, end;
+        for (it = states.begin(), end = states.end(); it != end; ++it) {
+            ClosureState* state = *it;
+            if (state != getInitialState() &&
                 unreachable.count(state) == 0 &&
                 state->isPresetSubsetOfIgnoringLoops(unreachable))
                 unreachable.insert(state);
         }
         
-    }
-    
-    void ClAutomaton::deleteIncomingEdges(ClState* state) {
-        const ClState::IncomingList& incomingEdges = state->getIncoming();
-        ClState::IncomingList::const_iterator it, end;
-        for (it = incomingEdges.begin(), end = incomingEdges.end(); it != end; ++it) {
-            ClEdge* edge = *it;
-            SetUtils::remove(m_edges, edge);
-            edge->removeFromSource();
-            delete edge;
-        }
-    }
-    
-    void ClAutomaton::deleteOutgoingEdges(ClState* state) {
-        const ClState::OutgoingList& outgoingEdges = state->getOutgoing();
-        ClState::OutgoingList::const_iterator it, end;
-        for (it = outgoingEdges.begin(), end = outgoingEdges.end(); it != end; ++it) {
-            ClEdge* edge = *it;
-            SetUtils::remove(m_edges, edge);
-            edge->removeFromTarget();
-            delete edge;
-        }
     }
 }

@@ -20,8 +20,8 @@
 #include "RemoveUnreachableStates.h"
 
 namespace Tippi {
-    RemoveUnreachableStates::ClPtr RemoveUnreachableStates::operator()(ClPtr automaton) const {
-        const ClState::Set unreachable = automaton->findUnreachableStates();
+    ClosureAutomaton::Ptr RemoveUnreachableStates::operator()(ClosureAutomaton::Ptr automaton) const {
+        const ClosureAutomaton::StateSet unreachable = automaton->findUnreachableStates();
         automaton->deleteStates(unreachable.begin(), unreachable.end());
         
         /*

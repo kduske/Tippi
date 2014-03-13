@@ -25,8 +25,12 @@
 #include <cassert>
 
 namespace Tippi {
-    ConstructBehavior::ConstructBehavior(const bool createBoundViolationState) :
-    m_createBoundViolationState(createBoundViolationState) {}
+    ConstructBehavior::ConstructBehavior() :
+    m_createBoundViolationState(false) {}
+
+    void ConstructBehavior::createBoundViolationState() {
+        m_createBoundViolationState = true;
+    }
 
     Behavior::Ptr ConstructBehavior::operator()(const NetPtr net) const {
         Behavior::Ptr behavior(new Behavior());
