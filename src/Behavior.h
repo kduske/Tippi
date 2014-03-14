@@ -36,7 +36,8 @@ namespace Tippi {
     public:
         typedef std::vector<BehaviorEdge*> List;
     public:
-        BehaviorEdge(BehaviorState* source, BehaviorState* target, const String& label, bool tauEdge);
+        BehaviorEdge(BehaviorState* source, BehaviorState* target, const String& label);
+        BehaviorEdge(BehaviorState* source, BehaviorState* target);
     };
     
     class BehaviorState : public AutomatonState<BehaviorEdge> {

@@ -25,8 +25,8 @@
 
 namespace Tippi {
     struct Automaton2Text {
-        template <class State, class Edge>
-        void operator()(const Automaton<State,Edge>* automaton, std::ostream& stream) const {
+        template <class A>
+        void operator()(const A* automaton, std::ostream& stream) const {
             stream << "AUTOMATON" << std::endl;
             writeStates(automaton, stream);
             writeEdges(automaton, stream);
@@ -34,45 +34,45 @@ namespace Tippi {
             writeFinalStates(automaton, stream);
         }
     private:
-        template <class State, class Edge>
-        void writeStates(const Automaton<State,Edge>* automaton, std::ostream& stream) const {
-            writeStates<State>(automaton->getStates(), stream, "STATES");
+        template <class A>
+        void writeStates(const A* automaton, std::ostream& stream) const {
+            writeStates<typename A::State>(automaton->getStates(), stream, "STATES");
         }
         
-        template <class State, class Edge>
-        void writeEdges(const Automaton<State,Edge>* automaton, std::ostream& stream) const {
-            const typename Edge::Set& edges = automaton->getEdges();
+        template <class A>
+        void writeEdges(const A* automaton, std::ostream& stream) const {
+            const typename A::EdgeSet& edges = automaton->getEdges();
             
-            typename Edge::Set::const_iterator it, end;
+            typename A::EdgeSet::const_iterator it, end;
             for (it = edges.begin(), end = edges.end(); it != end; ++it) {
-                const Edge* edge = *it;
-                stream << "TRANSITION " << edge->getLabel() << "; FROM " << edge->getSource()->getName() << "; TO " << edge->getTarget()->getName() << ";" << std::endl;
+                const typename A::Edge* edge = *it;
+                stream << "TRANSITION " << edge->getLabel() << "; FROM " << edge->getSource()->getId() << "; TO " << edge->getTarget()->getId() << ";" << std::endl;
             }
         }
 
-        template <class State, class Edge>
-        void writeInitialState(const Automaton<State,Edge>* automaton, std::ostream& stream) const {
-            const State* initialState = automaton->getInitialState();
+        template <class A>
+        void writeInitialState(const A* automaton, std::ostream& stream) const {
+            const typename A::State* initialState = automaton->getInitialState();
             if (initialState != NULL)
-                stream << "INITIALSTATE " << initialState->getName() << ";" << std::endl;
+                stream << "INITIALSTATE " << initialState->getId() << ";" << std::endl;
         }
 
-        template <class State, class Edge>
-        void writeFinalStates(const Automaton<State,Edge>* automaton, std::ostream& stream) const {
-            writeStates<State>(automaton->getFinalStates(), stream, "FINALSTATES");
+        template <class A>
+        void writeFinalStates(const A* automaton, std::ostream& stream) const {
+            writeStates<typename A::State>(automaton->getFinalStates(), stream, "FINALSTATES");
         }
         
         
-        template <class State>
-        void writeStates(const typename State::Set& states, std::ostream& stream, const String& header) const {
+        template <class State, class C>
+        void writeStates(const C& states, std::ostream& stream, const String& header) const {
             if (!states.empty()) {
                 stream << header << " ";
                 
-                typename State::Set::const_iterator it = states.begin();
-                const typename State::Set::const_iterator end = states.end();
+                typename C::const_iterator it = states.begin();
+                const typename C::const_iterator end = states.end();
                 while (it != end) {
                     const State* state = *it;
-                    stream << state->getName();
+                    stream << state->getId();
                     ++it;
                     if (it != end)
                         stream << ",";

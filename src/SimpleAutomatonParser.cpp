@@ -175,9 +175,9 @@ namespace Tippi {
         expect(SimpleAutomatonToken::Semicolon, token = m_tokenizer.nextToken());
         
         if (label.empty())
-            automaton.connectWithTauEdge(fromState, toState);
+            automaton.connectWithUnobservableEdge(fromState, toState);
         else
-            automaton.connectWithLabeledEdge(fromState, toState, label);
+            automaton.connectWithObservableEdge(fromState, toState, label);
     }
     
     void SimpleAutomatonParser::parseInitialState(SimpleAutomaton& automaton) {

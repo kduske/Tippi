@@ -26,8 +26,8 @@
 #include <cassert>
 
 namespace Tippi {
-    ClosureEdge::ClosureEdge(ClosureState* source, ClosureState* target, const String& label, const bool tau, const Type type) :
-    AutomatonEdge(source, target, label, tau),
+    ClosureEdge::ClosureEdge(ClosureState* source, ClosureState* target, const String& label, const Type type) :
+    AutomatonEdge(source, target, label),
     m_type(type) {}
     
     ClosureEdge::Type ClosureEdge::getType() const {

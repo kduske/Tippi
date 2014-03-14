@@ -22,11 +22,8 @@
 #include "Exceptions.h"
 
 namespace Tippi {
-    RegionEdge::RegionEdge(RegionState* source, RegionState* target, const String& label, const bool tau) :
-    AutomatonEdge(source, target, label, tau) {}
-    
-    RegionState::RegionState(const Region& region) :
-    m_region(region) {}
+    RegionEdge::RegionEdge(RegionState* source, RegionState* target, const String& label) :
+    AutomatonEdge(source, target, label) {}
     
     int RegionState::KeyCmp::operator() (const Key& lhs, const Key& rhs) const {
         Region::const_iterator lit = lhs.begin();
@@ -51,6 +48,13 @@ namespace Tippi {
         if (rit != rend)
             return -1;
         return 0;
+    }
+
+    RegionState::RegionState(const Region& region) :
+    m_region(region) {}
+    
+    const RegionState::Key& RegionState::getKey(const RegionState* state) {
+        return state->getRegion();
     }
 
     const Region& RegionState::getRegion() const {

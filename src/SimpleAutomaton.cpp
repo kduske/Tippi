@@ -22,8 +22,11 @@
 #include <cassert>
 
 namespace Tippi {
-    SimpleAutomatonEdge::SimpleAutomatonEdge(SimpleAutomatonState* source, SimpleAutomatonState* target, const String& label, bool tau) :
-    AutomatonEdge(source, target, label, tau) {}
+    SimpleAutomatonEdge::SimpleAutomatonEdge(SimpleAutomatonState* source, SimpleAutomatonState* target, const String& label) :
+    AutomatonEdge(source, target, label) {}
+
+    SimpleAutomatonEdge::SimpleAutomatonEdge(SimpleAutomatonState* source, SimpleAutomatonState* target) :
+    AutomatonEdge(source, target) {}
 
     int SimpleAutomatonState::KeyCmp::operator() (const Key& lhs, const Key& rhs) const {
         return lhs.compare(rhs);

@@ -31,70 +31,169 @@
 #include <vector>
 
 namespace Tippi {
+    /**
+     An edge connects two states of an automaton. An edge is directed and it can either be a 
+     observable edge or unobservable, in which case its label is ignored.
+     
+     This class template is supposed to be derived from.
+     
+     @tparam State the type of the automaton states
+     */
     template <class State>
     class AutomatonEdge : public GraphEdge<State, State> {
     protected:
         String m_label;
-        bool m_tau;
+        bool m_observable;
     protected:
-        AutomatonEdge(State* source, State* target, const String& label, bool tau) :
+        /**
+         Create an observable new edge that connects the given source and target states. Neither
+         the source nor the target states must be NULL.
+         
+         @param source the source state
+         @param target the target state
+         @param label the label
+         */
+        AutomatonEdge(State* source, State* target, const String& label) :
         GraphEdge<State, State>(source, target),
         m_label(label),
-        m_tau(tau) {
+        m_observable(true) {
             assert(source != NULL);
             assert(target != NULL);
-            assert(!tau || label.empty());
+        }
+
+        /**
+         Creates an unobservable edge that connects the given source and target states. Neither the
+         source nor the target states must be NULL.
+         
+         @param source the source state
+         @param target the target state
+         */
+        AutomatonEdge(State* source, State* target) :
+        GraphEdge<State, State>(source, target),
+        m_label(""),
+        m_observable(false) {
+            assert(source != NULL);
+            assert(target != NULL);
         }
     public:
         virtual ~AutomatonEdge() {}
 
+        /**
+         Returns the label of this edge. If the edge is unobservable, the label will be empty.
+         */
         const String& getLabel() const {
             return m_label;
         }
         
-        bool isTau() const {
-            return m_tau;
+        /**
+         Indicates whether this edge is observable.
+         */
+        bool isObservable() const {
+            return m_observable;
         }
     };
     
+    /**
+     A state of an automaton. Each state has an id, which must be set after it was created, and
+     each state can either be final or nonfinal.
+     
+     This class template is supposed to be derived from. Implementers must provide two public types
+     and one static public method <tt>getKey</tt>. The <tt>Key</tt> type is used to identify 
+     particular states. 
+     
+     The <tt>KeyCmp</tt> type is used to compare keys (and states, by virtue of the <tt>getKey</tt> 
+     public method). It must provide a callable operator that takes two const pointers to state 
+     instances and returns an <tt>int</int>:
+     
+         int operator()(const SimpleAutomatonState* lhs, const SimpleAutomatonState* rhs) const;
+     
+     If lhs is considered less than rhs, the returned value must be negative. If lhs is considered
+     greater than rhs, the returned value must be positive. Otherwise, the returned value must be 0.
+
+     The static <tt>getKey</tt> method returns the key for a given state and must have a signature
+     such as:
+     
+         static const Key& getKey(const SimpleAutomatonState* state);
+     
+     Together, these two types and the <tt>getKey</tt> method define a weak ordering of the
+     automaton states.
+     
+     @tparam Edge the type of the edges of the automaton
+     */
     template <class Edge>
     class AutomatonState : public GraphNode<Edge, Edge> {
     protected:
         size_t m_id;
         bool m_final;
     protected:
+        /**
+         Creates a new, nonfinal state.
+         */
         AutomatonState() :
         m_id(0),
         m_final(false) {}
     public:
         virtual ~AutomatonState() {}
 
+        /**
+         Returns the id of this state.
+         */
         size_t getId() const {
             assert(m_id > 0);
             return m_id;
         }
         
+        /**
+         Sets the id of this state.
+         
+         @param i_id the new id
+         */
         void setId(const size_t i_id) {
             assert(i_id > 0);
             m_id = i_id;
         }
         
+        /**
+         Indicates whether this state is final.
+         */
         bool isFinal() const {
             return m_final;
         }
         
+        /**
+         Specifies whether this state is final
+         
+         @param final whether the state is final or not
+         */
         void setFinal(const bool final) {
             m_final = final;
         }
 
+        /**
+         Indicates whether this state has an observable incoming edge with the given label.
+         
+         @param label the label of the incoming edge
+         */
         bool hasIncomingEdge(const String& label) const {
             return findDirectPredecessor(label) != NULL;
         }
         
+        /**
+         Indicates whether this state has an observable outgoing edge with the given label.
+         
+         @param label the laben of the outgoing edge
+         */
         bool hasOutgoingEdge(const String& label) const {
             return findDirectSuccessor(label) != NULL;
         }
         
+        /**
+         Returns a vector of all states which have an observable outgoing edge ending in this state
+         and having the given label.
+         
+         @param label the label of the incoming edges
+         @return a possibly empty vector of states
+         */
         const std::vector<typename Edge::Source*> getDirectPredecessors(const String& label) const {
             std::vector<typename Edge::Target*> result;
             const typename GraphNode<Edge, Edge>::IncomingList& edges = GraphNode<Edge, Edge>::getIncoming();
@@ -107,6 +206,14 @@ namespace Tippi {
             return result;
         }
         
+        /**
+         Returns a state that has an observable outgoing edge ending in this state and having the 
+         given label. If no such state exists, this method returns NULL. If more than one such 
+         states exist, any of these states can be returned.
+         
+         @param label the label of the incoming edge
+         @return a state or NULL
+         */
         const typename Edge::Source* findDirectPredecessor(const String& label) const {
             const typename GraphNode<Edge, Edge>::IncomingList& edges = GraphNode<Edge, Edge>::getIncoming();
             typename GraphNode<Edge, Edge>::IncomingList::const_iterator it, end;
@@ -118,6 +225,13 @@ namespace Tippi {
             return NULL;
         }
         
+        /**
+         Returns a vector of all states which have an observable incoming edge originating in this 
+         state and having the given label.
+         
+         @param label the label of the outgoing edges
+         @return a possibly empty vector of states
+         */
         const std::vector<typename Edge::Target*> getDirectSuccessors(const String& label) const {
             std::vector<typename Edge::Target*> result;
             const typename GraphNode<Edge, Edge>::OutgoingList& edges = GraphNode<Edge, Edge>::getOutgoing();
@@ -130,6 +244,14 @@ namespace Tippi {
             return result;
         }
         
+        /**
+         Returns a state that has an observable incoming edge originating in this state and having 
+         the given label. If no such state exists, this method returns NULL. If more than one such 
+         states exist, this method returns one of these states.
+         
+         @param label the label of the outgoing edge
+         @return a state or NULL
+         */
         const typename Edge::Target* findDirectSuccessor(const String& label) const {
             const typename GraphNode<Edge, Edge>::OutgoingList& edges = GraphNode<Edge, Edge>::getOutgoing();
             typename GraphNode<Edge, Edge>::OutgoingList::const_iterator it, end;
@@ -141,12 +263,27 @@ namespace Tippi {
             return NULL;
         }
         
+        /**
+         Returns a vector of all states reachable from this state with only unobservable edges 
+         followed by one edge with the given label.
+         
+         @param label the label of the last edge
+         @return a possibly empty vector of states
+         */
         const std::vector<typename Edge::Target*> getIndirectSuccessors(const String& label) const {
             std::vector<typename Edge::Target*> result;
             getIndirectSuccessors(label, result);
             return result;
         }
 
+        /**
+         Returns a state which is reachable from this state with only unobservable edges followed
+         by one edge with the given label. If no such state exists, this method returns NULL. If
+         more than one such states exist, this method returns one of these states.
+         
+         @param label the label of the last edge
+         @return a state or NULL
+         */
         const typename Edge::Target* findIndirectSuccessor(const String& label) const {
             const typename GraphNode<Edge, Edge>::OutgoingList& edges = GraphNode<Edge, Edge>::getOutgoing();
             typename GraphNode<Edge, Edge>::OutgoingList::const_iterator it, end;
@@ -154,14 +291,14 @@ namespace Tippi {
             // first look for direct successors
             for (it = edges.begin(), end = edges.end(); it != end; ++it) {
                 const Edge* edge = *it;
-                if (!edge->isTau() && edge->getLabel() == label)
+                if (edge->isObservable() && edge->getLabel() == label)
                     return edge->getTarget();
             }
             
             // now recursively look for indirect successors
             for (it = edges.begin(), end = edges.end(); it != end; ++it) {
                 const Edge* edge = *it;
-                if (edge->isTau()) {
+                if (!edge->isObservable()) {
                     const typename Edge::Target* target = edge->getTarget();
                     const typename Edge::Target* successor = target->findIndirectSuccessor(label);
                     if (successor != NULL)
@@ -185,9 +322,22 @@ namespace Tippi {
         }
     };
     
+    /**
+     An automaton consisting of states and directed edges. Each automaton can have one initial state
+     and zero or more final states.
+     
+     This class template is supposed to be derived from.
+     
+     @tparam StateT the type of the automaton states, must be derived from AutomatonState
+     @tparam EdgeT the type of the automaton edges, must be derived from AutomatonEdge
+     */
     template <class StateT, class EdgeT>
     class Automaton {
     private:
+        /**
+         Implements a weak less comparison operator for states by virtue of the StateT::Key type,
+         the StateT::KeyCmp type and the static StateT::getKey method.
+         */
         struct StateLess {
             typename StateT::KeyCmp m_cmp;
             
@@ -212,6 +362,11 @@ namespace Tippi {
                 return m_cmp(lhs, rhs) < 0;
             }
         };
+        /**
+         Implements a weak less comparison operator for edges by virtue of the StateT::Key type,
+         the StateT::KeyCmp type and the static StateT::getKey method. If the source and target
+         states of two edges are considered equal, the label is used as the order criterion.
+         */
         struct EdgeLess {
             typename StateT::KeyCmp m_stateCmp;
             
@@ -246,6 +401,9 @@ namespace Tippi {
         
         size_t m_nextId;
     protected:
+        /**
+         Creates a new automaton.
+         */
         Automaton() :
         m_initialState(NULL),
         m_nextId(1) {}
@@ -257,6 +415,9 @@ namespace Tippi {
             m_finalStates.clear();
         }
         
+        /**
+         Returns the maximum state id.
+         */
         size_t getMaxId() const {
             return m_nextId - 1;
         }
@@ -336,42 +497,42 @@ namespace Tippi {
             }
         }
         
-        EdgeT* connectWithLabeledEdge(StateT* source, StateT* target, const String& label) {
-            return connect(new EdgeT(source, target, label, false));
+        EdgeT* connectWithObservableEdge(StateT* source, StateT* target, const String& label) {
+            return connect(new EdgeT(source, target, label));
         }
         
         template <typename A1>
-        EdgeT* connectWithLabeledEdge(StateT* source, StateT* target, const String& label, const A1& a1) {
-            return connect(new EdgeT(source, target, label, false, a1));
+        EdgeT* connectWithObservableEdge(StateT* source, StateT* target, const String& label, const A1& a1) {
+            return connect(new EdgeT(source, target, label, a1));
         }
         
         template <typename A1, typename A2>
-        EdgeT* connectWithLabeledEdge(StateT* source, StateT* target, const String& label, const A1& a1, const A2& a2) {
-            return connect(new EdgeT(source, target, label, false, a1, a2));
+        EdgeT* connectWithObservableEdge(StateT* source, StateT* target, const String& label, const A1& a1, const A2& a2) {
+            return connect(new EdgeT(source, target, label, a1, a2));
         }
         
         template <typename A1, typename A2, typename A3>
-        EdgeT* connectWithLabeledEdge(StateT* source, StateT* target, const String& label, const A1& a1, const A2& a2, const A3& a3) {
-            return connect(new EdgeT(source, target, label, false, a1, a2, a3));
+        EdgeT* connectWithObservableEdge(StateT* source, StateT* target, const String& label, const A1& a1, const A2& a2, const A3& a3) {
+            return connect(new EdgeT(source, target, label, a1, a2, a3));
         }
         
-        EdgeT* connectWithTauEdge(StateT* source, StateT* target) {
-            return connect(new EdgeT(source, target, "", true));
+        EdgeT* connectWithUnobservableEdge(StateT* source, StateT* target) {
+            return connect(new EdgeT(source, target));
         }
         
         template <typename A1>
-        EdgeT* connectWithTauEdge(StateT* source, StateT* target, const A1& a1) {
-            return connect(new EdgeT(source, target, "", true, a1));
+        EdgeT* connectWithUnobservableEdge(StateT* source, StateT* target, const A1& a1) {
+            return connect(new EdgeT(source, target, a1));
         }
         
         template <typename A1, typename A2>
-        EdgeT* connectWithTauEdge(StateT* source, StateT* target, const A1& a1, const A2& a2) {
-            return connect(new EdgeT(source, target, "", true, a1, a2));
+        EdgeT* connectWithUnobservableEdge(StateT* source, StateT* target, const A1& a1, const A2& a2) {
+            return connect(new EdgeT(source, target, a1, a2));
         }
         
         template <typename A1, typename A2, typename A3>
-        EdgeT* connectWithTauEdge(StateT* source, StateT* target, const A1& a1, const A2& a2, const A3& a3) {
-            return connect(new EdgeT(source, target, "", true, a1, a2, a3));
+        EdgeT* connectWithUnobservableEdge(StateT* source, StateT* target, const A1& a1, const A2& a2, const A3& a3) {
+            return connect(new EdgeT(source, target, a1, a2, a3));
         }
 
         void disconnect(EdgeT* edge) {
@@ -560,7 +721,7 @@ namespace Tippi {
             for (oIt = otherEdges.begin(), oEnd = otherEdges.end(); oIt != oEnd; ++oIt) {
                 const typename Other::Outgoing* otherEdge = *oIt;
                 const Other* otherSuccessor = otherEdge->getTarget();
-                if (otherEdge->isTau()) {
+                if (!otherEdge->isObservable()) {
                     if (!weaklySimulates(mine, otherSuccessor, relation))
                         return false;
                 } else {

@@ -24,11 +24,15 @@
 #include "RemoveDeadlocks.h"
 #include "RemoveUnreachableStates.h"
 #include "RenderClosureAutomaton.h"
+#include "Automaton2Text.h"
 
 #include <getoptpp/getopt_pp.h>
 #include <cassert>
 #include <iostream>
 
+void printUsage() {
+    std::cout << "Usage:" << std::endl;
+}
 
 int main(int argc, const char* argv[]) {
     using namespace Tippi;
@@ -36,15 +40,18 @@ int main(int argc, const char* argv[]) {
     
     bool keepDeadlocks = false;
     bool showEmptyState = false;
+    String format = "text";
     GetOpt_pp ops(argc, argv);
-    ops >> OptionPresent('d', "keepDeadlocks", keepDeadlocks) >> OptionPresent('e', "showEmptyState", showEmptyState);
+    ops >> OptionPresent('d', "keepDeadlocks", keepDeadlocks);
+    ops >> OptionPresent('e', "showEmptyState", showEmptyState);
+    ops >> Option('f', "format", format);
     
     LoadIntervalNet loader;
     ConstructMaximalNet maximal;
     ConstructClosureAutomaton closure;
     
     LoadIntervalNet::NetPtr net = loader(std::cin);
-    ConstructClosureAutomaton::ClPtr cl = closure(maximal(net));
+    ClosureAutomaton::Ptr cl = closure(maximal(net));
     if (!keepDeadlocks) {
         RemoveDeadlocks deadlocks;
         RemoveUnreachableStates unreachable;
@@ -53,9 +60,18 @@ int main(int argc, const char* argv[]) {
     }
     
     ConstructRegionAutomaton region;
-    ConstructRegionAutomaton::RePtr re = region(cl);
+    RegionAutomaton::Ptr re = region(cl);
     
-    RenderClosureAutomaton render(showEmptyState);
-    render(cl, re, std::cout);
+    if (format == "text") {
+        Automaton2Text render;
+        render(re.get(), std::cout);
+    } else if (format == "dot") {
+        RenderClosureAutomaton render(showEmptyState);
+        render(cl, re, std::cout);
+    } else {
+        printUsage();
+        exit(1);
+    }
+    
 }
 

@@ -97,6 +97,7 @@ namespace Tippi {
                                                                  "FINALSTATES 2,3;\n").parse();
         ASSERT_TRUE(automaton != NULL);
         ASSERT_EQ(4u, automaton->getStates().size());
+        ASSERT_EQ(5u, automaton->getEdges().size());
         
         SimpleAutomatonState* state1 = automaton->findState("1");
         SimpleAutomatonState* state2 = automaton->findState("2");

@@ -137,7 +137,7 @@ namespace Tippi {
             const Closure succClosure(succClosureStates);
             const ClosureStateResult succStateResult = automaton->findOrCreateState(succClosure);
             ClosureState* succState = succStateResult.first;
-            automaton->connectWithLabeledEdge(state, succState, label, type);
+            automaton->connectWithObservableEdge(state, succState, label, type);
             if (succStateResult.second) {
                 if (isFinalState(net, succState)) {
                     succState->setFinal(true);

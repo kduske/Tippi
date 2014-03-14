@@ -25,9 +25,12 @@
 #include <cassert>
 
 namespace Tippi {
-    BehaviorEdge::BehaviorEdge(BehaviorState* source, BehaviorState* target, const String& label, const bool tau) :
-    AutomatonEdge<BehaviorState>(source, target, label, tau) {}
+    BehaviorEdge::BehaviorEdge(BehaviorState* source, BehaviorState* target, const String& label) :
+    AutomatonEdge(source, target, label) {}
     
+    BehaviorEdge::BehaviorEdge(BehaviorState* source, BehaviorState* target) :
+    AutomatonEdge(source, target) {}
+
     BehaviorState::Key::Key(const Interval::NetState& i_netState, const bool i_boundViolation) :
     netState(i_netState),
     boundViolation(i_boundViolation) {}

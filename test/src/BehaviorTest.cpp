@@ -59,15 +59,15 @@ namespace Tippi {
                                                                 Marking::createMarking(0, 0)));
         BehaviorState* state2 = behavior.createState(Interval::NetState(Marking::createMarking(1, 0, 0),
                                                                 Marking::createMarking(0, 0)));
-        const BehaviorEdge* edge = behavior.connectWithLabeledEdge(state1, state2, "test");
+        const BehaviorEdge* edge = behavior.connectWithObservableEdge(state1, state2, "test");
         ASSERT_EQ(state1, edge->getSource());
         ASSERT_EQ(state2, edge->getTarget());
         ASSERT_EQ(String("test"), edge->getLabel());
         ASSERT_TRUE(state1->isInPostset(state2));
         ASSERT_TRUE(state2->isInPreset(state1));
         
-        ASSERT_EQ(edge, behavior.connectWithLabeledEdge(state1, state2, "test"));
-        ASSERT_NE(edge, behavior.connectWithLabeledEdge(state1, state2, "test2"));
+        ASSERT_EQ(edge, behavior.connectWithObservableEdge(state1, state2, "test"));
+        ASSERT_NE(edge, behavior.connectWithObservableEdge(state1, state2, "test2"));
     }
     
     TEST(BehaviorTest, checkDeterministicSimulation) {
@@ -84,45 +84,45 @@ namespace Tippi {
         
         BehaviorState* init2_a = beh2.createState(Interval::NetState(Marking::createMarking(0, 1, 0),
                                                              Marking::createMarking(0, 0)));
-        beh2.connectWithLabeledEdge(init2, init2_a, "a");
+        beh2.connectWithObservableEdge(init2, init2_a, "a");
         ASSERT_FALSE(beh1.simulates(beh2));
         
         BehaviorState* init1_a = beh1.createState(Interval::NetState(Marking::createMarking(0, 0, 1),
                                                              Marking::createMarking(0, 0)));
-        beh1.connectWithLabeledEdge(init1, init1_a, "a");
+        beh1.connectWithObservableEdge(init1, init1_a, "a");
         ASSERT_TRUE(beh1.simulates(beh2));
         
         BehaviorState* init1_b = beh1.createState(Interval::NetState(Marking::createMarking(0, 0, 2),
                                                              Marking::createMarking(0, 0)));
-        beh1.connectWithLabeledEdge(init1, init1_b, "b");
+        beh1.connectWithObservableEdge(init1, init1_b, "b");
         ASSERT_TRUE(beh1.simulates(beh2));
         
         BehaviorState* init2_b = beh2.createState(Interval::NetState(Marking::createMarking(0, 2, 0),
                                                              Marking::createMarking(0, 0)));
-        beh2.connectWithLabeledEdge(init2, init2_b, "b");
+        beh2.connectWithObservableEdge(init2, init2_b, "b");
         ASSERT_TRUE(beh1.simulates(beh2));
         
-        beh1.connectWithLabeledEdge(init1_b, init1, "a");
+        beh1.connectWithObservableEdge(init1_b, init1, "a");
         ASSERT_TRUE(beh1.simulates(beh2));
         
         BehaviorState* init2_b_a = beh2.createState(Interval::NetState(Marking::createMarking(0, 3, 0),
                                                                Marking::createMarking(0, 0)));
-        beh2.connectWithLabeledEdge(init2_b, init2_b_a, "a");
+        beh2.connectWithObservableEdge(init2_b, init2_b_a, "a");
         ASSERT_TRUE(beh1.simulates(beh2));
         
         BehaviorState* init2_b_a_a = beh2.createState(Interval::NetState(Marking::createMarking(0, 4, 0),
                                                                  Marking::createMarking(0, 0)));
-        beh2.connectWithLabeledEdge(init2_b_a, init2_b_a_a, "a");
+        beh2.connectWithObservableEdge(init2_b_a, init2_b_a_a, "a");
         ASSERT_TRUE(beh1.simulates(beh2));
         
         BehaviorState* init2_b_a_b = beh2.createState(Interval::NetState(Marking::createMarking(0, 5, 0),
                                                                  Marking::createMarking(0, 0)));
-        beh2.connectWithLabeledEdge(init2_b_a, init2_b_a_b, "b");
+        beh2.connectWithObservableEdge(init2_b_a, init2_b_a_b, "b");
         ASSERT_TRUE(beh1.simulates(beh2));
         
         BehaviorState* init2_b_a_a_b = beh2.createState(Interval::NetState(Marking::createMarking(0, 6, 0),
                                                                    Marking::createMarking(0, 0)));
-        beh2.connectWithLabeledEdge(init2_b_a_a, init2_b_a_a_b, "b");
+        beh2.connectWithObservableEdge(init2_b_a_a, init2_b_a_a_b, "b");
         ASSERT_FALSE(beh1.simulates(beh2));
         
         /*
@@ -158,9 +158,9 @@ namespace Tippi {
                                                              Marking::createMarking(0, 0)));
 
         beh1.setInitialState(init1);
-        beh1.connectWithLabeledEdge(init1, init1_a, "a");
-        beh1.connectWithLabeledEdge(init1, init1_b, "b");
-        beh1.connectWithLabeledEdge(init1_b, init1, "c");
+        beh1.connectWithObservableEdge(init1, init1_a, "a");
+        beh1.connectWithObservableEdge(init1, init1_b, "b");
+        beh1.connectWithObservableEdge(init1_b, init1, "c");
         
         BehaviorState* init2 = beh2.createState(Interval::NetState(Marking::createMarking(0, 0, 0),
                                                            Marking::createMarking(0, 0)));
@@ -178,12 +178,12 @@ namespace Tippi {
                                                                   Marking::createMarking(0, 0)));
 
         beh2.setInitialState(init2);
-        beh2.connectWithLabeledEdge(init2, init2_a, "a");
-        beh2.connectWithLabeledEdge(init2, init2_b, "b");
-        beh2.connectWithLabeledEdge(init2_b, init2_b_c1, "c");
-        beh2.connectWithLabeledEdge(init2_b, init2_b_c2, "c");
-        beh2.connectWithLabeledEdge(init2_b_c1, init2_b_c1_a, "a");
-        beh2.connectWithLabeledEdge(init2_b_c1, init2_b_c1_b, "b");
+        beh2.connectWithObservableEdge(init2, init2_a, "a");
+        beh2.connectWithObservableEdge(init2, init2_b, "b");
+        beh2.connectWithObservableEdge(init2_b, init2_b_c1, "c");
+        beh2.connectWithObservableEdge(init2_b, init2_b_c2, "c");
+        beh2.connectWithObservableEdge(init2_b_c1, init2_b_c1_a, "a");
+        beh2.connectWithObservableEdge(init2_b_c1, init2_b_c1_b, "b");
 
         ASSERT_TRUE(beh1.simulates(beh2));
         
@@ -216,9 +216,9 @@ namespace Tippi {
                                                              Marking::createMarking(0, 0)));
 
         beh1.setInitialState(init1);
-        beh1.connectWithLabeledEdge(init1, init1_a, "a");
-        beh1.connectWithLabeledEdge(init1, init1_b, "b");
-        beh1.connectWithTauEdge(init1_b, init1);
+        beh1.connectWithObservableEdge(init1, init1_a, "a");
+        beh1.connectWithObservableEdge(init1, init1_b, "b");
+        beh1.connectWithUnobservableEdge(init1_b, init1);
         
         BehaviorState* init2 = beh2.createState(Interval::NetState(Marking::createMarking(0, 0, 0),
                                                            Marking::createMarking(0, 0)));
@@ -236,12 +236,12 @@ namespace Tippi {
                                                                    Marking::createMarking(0, 0)));
         
         beh2.setInitialState(init2);
-        beh2.connectWithLabeledEdge(init2, init2_a, "a");
-        beh2.connectWithLabeledEdge(init2, init2_b, "b");
-        beh2.connectWithLabeledEdge(init2_b, init2_b_b, "b");
-        beh2.connectWithTauEdge(init2_b_b, init2_b_b_T);
-        beh2.connectWithLabeledEdge(init2_b_b_T, init2_b_b_T_a, "a");
-        beh2.connectWithLabeledEdge(init2_b_b_T, init2_b_b_T_b, "b");
+        beh2.connectWithObservableEdge(init2, init2_a, "a");
+        beh2.connectWithObservableEdge(init2, init2_b, "b");
+        beh2.connectWithObservableEdge(init2_b, init2_b_b, "b");
+        beh2.connectWithUnobservableEdge(init2_b_b, init2_b_b_T);
+        beh2.connectWithObservableEdge(init2_b_b_T, init2_b_b_T_a, "a");
+        beh2.connectWithObservableEdge(init2_b_b_T, init2_b_b_T_b, "b");
 
         ASSERT_FALSE(beh1.simulates(beh2));
         ASSERT_TRUE(beh1.weaklySimulates(beh2));

@@ -36,7 +36,7 @@ namespace Tippi {
     public:
         typedef std::vector<RegionEdge*> List;
     public:
-        RegionEdge(RegionState* source, RegionState* target, const String& label, bool tau);
+        RegionEdge(RegionState* source, RegionState* target, const String& label);
     };
 
     typedef ClosureAutomaton::StateSet Region;
@@ -52,7 +52,7 @@ namespace Tippi {
         Region m_region;
     public:
         RegionState(const Region& region);
-        static const Key getKey(const RegionState* state);
+        static const Key& getKey(const RegionState* state);
 
         const Region& getRegion() const;
         bool isEmpty() const;

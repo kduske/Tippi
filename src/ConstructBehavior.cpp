@@ -85,9 +85,9 @@ namespace Tippi {
         
         if (succState != NULL) {
             if (edgeLabel.empty())
-                behavior->connectWithTauEdge(state, succState);
+                behavior->connectWithUnobservableEdge(state, succState);
             else
-                behavior->connectWithLabeledEdge(state, succState, edgeLabel);
+                behavior->connectWithObservableEdge(state, succState, edgeLabel);
         }
     }
 }

@@ -71,6 +71,10 @@ TARGET_LINK_LIBRARIES(net2beh common getopt)
 ADD_EXECUTABLE(net2cl "${APPS_SOURCE_DIR}/net2cl.cpp")
 TARGET_LINK_LIBRARIES(net2cl common getopt)
 
+# chksim executable
+ADD_EXECUTABLE(chksim "${APPS_SOURCE_DIR}/chksim.cpp")
+TARGET_LINK_LIBRARIES(chksim common getopt)
+
 # test executable
 ADD_EXECUTABLE(test ${SOURCE} ${TEST_SOURCE})
 TARGET_LINK_LIBRARIES(test common gtest gmock)

@@ -67,7 +67,7 @@ namespace Tippi {
                 ClosureState* target = edge->getTarget();
                 if (!target->isEmpty()) {
                     RegionState* succRegion = buildRegion(target, automaton);
-                    automaton->connectWithLabeledEdge(region, succRegion, edge->getLabel());
+                    automaton->connectWithObservableEdge(region, succRegion, edge->getLabel());
                 }
             }
         }

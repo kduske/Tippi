@@ -21,12 +21,14 @@
 #include "ConstructBehavior.h"
 #include "ConstructMaximalNet.h"
 #include "LoadIntervalNet.h"
+#include "Behavior.h"
 #include "Behavior2Dot.h"
 #include "Automaton2Text.h"
 
 #include <getoptpp/getopt_pp.h>
 #include <cassert>
 #include <iostream>
+#include <fstream>
 
 void printUsage() {
     std::cout << "Usage:" << std::endl;
@@ -42,19 +44,25 @@ int main(int argc, const char* argv[]) {
     ops >> OptionPresent('b', "showBoundViolations", showBoundViolations);
     ops >> Option('f', "format", format);
     
+    std::ifstream stream("data/test.net");
+    
     LoadIntervalNet loader;
-    LoadIntervalNet::NetPtr net = loader(std::cin);
+    LoadIntervalNet::NetPtr net = loader(stream);
 
     ConstructMaximalNet maximal;
-    ConstructBehavior behavior(showBoundViolations);
+    ConstructBehavior behavior;
+    if (showBoundViolations)
+        behavior.createBoundViolationState();
+    
     if (format == "text") {
         Automaton2Text render;
-        Automaton<BehaviorState,BehaviorEdge>::Ptr automaton = behavior(maximal(net));
+        Behavior::Ptr automaton = behavior(maximal(net));
         render(automaton.get(), std::cout);
     } else if (format == "dot") {
         Behavior2Dot render;
         render(behavior(maximal(net)), std::cout);
     } else {
         printUsage();
+        exit(1);
     }
 }

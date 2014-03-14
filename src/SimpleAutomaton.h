@@ -20,6 +20,7 @@
 #ifndef __Tippi__SimpleAutomaton__
 #define __Tippi__SimpleAutomaton__
 
+#include "SharedPointer.h"
 #include "StringUtils.h"
 #include "Automaton.h"
 
@@ -31,7 +32,8 @@ namespace Tippi {
     public:
         typedef std::vector<SimpleAutomatonEdge*> List;
     public:
-        SimpleAutomatonEdge(SimpleAutomatonState* source, SimpleAutomatonState* target, const String& label, bool tau);
+        SimpleAutomatonEdge(SimpleAutomatonState* source, SimpleAutomatonState* target, const String& label);
+        SimpleAutomatonEdge(SimpleAutomatonState* source, SimpleAutomatonState* target);
     };
     
     class SimpleAutomatonState : public AutomatonState<SimpleAutomatonEdge> {
@@ -49,7 +51,10 @@ namespace Tippi {
         const String& getName() const;
     };
     
-    class SimpleAutomaton : public Automaton<SimpleAutomatonState, SimpleAutomatonEdge> {};
+    class SimpleAutomaton : public Automaton<SimpleAutomatonState, SimpleAutomatonEdge> {
+    public:
+        typedef std::tr1::shared_ptr<SimpleAutomaton> Ptr;
+    };
 }
 
 #endif /* defined(__Tippi__SimpleAutomaton__) */

@@ -42,7 +42,7 @@ namespace Tippi {
     private:
         Type m_type;
     public:
-        ClosureEdge(ClosureState* source, ClosureState* target, const String& label, bool tau, Type type);
+        ClosureEdge(ClosureState* source, ClosureState* target, const String& label, Type type);
         
         Type getType() const;
         bool isServiceAction() const;
