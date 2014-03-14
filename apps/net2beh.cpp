@@ -28,7 +28,6 @@
 #include <getoptpp/getopt_pp.h>
 #include <cassert>
 #include <iostream>
-#include <fstream>
 
 void printUsage() {
     std::cout << "Usage:" << std::endl;
@@ -44,10 +43,8 @@ int main(int argc, const char* argv[]) {
     ops >> OptionPresent('b', "showBoundViolations", showBoundViolations);
     ops >> Option('f', "format", format);
     
-    std::ifstream stream("data/test.net");
-    
     LoadIntervalNet loader;
-    LoadIntervalNet::NetPtr net = loader(stream);
+    LoadIntervalNet::NetPtr net = loader(std::cin);
 
     ConstructMaximalNet maximal;
     ConstructBehavior behavior;

@@ -64,7 +64,7 @@ int main(int argc, const char* argv[]) {
     
     if (format == "text") {
         Automaton2Text render;
-        render(re.get(), std::cout);
+        render(cl.get(), std::cout);
     } else if (format == "dot") {
         RenderClosureAutomaton render(showEmptyState);
         render(cl, re, std::cout);

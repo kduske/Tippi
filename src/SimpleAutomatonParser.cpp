@@ -154,9 +154,12 @@ namespace Tippi {
     void SimpleAutomatonParser::parseTransition(SimpleAutomaton& automaton) {
         Token token = m_tokenizer.nextToken();
 
-        expect(SimpleAutomatonToken::Identifier, token);
-        const String label = token.data();
-        expect(SimpleAutomatonToken::Semicolon, token = m_tokenizer.nextToken());
+        expect(SimpleAutomatonToken::Identifier | SimpleAutomatonToken::Semicolon, token);
+        String label;
+        if (token.type() == SimpleAutomatonToken::Identifier) {
+            label = token.data();
+            expect(SimpleAutomatonToken::Semicolon, token = m_tokenizer.nextToken());
+        }
         
         expect(SimpleAutomatonToken::From, token = m_tokenizer.nextToken());
         expect(SimpleAutomatonToken::Identifier, token = m_tokenizer.nextToken());

@@ -376,16 +376,16 @@ namespace Tippi {
 
                 const int sourceResult = m_stateCmp(StateT::getKey(lhs->getSource()), StateT::getKey(rhs->getSource()));
                 if (sourceResult < 0)
-                    return -1;
+                    return true;
                 if (sourceResult > 0)
-                    return 1;
+                    return false;
                 
                 const int targetResult = m_stateCmp(StateT::getKey(lhs->getTarget()), StateT::getKey(rhs->getTarget()));
                 if (targetResult < 0)
-                    return -1;
+                    return true;
                 if (targetResult > 0)
-                    return 1;
-                return lhs->getLabel().compare(rhs->getLabel());
+                    return false;
+                return lhs->getLabel().compare(rhs->getLabel()) < 0;
             }
         };
     public:

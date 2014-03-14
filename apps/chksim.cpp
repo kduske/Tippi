@@ -25,9 +25,8 @@
 #include <cassert>
 #include <iostream>
 
-using namespace Tippi;
-
-SimpleAutomaton::Ptr parseAutomaton(const String& str) {
+Tippi::SimpleAutomaton::Ptr parseAutomaton(const String& str) {
+    using namespace Tippi;
     SimpleAutomatonParser parser(str);
     return SimpleAutomaton::Ptr(parser.parse());
 }
@@ -40,6 +39,7 @@ size_t findSplitOffset(const String& str) {
 }
 
 int main(int argc, const char* argv[]) {
+    using namespace Tippi;
     using namespace GetOpt;
 
     bool weak = false;
