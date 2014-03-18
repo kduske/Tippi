@@ -39,11 +39,11 @@ int main(int argc, const char* argv[]) {
     using namespace GetOpt;
     
     bool keepDeadlocks = false;
-    bool showEmptyState = false;
+    bool hideEmptyState = true;
     String format = "text";
     GetOpt_pp ops(argc, argv);
     ops >> OptionPresent('d', "keepDeadlocks", keepDeadlocks);
-    ops >> OptionPresent('e', "showEmptyState", showEmptyState);
+    ops >> OptionPresent('e', "hideEmptyState", hideEmptyState);
     ops >> Option('f', "format", format);
     
     LoadIntervalNet loader;
@@ -66,7 +66,7 @@ int main(int argc, const char* argv[]) {
         Automaton2Text render;
         render(cl.get(), std::cout);
     } else if (format == "dot") {
-        RenderClosureAutomaton render(showEmptyState);
+        RenderClosureAutomaton render(!hideEmptyState);
         render(cl, re, std::cout);
     } else {
         printUsage();
