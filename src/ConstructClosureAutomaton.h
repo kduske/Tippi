@@ -39,11 +39,11 @@ namespace Tippi {
         typedef std::pair<Interval::NetState::Set, bool> ClResult;
         
         typedef enum {
-            InputSend,
-            InputRead,
-            OutputSend,
-            OutputRead,
-            Internal
+            TransitionType_InputSend,
+            TransitionType_InputRead,
+            TransitionType_OutputSend,
+            TransitionType_OutputRead,
+            TransitionType_Internal
         } TransitionType;
         
         bool m_useAnonymousStateNames;
@@ -66,14 +66,14 @@ namespace Tippi {
                          ClosureState* state,
                          ClosureAutomaton::Ptr automaton) const;
         
-        ClosureEdge::Type getEdgeType(const Interval::Transition* transition) const;
+        ClosureEdge::EdgeType getEdgeType(const Interval::Transition* transition) const;
         
         void handleSuccessors(const NetPtr net,
                               const Interval::FiringRule& rule,
                               ClosureState* state,
                               const Interval::NetState::Set& successors,
                               const String& label,
-                              ClosureEdge::Type type,
+                              ClosureEdge::EdgeType type,
                               ClosureAutomaton::Ptr automaton) const;
         
         bool isFinalState(const NetPtr net, const ClosureState* state) const;

@@ -43,7 +43,7 @@ namespace Tippi {
     
     void ConstructClosureAutomaton::updateTransitionTypes(const NetPtr net) {
         const Interval::Transition::List& transitions = net->getTransitions();
-        m_transitionTypes = TransitionTypes(transitions.size(), Internal);
+        m_transitionTypes = TransitionTypes(transitions.size(), TransitionType_Internal);
         
         Interval::Transition::List::const_iterator tIt, tEnd;
         for (tIt = transitions.begin(), tEnd = transitions.end(); tIt != tEnd; ++tIt) {
@@ -59,15 +59,15 @@ namespace Tippi {
                 throw ClosureException("Transition '" + transition->getName() + "' is connected to more than one interface place");
             
             if (inputSend)
-                m_transitionTypes[index] = InputSend;
+                m_transitionTypes[index] = TransitionType_InputSend;
             else if (inputRead)
-                m_transitionTypes[index] = InputRead;
+                m_transitionTypes[index] = TransitionType_InputRead;
             else if (outputSend)
-                m_transitionTypes[index] = OutputSend;
+                m_transitionTypes[index] = TransitionType_OutputSend;
             else if (outputRead)
-                m_transitionTypes[index] = OutputRead;
+                m_transitionTypes[index] = TransitionType_OutputRead;
             else
-                m_transitionTypes[index] = Internal;
+                m_transitionTypes[index] = TransitionType_Internal;
         }
     }
 
@@ -95,30 +95,30 @@ namespace Tippi {
         Interval::Transition::List::const_iterator it, end;
         for (it = transitions.begin(), end = transitions.end(); it != end; ++it) {
             const Interval::Transition* transition = *it;
-            if (m_transitionTypes[transition->getIndex()] != Internal) {
+            if (m_transitionTypes[transition->getIndex()] != TransitionType_Internal) {
                 const Interval::NetState::Set successors = getSuccessorsForObservableTransition(net, rule, closure.getStates(), transition);
                 const String& label = transition->getLabel();
-                const ClosureEdge::Type type = getEdgeType(transition);
+                const ClosureEdge::EdgeType type = getEdgeType(transition);
                 handleSuccessors(net, rule, state, successors, label, type, automaton);
             }
         }
         
         const Interval::NetState::Set successors = getSuccessorsForTimeStep(net, rule, closure.getStates());
-        handleSuccessors(net, rule, state, successors, "1", ClosureEdge::Time, automaton);
+        handleSuccessors(net, rule, state, successors, "1", ClosureEdge::EdgeType_Time, automaton);
     }
     
-    ClosureEdge::Type ConstructClosureAutomaton::getEdgeType(const Interval::Transition* transition) const {
+    ClosureEdge::EdgeType ConstructClosureAutomaton::getEdgeType(const Interval::Transition* transition) const {
         switch (m_transitionTypes[transition->getIndex()]) {
-            case InputSend:
-                return ClosureEdge::InputSend;
-            case InputRead:
-                return ClosureEdge::InputRead;
-            case OutputSend:
-                return ClosureEdge::OutputSend;
-            case OutputRead:
-                return ClosureEdge::OutputRead;
-            default:
-                throw ClosureException("Unknown transition type");
+            case TransitionType_InputSend:
+                return ClosureEdge::EdgeType_InputSend;
+            case TransitionType_InputRead:
+                return ClosureEdge::EdgeType_InputRead;
+            case TransitionType_OutputSend:
+                return ClosureEdge::EdgeType_OutputSend;
+            case TransitionType_OutputRead:
+                return ClosureEdge::EdgeType_OutputRead;
+            case TransitionType_Internal:
+                throw ClosureException("Unexpected transition type: internal");
         }
     }
 
@@ -127,7 +127,7 @@ namespace Tippi {
                                                      ClosureState* state,
                                                      const Interval::NetState::Set& successors,
                                                      const String& label,
-                                                     const ClosureEdge::Type type,
+                                                     const ClosureEdge::EdgeType type,
                                                      ClosureAutomaton::Ptr automaton) const {
         typedef std::pair<ClosureState*, bool> ClosureStateResult;
         

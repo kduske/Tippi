@@ -24,7 +24,7 @@
 #include "Closure.h"
 
 namespace Tippi {
-    bool hasMarking(const ClosureState* state,
+    static bool hasMarking(const ClosureState* state,
                     const size_t A, const size_t B, const size_t C, const size_t D, const size_t a, const size_t b,
                     const size_t t1, const size_t t2, const size_t t3, const size_t ta, const size_t tb) {
         const Interval::NetState test(Marking::createMarking(A, B, C, D, a, b),
@@ -32,18 +32,18 @@ namespace Tippi {
         return state->getClosure().contains(test);
     }
     
-    bool hasMarkings(const ClosureState* state, const size_t count) {
+    static bool hasMarkings(const ClosureState* state, const size_t count) {
         const Closure& closure = state->getClosure();
         const Interval::NetState::Set& states = closure.getStates();
         const size_t stateCount = states.size();
         return stateCount == count;
     }
     
-    bool isEmptyState(const ClosureState* state) {
+    static bool isEmptyState(const ClosureState* state) {
         return state->isEmpty();
     }
     
-    bool hasOutgoingEdges(const ClosureState* state, const bool _1, const bool as, const bool ar, const bool bs, const bool br) {
+    static bool hasOutgoingEdges(const ClosureState* state, const bool _1, const bool as, const bool ar, const bool bs, const bool br) {
         size_t count = 0;
         if (_1) ++count;
         if (as) ++count;
@@ -66,7 +66,7 @@ namespace Tippi {
         return true;
     }
     
-    bool hasEmptySuccessors(const ClosureState* state, const bool _1, const bool as, const bool ar, const bool bs, const bool br) {
+    static bool hasEmptySuccessors(const ClosureState* state, const bool _1, const bool as, const bool ar, const bool bs, const bool br) {
         if (_1 && !isEmptyState(state->findDirectSuccessor("1")))
             return false;
         if (as && !isEmptyState(state->findDirectSuccessor("a!")))

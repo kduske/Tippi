@@ -57,7 +57,8 @@ namespace VectorUtils {
 
         // (offset > 0) is used to silence a compiler warning
         typedef typename std::vector<T>::iterator::difference_type DiffType;
-        const DiffType modOffset = static_cast<DiffType>(offset) % static_cast<DiffType>(vec.size());
+        const DiffType vecSize = static_cast<DiffType>(vec.size());
+        const DiffType modOffset = static_cast<DiffType>(offset) % vecSize;
         if (modOffset == 0)
             return;
             
@@ -70,8 +71,11 @@ namespace VectorUtils {
             return;
         
         typedef typename std::vector<T>::iterator::difference_type DiffType;
-        const DiffType modOffset = static_cast<DiffType>(offset) % static_cast<DiffType>(vec.size());
-		shiftLeft(vec, static_cast<size_t>(vec.size()) - modOffset);
+        const DiffType vecSize = static_cast<DiffType>(vec.size());
+        const DiffType modOffset = static_cast<DiffType>(offset) % vecSize;
+        const DiffType leftOffset = vecSize - modOffset;
+        assert(leftOffset >= 0);
+        shiftLeft(vec, static_cast<size_t>(leftOffset));
     }
     
     template <typename T>

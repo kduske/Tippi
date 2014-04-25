@@ -26,24 +26,24 @@
 #include <cassert>
 
 namespace Tippi {
-    ClosureEdge::ClosureEdge(ClosureState* source, ClosureState* target, const String& label, const Type type) :
+    ClosureEdge::ClosureEdge(ClosureState* source, ClosureState* target, const String& label, const EdgeType type) :
     AutomatonEdge(source, target, label),
     m_type(type) {}
     
-    ClosureEdge::Type ClosureEdge::getType() const {
+    ClosureEdge::EdgeType ClosureEdge::getType() const {
         return m_type;
     }
     
     bool ClosureEdge::isServiceAction() const {
-        return m_type == OutputSend || m_type == InputRead;
+        return m_type == EdgeType_OutputSend || m_type == EdgeType_InputRead;
     }
     
     bool ClosureEdge::isPartnerAction() const {
-        return m_type == InputSend || m_type == OutputRead;
+        return m_type == EdgeType_InputSend || m_type == EdgeType_OutputRead;
     }
     
     bool ClosureEdge::isTimeAction() const {
-        return m_type == Time;
+        return m_type == EdgeType_Time;
     }
 
     Closure::Closure() {}

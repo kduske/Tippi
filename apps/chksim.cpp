@@ -26,13 +26,13 @@
 #include <fstream>
 #include <iostream>
 
-Tippi::SimpleAutomaton::Ptr parseAutomaton(const String& str) {
+static Tippi::SimpleAutomaton::Ptr parseAutomaton(const String& str) {
     using namespace Tippi;
     SimpleAutomatonParser parser(str);
     return SimpleAutomaton::Ptr(parser.parse());
 }
 
-size_t findSplitOffset(const String& str) {
+static size_t findSplitOffset(const String& str) {
     const size_t first = str.find("AUTOMATON");
     if (first == std::string::npos || first + 9 < str.size())
         return first;

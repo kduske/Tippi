@@ -29,7 +29,7 @@
 #include <cassert>
 #include <iostream>
 
-void printUsage() {
+static void printUsage() {
     std::cout << "Usage:" << std::endl;
 }
 

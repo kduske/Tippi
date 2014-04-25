@@ -25,14 +25,14 @@
 #include "Behavior.h"
 
 namespace Tippi {
-    bool hasMarking(const BehaviorState* state,
+    static bool hasMarking(const BehaviorState* state,
                     const size_t A, const size_t B, const size_t C, const size_t a, const size_t b,
                     const size_t t1, const size_t t2, const size_t ta, const size_t tb) {
         return (state->getNetState().hasPlaceMarking(Marking::createMarking(A, B, C, a, b)) &&
                 state->getNetState().hasTimeMarking(Marking::createMarking(t1, t2, ta, tb)));
     }
     
-    bool hasOutgoingEdge(const BehaviorState* state, const Interval::Transition* transition) {
+    static bool hasOutgoingEdge(const BehaviorState* state, const Interval::Transition* transition) {
         const BehaviorState::OutgoingList& edges = state->getOutgoing();
         BehaviorState::OutgoingList::const_iterator it, end;
         for (it = edges.begin(), end = edges.end(); it != end; ++it) {
@@ -43,7 +43,7 @@ namespace Tippi {
         return false;
     }
     
-    bool hasOutgoingTimeEdge(const BehaviorState* state) {
+    static bool hasOutgoingTimeEdge(const BehaviorState* state) {
         const BehaviorState::OutgoingList& edges = state->getOutgoing();
         BehaviorState::OutgoingList::const_iterator it, end;
         for (it = edges.begin(), end = edges.end(); it != end; ++it) {
