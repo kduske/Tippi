@@ -99,6 +99,9 @@ namespace Tippi {
                 const Interval::NetState::Set successors = getSuccessorsForObservableTransition(net, rule, closure.getStates(), transition);
                 const String& label = transition->getLabel();
                 const ClosureEdge::Type type = getEdgeType(transition);
+                
+                assert((state->isEmpty() && successors.empty()) ||
+                       !SetUtils::equals(closure.getStates(), successors));
                 handleSuccessors(net, rule, state, successors, label, type, automaton);
             }
         }

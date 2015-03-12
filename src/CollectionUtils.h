@@ -410,6 +410,31 @@ namespace SetUtils {
         return !set.key_comp()(lhs, rhs) && !set.key_comp()(rhs, lhs);
     }
     
+    template <typename T, typename Cmp>
+    bool equals(const std::set<T,Cmp>& set1, const std::set<T,Cmp>& set2) {
+        if (&set1 == &set2)
+            return true;
+        if (set1.size() != set2.size())
+            return false;
+        
+        typedef std::set<T,Cmp> S;
+        
+        typename S::const_iterator it1  = set1.begin();
+        typename S::const_iterator end1 = set1.end();
+        typename S::const_iterator it2  = set2.begin();
+        typename S::const_iterator end2 = set2.end();
+        
+        while (it1 != end1) {
+            assert(it2 != end2);
+            if (!equals(set1, *it1, *it2))
+                return false;
+            ++it1; ++it2;
+        }
+        assert(it2 == end2);
+        
+        return true;
+    }
+
     template <typename T>
     std::set<T> minus(const std::set<T>& lhs, const std::set<T>& rhs) {
         std::set<T> result;

@@ -46,6 +46,12 @@ namespace Tippi {
         return m_type == Time;
     }
 
+    String ClosureEdge::asString() const {
+        StringStream str;
+        str << "{" << m_source->asString() << "} --" << m_label << "--> {" << m_target->asString() << "}";
+        return str.str();
+    }
+
     Closure::Closure() {}
     
     Closure::Closure(const Interval::NetState::Set& netStates) :
@@ -158,6 +164,10 @@ namespace Tippi {
         m_reachable = reachable;
     }
 
+    String ClosureState::asString() const {
+        return asString(",", ",");
+    }
+    
     String ClosureState::asString(const String& markingSeparator, const String& stateSeparator) const {
         return m_closure.asString(markingSeparator, stateSeparator);
     }

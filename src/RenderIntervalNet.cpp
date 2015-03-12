@@ -41,7 +41,7 @@ namespace Tippi {
         m_stream(stream),
         m_nodeId(1) {}
         
-        void operator()(const Interval::Place* place) {
+        void visitNode(const Interval::Place* place) {
             m_stream << getNodeId(place) << " [";
             printAttribute("label", place->getName());
             m_stream << ",";
@@ -49,7 +49,7 @@ namespace Tippi {
             m_stream << "];" << std::endl;
         }
         
-        void operator()(const Interval::Transition* transition) {
+        void visitNode(const Interval::Transition* transition) {
             m_stream << getNodeId(transition) << " [";
             printAttribute("label", transition->getName());
             m_stream << ",";
@@ -59,14 +59,14 @@ namespace Tippi {
             m_stream << "];" << std::endl;
         }
         
-        void operator()(const Interval::TransitionToPlace* arc) {
+        void visitEdge(const Interval::TransitionToPlace* arc) {
             const Interval::Transition* source = arc->getSource();
             const Interval::Place* target = arc->getTarget();
             
             m_stream << getNodeId(source) << " -> " << getNodeId(target) << ";" << std::endl;
         }
         
-        void operator()(const Interval::PlaceToTransition* arc) {
+        void visitEdge(const Interval::PlaceToTransition* arc) {
             const Interval::Place* source = arc->getSource();
             const Interval::Transition* target = arc->getTarget();
             
@@ -97,16 +97,19 @@ namespace Tippi {
         Interval::Place::resetVisited(places.begin(), places.end());
         Interval::Transition::resetVisited(transitions.begin(), transitions.end());
 
+        BreadthFirst<IntervalNetVisitor, IntervalNetVisitor> visitPlaces(visitor, visitor);
+        BreadthFirst<IntervalNetVisitor, IntervalNetVisitor> visitTransitions(visitor, visitor);
+        
         Interval::Place::List::const_iterator pIt, pEnd;
         for (pIt = places.begin(), pEnd = places.end(); pIt != pEnd; ++pIt) {
             const Interval::Place* place = *pIt;
-            visitNode(place, visitor, visitor);
+            visitPlaces(place);
         }
         
         Interval::Transition::List::const_iterator tIt, tEnd;
         for (tIt = transitions.begin(), tEnd = transitions.end(); tIt != tEnd; ++tIt) {
             const Interval::Transition* transition = *tIt;
-            visitNode(transition, visitor, visitor);
+            visitTransitions(transition);
         }
         
         stream << "}" << std::endl;

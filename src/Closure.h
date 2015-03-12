@@ -48,6 +48,8 @@ namespace Tippi {
         bool isServiceAction() const;
         bool isPartnerAction() const;
         bool isTimeAction() const;
+        
+        String asString() const;
     };
     
     class Closure {
@@ -91,6 +93,7 @@ namespace Tippi {
         bool isReachable() const;
         void setReachable(bool reachable);
 
+        String asString() const;
         String asString(const String& markingSeparator, const String& stateSeparator) const;
     };
     

@@ -28,6 +28,7 @@
 
 #include <getoptpp/getopt_pp.h>
 #include <cassert>
+#include <fstream>
 #include <iostream>
 
 void printUsage() {
@@ -38,19 +39,37 @@ int main(int argc, const char* argv[]) {
     using namespace Tippi;
     using namespace GetOpt;
     
+    bool useInputFile = false;
+    String filePath;
     bool keepDeadlocks = false;
     bool showEmptyState = false;
+    bool showSCCs = false;
     String format = "text";
     GetOpt_pp ops(argc, argv);
+    useInputFile = (ops >> Option('i', "inputFile", filePath));
     ops >> OptionPresent('d', "keepDeadlocks", keepDeadlocks);
     ops >> OptionPresent('e', "showEmptyState", showEmptyState);
+    ops >> OptionPresent('s', "showSCCs", showSCCs);
     ops >> Option('f', "format", format);
     
-    LoadIntervalNet loader;
+    LoadIntervalNet::NetPtr net;
+    
+    if (useInputFile) {
+        std::ifstream fileStream(filePath.c_str());
+        if (!fileStream.is_open()) {
+            std::cout << "Cannot open file: " << filePath << std::endl;
+            exit(1);
+        }
+        
+        LoadIntervalNet loader;
+        net = loader(fileStream);
+    } else {
+        LoadIntervalNet loader;
+        net = loader(std::cin);
+    }
+    
     ConstructMaximalNet maximal;
     ConstructClosureAutomaton closure;
-    
-    LoadIntervalNet::NetPtr net = loader(std::cin);
     ClosureAutomaton::Ptr cl = closure(maximal(net));
     if (!keepDeadlocks) {
         RemoveDeadlocks deadlocks;
@@ -59,15 +78,12 @@ int main(int argc, const char* argv[]) {
         cl = unreachable(cl);
     }
     
-    ConstructRegionAutomaton region;
-    RegionAutomaton::Ptr re = region(cl);
-    
     if (format == "text") {
         Automaton2Text render;
         render(cl.get(), std::cout);
     } else if (format == "dot") {
-        RenderClosureAutomaton render(showEmptyState);
-        render(cl, re, std::cout);
+        RenderClosureAutomaton render(std::cout, showEmptyState, showSCCs);
+        render(cl.get());
     } else {
         printUsage();
         exit(1);

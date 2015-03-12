@@ -35,7 +35,7 @@ namespace Tippi {
         m_stream(stream),
         m_stateId(1) {}
         
-        void operator()(const BehaviorState* state) {
+        void visitNode(const BehaviorState* state) {
             m_stream << getStateId(state) << " [";
             printAttribute("label", state->asString("\n"));
             m_stream << ",";
@@ -47,7 +47,7 @@ namespace Tippi {
             m_stream << "];" << std::endl;
         }
         
-        void operator()(const BehaviorEdge* edge) {
+        void visitEdge(const BehaviorEdge* edge) {
             const BehaviorState* source = edge->getSource();
             const BehaviorState* target = edge->getTarget();
             
@@ -77,10 +77,12 @@ namespace Tippi {
         const Behavior::StateSet& states = behavior->getStates();
         BehaviorState::resetVisited(states.begin(), states.end());
         
+        BreadthFirst<BehaviorVisitor, BehaviorVisitor> visitStates(visitor, visitor);
+        
         Behavior::StateSet::const_iterator it, end;
         for (it = states.begin(), end = states.end(); it != end; ++it) {
             const BehaviorState* state = *it;
-            visitNode(state, visitor, visitor);
+            visitStates(state);
         }
         
         stream << "}" << std::endl;

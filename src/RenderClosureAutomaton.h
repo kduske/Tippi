@@ -21,6 +21,7 @@
 #define __Tippi__RenderClosureAutomaton__
 
 #include "Closure.h"
+#include "StronglyConnectedComponents.h"
 #include "Region.h"
 
 #include <iostream>
@@ -31,11 +32,20 @@ namespace Tippi {
     
     struct RenderClosureAutomaton {
     private:
+        typedef StronglyConnectedComponents<const ClosureState> SCC;
+
+        std::ostream& m_stream;
         bool m_showEmptyState;
+        bool m_showSCCs;
     public:
-        RenderClosureAutomaton(bool showEmptyState);
-        void operator()(const ClosureAutomaton::Ptr automaton, std::ostream& stream);
-        void operator()(const ClosureAutomaton::Ptr closureAutomaton, const RegionAutomaton::Ptr regionAutomaton, std::ostream& stream);
+        RenderClosureAutomaton(std::ostream& stream, bool showEmptyState, bool showSCCs);
+        void operator()(const ClosureAutomaton* automaton);
+    private:
+        void printComponent(const SCC::Component& component, size_t index, size_t maxDeadlockDistance);
+        void printState(const ClosureState* state, size_t maxDeadlockDistance);
+        void printEdge(const ClosureEdge* edge);
+        void printAttribute(const String& name, const String& value);
+        void printColorAttribute(const String& name, size_t r, size_t g, size_t b);
     };
 }
 
