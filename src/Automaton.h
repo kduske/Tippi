@@ -103,7 +103,7 @@ namespace Tippi {
      
      The <tt>KeyCmp</tt> type is used to compare keys (and states, by virtue of the <tt>getKey</tt> 
      public method). It must provide a callable operator that takes two const pointers to state 
-     instances and returns an <tt>int</int>:
+     instances and returns an <tt>int</tt>:
      
          int operator()(const SimpleAutomatonState* lhs, const SimpleAutomatonState* rhs) const;
      

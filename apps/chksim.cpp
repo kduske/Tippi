@@ -23,15 +23,16 @@
 
 #include <getoptpp/getopt_pp.h>
 #include <cassert>
+#include <fstream>
 #include <iostream>
 
-Tippi::SimpleAutomaton::Ptr parseAutomaton(const String& str) {
+static Tippi::SimpleAutomaton::Ptr parseAutomaton(const String& str) {
     using namespace Tippi;
     SimpleAutomatonParser parser(str);
     return SimpleAutomaton::Ptr(parser.parse());
 }
 
-size_t findSplitOffset(const String& str) {
+static size_t findSplitOffset(const String& str) {
     const size_t first = str.find("AUTOMATON");
     if (first == std::string::npos || first + 9 < str.size())
         return first;
@@ -43,19 +44,36 @@ int main(int argc, const char* argv[]) {
     using namespace GetOpt;
 
     bool weak = false;
+    String simulatorPath;
+    String simulateePath;
     GetOpt_pp ops(argc, argv);
     ops >> OptionPresent('w', "weak", weak);
+    ops >> GlobalOption(simulatorPath);
+    ops >> GlobalOption(simulateePath);
     
-    const String str((std::istreambuf_iterator<char>(std::cin)), std::istreambuf_iterator<char>());
-    const size_t splitAt = findSplitOffset(str);
+    SimpleAutomaton::Ptr simulator;
+    SimpleAutomaton::Ptr simulatee;
     
-    if (splitAt == String::npos) {
-        std::cout << "Unable to parse input. Please provide two automata in text format." << std::endl;
-        exit(1);
+    if (simulatorPath.empty() && simulateePath.empty()) {
+        const String str((std::istreambuf_iterator<char>(std::cin)), std::istreambuf_iterator<char>());
+        const size_t splitAt = findSplitOffset(str);
+        
+        if (splitAt == String::npos) {
+            std::cout << "Unable to parse input. Please provide two automata in text format." << std::endl;
+            exit(1);
+        }
+        
+        simulator = parseAutomaton(str.substr(0, splitAt));
+        simulatee = parseAutomaton(str.substr(splitAt, str.size() - splitAt));
+    } else {
+        std::ifstream simulatorStream(simulatorPath.c_str());
+        std::ifstream simulateeStream(simulateePath.c_str());
+        const String simulatorStr((std::istreambuf_iterator<char>(simulatorStream)), std::istreambuf_iterator<char>());
+        const String simulateeStr((std::istreambuf_iterator<char>(simulateeStream)), std::istreambuf_iterator<char>());
+
+        simulator = parseAutomaton(simulatorStr);
+        simulatee = parseAutomaton(simulateeStr);
     }
-    
-    SimpleAutomaton::Ptr simulator = parseAutomaton(str.substr(0, splitAt));
-    SimpleAutomaton::Ptr simulatee = parseAutomaton(str.substr(splitAt, str.size() - splitAt));
     
     if (weak) {
         if (simulator->weaklySimulates(*simulatee))

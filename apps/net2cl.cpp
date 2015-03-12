@@ -31,6 +31,8 @@
 #include <fstream>
 #include <iostream>
 
+void printUsage();
+
 void printUsage() {
     std::cout << "Usage:" << std::endl;
 }

@@ -33,18 +33,18 @@ namespace Tippi {
         typedef std::vector<ClosureEdge*> List;
         
         typedef enum {
-            InputSend,
-            InputRead,
-            OutputSend,
-            OutputRead,
-            Time
-        } Type;
+            EdgeType_InputSend,
+            EdgeType_InputRead,
+            EdgeType_OutputSend,
+            EdgeType_OutputRead,
+            EdgeType_Time
+        } EdgeType;
     private:
-        Type m_type;
+        EdgeType m_type;
     public:
-        ClosureEdge(ClosureState* source, ClosureState* target, const String& label, Type type);
+        ClosureEdge(ClosureState* source, ClosureState* target, const String& label, EdgeType type);
         
-        Type getType() const;
+        EdgeType getType() const;
         bool isServiceAction() const;
         bool isPartnerAction() const;
         bool isTimeAction() const;

@@ -72,14 +72,14 @@ namespace Tippi {
             expect(SimpleAutomatonToken::Identifier | SimpleAutomatonToken::Semicolon, token);
             
             if (token.type() == SimpleAutomatonToken::Identifier) {
-                const String name = token.data();
-                op(name, token);
+                const String firstStateName = token.data();
+                op(firstStateName, token);
                 
                 expect(SimpleAutomatonToken::Comma | SimpleAutomatonToken::Semicolon, token = m_tokenizer.nextToken());
                 while (token.type() == SimpleAutomatonToken::Comma) {
                     expect(SimpleAutomatonToken::Identifier, token = m_tokenizer.nextToken());
-                    const String name = token.data();
-                    op(name, token);
+                    const String nextStateName = token.data();
+                    op(nextStateName, token);
                     expect(SimpleAutomatonToken::Comma | SimpleAutomatonToken::Semicolon, token = m_tokenizer.nextToken());
                 }
             }

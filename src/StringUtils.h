@@ -22,6 +22,7 @@
 
 #include <cassert>
 #include <map>
+#include <set>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -29,6 +30,7 @@
 typedef std::string String;
 typedef std::stringstream StringStream;
 typedef std::vector<String> StringList;
+typedef std::set<String> StringSet;
 typedef std::map<String, String> StringMap;
 static const StringList EmptyStringList;
 
