@@ -33,7 +33,7 @@ namespace Tippi {
     void RenderClosureAutomaton::operator()(const ClosureAutomaton* automaton) {
         m_stream << "digraph {" << std::endl;
         
-        if (m_showSCCs) {
+        if (m_showSCCs && automaton->getInitialState() != NULL) {
             typedef StronglyConnectedComponents<const ClosureState> SCC;
             SCC scc;
             scc.visitNode(automaton->getInitialState());

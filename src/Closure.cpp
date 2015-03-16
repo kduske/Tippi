@@ -52,63 +52,6 @@ namespace Tippi {
         return str.str();
     }
 
-    Closure::Closure() {}
-    
-    Closure::Closure(const Interval::NetState::Set& netStates) :
-    m_netStates(netStates) {}
-    
-    bool Closure::operator<(const Closure& rhs) const {
-        return compare(rhs) < 0;
-    }
-    
-    int Closure::compare(const Closure& rhs) const {
-        Interval::NetState::Set::const_iterator lit = m_netStates.begin();
-        const Interval::NetState::Set::const_iterator lend = m_netStates.end();
-        Interval::NetState::Set::const_iterator rit = rhs.m_netStates.begin();
-        const Interval::NetState::Set::const_iterator rend = rhs.m_netStates.end();
-        
-        while (lit != lend && rit != rend) {
-            const Interval::NetState& lstate = *lit;
-            const Interval::NetState& rstate = *rit;
-            const int cmp = lstate.compare(rstate);
-            if (cmp < 0)
-                return -1;
-            if (cmp > 0)
-                return 1;
-            ++lit;
-            ++rit;
-        }
-        if (lit != lend)
-            return 1;
-        if (rit != rend)
-            return -1;
-        return 0;
-    }
-    
-    bool Closure::contains(const Interval::NetState& state) const {
-        return m_netStates.count(state) > 0;
-    }
-
-    const Interval::NetState::Set& Closure::getStates() const {
-        return m_netStates;
-    }
-
-    bool Closure::isEmpty() const {
-        return m_netStates.empty();
-    }
-
-    String Closure::asString(const String& markingSeparator, const String& stateSeparator) const {
-        StringStream result;
-        Interval::NetState::Set::const_iterator it, end;
-        for (it = m_netStates.begin(), end = m_netStates.end(); it != end; ++it) {
-            const Interval::NetState& state = *it;
-            result << state.asString(markingSeparator);
-            if (std::distance(it, end) > 1)
-                result << stateSeparator;
-        }
-        return result.str();
-    }
-
     int ClosureState::KeyCmp::operator() (const Key& lhs, const Key& rhs) const {
         return lhs.compare(rhs);
     }

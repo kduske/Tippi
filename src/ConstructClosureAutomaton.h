@@ -36,8 +36,6 @@ namespace Tippi {
     
     struct ConstructClosureAutomaton {
     private:
-        typedef std::pair<Interval::NetState::Set, bool> ClResult;
-        
         typedef enum {
             TransitionType_InputSend,
             TransitionType_InputRead,

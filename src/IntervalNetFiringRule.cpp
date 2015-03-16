@@ -23,6 +23,86 @@
 
 namespace Tippi {
     namespace Interval {
+        FiringRule::Closure::Closure() :
+        m_containsLoop(false),
+        m_containsBoundViolation(false) {}
+
+        bool FiringRule::Closure::operator<(const Closure& rhs) const {
+            return compare(rhs) < 0;
+        }
+        
+        bool FiringRule::Closure::operator==(const Closure& rhs) const {
+            return compare(rhs) == 0;
+        }
+        
+        int FiringRule::Closure::compare(const Closure& rhs) const {
+            NetState::Set::const_iterator lit = m_states.begin();
+            const NetState::Set::const_iterator lend = m_states.end();
+            NetState::Set::const_iterator rit = rhs.m_states.begin();
+            const NetState::Set::const_iterator rend = rhs.m_states.end();
+            
+            while (lit != lend && rit != rend) {
+                const NetState& lstate = *lit;
+                const NetState& rstate = *rit;
+                const int cmp = lstate.compare(rstate);
+                if (cmp < 0)
+                    return -1;
+                if (cmp > 0)
+                    return 1;
+                ++lit;
+                ++rit;
+            }
+            if (lit != lend)
+                return 1;
+            if (rit != rend)
+                return -1;
+            return 0;
+        }
+
+        bool FiringRule::Closure::isEmpty() const {
+            return m_states.empty();
+        }
+
+        bool FiringRule::Closure::containsState(const NetState& state) const {
+            return m_states.count(state) > 0;
+        }
+
+        const NetState::Set& FiringRule::Closure::getStates() const {
+            return m_states;
+        }
+        
+        bool FiringRule::Closure::containsLoop() const {
+            return m_containsLoop;
+        }
+        
+        bool FiringRule::Closure::containsBoundViolation() const {
+            return m_containsBoundViolation;
+        }
+
+        bool FiringRule::Closure::addState(const NetState& state) {
+            return m_states.insert(state).second;
+        }
+
+        void FiringRule::Closure::setContainsLoop() {
+            m_containsLoop = true;
+        }
+        
+        void FiringRule::Closure::setContainsBoundViolation() {
+            m_containsBoundViolation = true;
+        }
+
+        String FiringRule::Closure::asString(const String& markingSeparator, const String& stateSeparator) const {
+            StringStream result;
+            NetState::Set::const_iterator it, end;
+            for (it = m_states.begin(), end = m_states.end(); it != end; ++it) {
+                const NetState& state = *it;
+                result << state.asString(markingSeparator);
+                if (std::distance(it, end) > 1)
+                    result << stateSeparator;
+            }
+            return result.str();
+        }
+        
         FiringRule::FiringRule(const Net& net) :
         m_net(net) {}
         
@@ -81,24 +161,24 @@ namespace Tippi {
             return newState;
         }
 
-        std::pair<NetState::Set, bool> FiringRule::buildClosure(const NetState& state, const StringList& labels) const {
-            NetState::Set closure;
-            if (!buildClosureRecurse(state, labels, closure))
-                return std::make_pair(NetState::Set(), false);
-            return std::make_pair(closure, true);
+        FiringRule::Closure FiringRule::buildClosure(const NetState& state, const StringList& labels) const {
+            Closure closure;
+            buildClosureRecurse(state, labels, closure);
+            return closure;
         }
 
-        std::pair<NetState::Set, bool> FiringRule::buildClosure(const NetState::Set& states, const StringList& labels) const {
-            NetState::Set closure;
-            if (states.empty())
-                return std::make_pair(closure, true);
+        FiringRule::Closure FiringRule::buildClosure(const Closure& closure, const StringList& labels) const {
+            return buildClosure(closure.getStates(), labels);
+        }
+
+        FiringRule::Closure FiringRule::buildClosure(const NetState::Set& states, const StringList& labels) const {
+            Closure closure;
             NetState::Set::const_iterator it, end;
-            for (it = states.begin(), end = states.end(); it != end; ++it) {
+            for (it = states.begin(), end = states.end(); it != end && !closure.containsBoundViolation(); ++it) {
                 const NetState& state = *it;
-                if (!buildClosureRecurse(state, labels, closure))
-                    return std::make_pair(NetState::Set(), false);
+                buildClosureRecurse(state, labels, closure);
             }
-            return std::make_pair(closure, true);
+            return closure;
         }
 
         void FiringRule::updateTokens(const Transition* transition, NetState& state) const {
@@ -178,26 +258,28 @@ namespace Tippi {
             }
         }
 
-        bool FiringRule::buildClosureRecurse(const NetState& state, const StringList& labels, NetState::Set& states) const {
-            if (!state.isBounded(m_net))
-                return false;
+        void FiringRule::buildClosureRecurse(const NetState& state, const StringList& labels, Closure& closure) const {
+            if (!state.isBounded(m_net)) {
+                closure.setContainsBoundViolation();
+                return;
+            }
             
-            if (!states.insert(state).second)
-                return true;
-            
-            const Interval::Transition::List fireableTransitions = getFireableTransitions(state);
-            Interval::Transition::List::const_iterator it, end;
-            for (it = fireableTransitions.begin(), end = fireableTransitions.end(); it != end; ++it) {
-                const Interval::Transition* transition = *it;
+            if (!closure.addState(state)) {
+                closure.setContainsLoop();
+                return;
+            }
+
+            const Transition::List fireableTransitions = getFireableTransitions(state);
+            Transition::List::const_iterator it, end;
+            for (it = fireableTransitions.begin(), end = fireableTransitions.end(); it != end && !closure.containsBoundViolation(); ++it) {
+                const Transition* transition = *it;
                 assert(state.checkPlaceEnabled(transition));
                 assert(isFireable(transition, state));
                 if (VectorUtils::contains(labels, transition->getLabel())) {
-                    const Interval::NetState next = fireTransition(transition, state);
-                    if (!buildClosureRecurse(next, labels, states))
-                        return false;
+                    const NetState next = fireTransition(transition, state);
+                    buildClosureRecurse(next, labels, closure);
                 }
             }
-            return true;
         }
     }
 }

@@ -26,6 +26,32 @@
 namespace Tippi {
     namespace Interval {
         class FiringRule {
+        public:
+            class Closure {
+            private:
+                NetState::Set m_states;
+                bool m_containsLoop;
+                bool m_containsBoundViolation;
+            public:
+                Closure();
+                
+                bool operator<(const Closure& rhs) const;
+                bool operator==(const Closure& rhs) const;
+                int compare(const Closure& rhs) const;
+
+                bool isEmpty() const;
+                bool containsState(const Interval::NetState& state) const;
+                const NetState::Set& getStates() const;
+                
+                bool containsLoop() const;
+                bool containsBoundViolation() const;
+
+                bool addState(const NetState& state);
+                void setContainsLoop();
+                void setContainsBoundViolation();
+
+                String asString(const String& markingSeparator, const String& stateSeparator) const;
+            };
         private:
             const Net& m_net;
         public:
@@ -36,8 +62,9 @@ namespace Tippi {
             NetState fireTransition(const Transition* transition, const NetState& state) const;
             bool canMakeTimeStep(const NetState& state) const;
             NetState makeTimeStep(const NetState& state) const;
-            std::pair<NetState::Set, bool> buildClosure(const NetState& state, const StringList& labels = StringList(1, "")) const;
-            std::pair<NetState::Set, bool> buildClosure(const NetState::Set& states, const StringList& labels = StringList(1, "")) const;
+            Closure buildClosure(const NetState& state, const StringList& labels = StringList(1, "")) const;
+            Closure buildClosure(const Closure& closure, const StringList& labels = StringList(1, "")) const;
+            Closure buildClosure(const NetState::Set& states, const StringList& labels = StringList(1, "")) const;
         private:
             void updateTokens(const Transition* transition, NetState& state) const;
             void consumeTokens(const Transition* transition, NetState& state) const;
@@ -47,7 +74,7 @@ namespace Tippi {
             void updateSuccessors(const Transition* transition, NetState& state) const;
             void resetPostset(const Place* place, NetState& state) const;
             void enablePostset(const Place* place, NetState& state) const;
-            bool buildClosureRecurse(const NetState& state, const StringList& labels, NetState::Set& states) const;
+            void buildClosureRecurse(const NetState& state, const StringList& labels, Closure& closure) const;
         };
     }
 }

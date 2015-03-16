@@ -28,6 +28,7 @@
 #include "GraphNode.h"
 
 #include <cassert>
+#include <list>
 #include <vector>
 
 namespace Tippi {
@@ -391,6 +392,7 @@ namespace Tippi {
     public:
         typedef StateT State;
         typedef EdgeT Edge;
+        typedef std::list<StateT*> StateList;
         typedef std::set<StateT*, StateLess> StateSet;
         typedef std::set<EdgeT*, EdgeLess> EdgeSet;
     private:

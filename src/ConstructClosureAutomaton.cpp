@@ -75,10 +75,9 @@ namespace Tippi {
         Interval::FiringRule rule(*net);
         const Interval::NetState initialState = Interval::NetState::createInitialState(*net);
         
-        const ClResult initialResult = rule.buildClosure(initialState);
-        if (initialResult.second) {
-            const Closure closure(initialResult.first);
-            ClosureState* initialState = automaton->createState(closure);
+        const Interval::FiringRule::Closure initialClosure = rule.buildClosure(initialState);
+        if (!initialClosure.containsBoundViolation()) {
+            ClosureState* initialState = automaton->createState(initialClosure);
             automaton->setInitialState(initialState);
             handleState(net, rule, initialState, automaton);
         }
@@ -131,10 +130,8 @@ namespace Tippi {
                                                      ClosureAutomaton::Ptr automaton) const {
         typedef std::pair<ClosureState*, bool> ClosureStateResult;
         
-        const ClResult succResult = rule.buildClosure(successors);
-        if (succResult.second) {
-            const Interval::NetState::Set& succClosureStates = succResult.first;
-            const Closure succClosure(succClosureStates);
+        const Closure succClosure = rule.buildClosure(successors);
+        if (!succClosure.containsBoundViolation()) {
             const ClosureStateResult succStateResult = automaton->findOrCreateState(succClosure);
             ClosureState* succState = succStateResult.first;
             automaton->connectWithObservableEdge(state, succState, label, type);

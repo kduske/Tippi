@@ -23,9 +23,11 @@
 #include "SharedPointer.h"
 #include "StringUtils.h"
 #include "Automaton.h"
+#include "IntervalNetFiringRule.h"
 #include "IntervalNetState.h"
 
 namespace Tippi {
+    typedef Interval::FiringRule::Closure Closure;
     class ClosureState;
     
     class ClosureEdge : public AutomatonEdge<ClosureState> {
@@ -50,23 +52,6 @@ namespace Tippi {
         bool isTimeAction() const;
         
         String asString() const;
-    };
-    
-    class Closure {
-    private:
-        Interval::NetState::Set m_netStates;
-    public:
-        Closure();
-        Closure(const Interval::NetState::Set& netStates);
-        
-        bool operator<(const Closure& rhs) const;
-        bool operator==(const Closure& rhs) const;
-        int compare(const Closure& rhs) const;
-        
-        bool contains(const Interval::NetState& state) const;
-        const Interval::NetState::Set& getStates() const;
-        bool isEmpty() const;
-        String asString(const String& markingSeparator, const String& stateSeparator) const;
     };
     
     class ClosureState : public AutomatonState<ClosureEdge> {

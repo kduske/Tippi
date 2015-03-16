@@ -22,6 +22,7 @@
 #include "ConstructRegionAutomaton.h"
 #include "LoadIntervalNet.h"
 #include "RemoveDeadlocks.h"
+#include "RemoveInnerLivelocks.h"
 #include "RemoveUnreachableStates.h"
 #include "RenderClosureAutomaton.h"
 #include "Automaton2Text.h"
@@ -43,12 +44,14 @@ int main(int argc, const char* argv[]) {
     
     bool useInputFile = false;
     String filePath;
+    bool keepInnerLivelocks = false;
     bool keepDeadlocks = false;
     bool showEmptyState = false;
     bool showSCCs = false;
     String format = "text";
     GetOpt_pp ops(argc, argv);
     useInputFile = (ops >> Option('i', "inputFile", filePath));
+    ops >> OptionPresent('l', "keepInnerLivelocks", keepInnerLivelocks);
     ops >> OptionPresent('d', "keepDeadlocks", keepDeadlocks);
     ops >> OptionPresent('e', "showEmptyState", showEmptyState);
     ops >> OptionPresent('s', "showSCCs", showSCCs);
@@ -75,10 +78,16 @@ int main(int argc, const char* argv[]) {
     ClosureAutomaton::Ptr cl = closure(maximal(net));
     if (!keepDeadlocks) {
         RemoveDeadlocks deadlocks;
-        RemoveUnreachableStates unreachable;
         cl = deadlocks(cl);
-        cl = unreachable(cl);
     }
+
+    if (!keepInnerLivelocks) {
+        RemoveInnerLivelocks livelocks;
+        cl = livelocks(cl);
+    }
+    
+    RemoveUnreachableStates unreachable;
+    cl = unreachable(cl);
     
     if (format == "text") {
         Automaton2Text render;
