@@ -37,6 +37,7 @@ namespace Tippi {
                 
                 bool operator<(const Closure& rhs) const;
                 bool operator==(const Closure& rhs) const;
+                bool operator!=(const Closure& rhs) const;
                 int compare(const Closure& rhs) const;
 
                 bool isEmpty() const;
@@ -47,7 +48,9 @@ namespace Tippi {
                 bool containsBoundViolation() const;
 
                 bool addState(const NetState& state);
-                void addStates(const NetState::Set& states);
+                bool addStates(const NetState::Set& states);
+                void merge(const Closure& closure);
+                
                 void setContainsLoop();
                 void setContainsBoundViolation();
 
@@ -75,7 +78,7 @@ namespace Tippi {
             void updateSuccessors(const Transition* transition, NetState& state) const;
             void resetPostset(const Place* place, NetState& state) const;
             void enablePostset(const Place* place, NetState& state) const;
-            void buildClosureRecurse(const NetState& state, const StringList& labels, Closure& closure) const;
+            Closure buildClosureRecurse(const NetState& state, const StringList& labels) const;
         };
     }
 }

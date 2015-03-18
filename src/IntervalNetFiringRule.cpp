@@ -35,6 +35,10 @@ namespace Tippi {
             return compare(rhs) == 0;
         }
         
+        bool FiringRule::Closure::operator!=(const Closure& rhs) const {
+            return compare(rhs) != 0;
+        }
+
         int FiringRule::Closure::compare(const Closure& rhs) const {
             NetState::Set::const_iterator lit = m_states.begin();
             const NetState::Set::const_iterator lend = m_states.end();
@@ -83,8 +87,17 @@ namespace Tippi {
             return m_states.insert(state).second;
         }
 
-        void FiringRule::Closure::addStates(const NetState::Set& states) {
+        bool FiringRule::Closure::addStates(const NetState::Set& states) {
+            const size_t oldSize = m_states.size();
             m_states.insert(states.begin(), states.end());
+            return m_states.size() == oldSize + states.size();
+        }
+
+        void FiringRule::Closure::merge(const Closure& closure) {
+            if (!addStates(closure.getStates()) || closure.containsLoop())
+                setContainsLoop();
+            if (closure.containsBoundViolation())
+                setContainsBoundViolation();
         }
 
         void FiringRule::Closure::setContainsLoop() {
@@ -166,9 +179,7 @@ namespace Tippi {
         }
 
         FiringRule::Closure FiringRule::buildClosure(const NetState& state, const StringList& labels) const {
-            Closure closure;
-            buildClosureRecurse(state, labels, closure);
-            return closure;
+            return buildClosureRecurse(state, labels);
         }
 
         FiringRule::Closure FiringRule::buildClosure(const Closure& closure, const StringList& labels) const {
@@ -180,7 +191,8 @@ namespace Tippi {
             NetState::Set::const_iterator it, end;
             for (it = states.begin(), end = states.end(); it != end && !closure.containsBoundViolation(); ++it) {
                 const NetState& state = *it;
-                buildClosureRecurse(state, labels, closure);
+                const Closure stateClosure = buildClosureRecurse(state, labels);
+                closure.merge(stateClosure);
             }
             return closure;
         }
@@ -262,18 +274,16 @@ namespace Tippi {
             }
         }
 
-        void FiringRule::buildClosureRecurse(const NetState& state, const StringList& labels, Closure& closure) const {
+        FiringRule::Closure FiringRule::buildClosureRecurse(const NetState& state, const StringList& labels) const {
+
+            Closure closure;
+            closure.addState(state);
+            
             if (!state.isBounded(m_net)) {
-                closure.addState(state);
                 closure.setContainsBoundViolation();
-                return;
+                return closure;
             }
             
-            if (!closure.addState(state)) {
-                closure.setContainsLoop();
-                return;
-            }
-
             const Transition::List fireableTransitions = getFireableTransitions(state);
             Transition::List::const_iterator it, end;
             for (it = fireableTransitions.begin(), end = fireableTransitions.end(); it != end && !closure.containsBoundViolation(); ++it) {
@@ -282,9 +292,12 @@ namespace Tippi {
                 assert(isFireable(transition, state));
                 if (VectorUtils::contains(labels, transition->getLabel())) {
                     const NetState next = fireTransition(transition, state);
-                    buildClosureRecurse(next, labels, closure);
+                    const Closure nextClosure = buildClosureRecurse(next, labels);
+                    closure.merge(nextClosure);
                 }
             }
+            
+            return closure;
         }
     }
 }
