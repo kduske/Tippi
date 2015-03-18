@@ -47,6 +47,7 @@ namespace Tippi {
                 bool containsBoundViolation() const;
 
                 bool addState(const NetState& state);
+                void addStates(const NetState::Set& states);
                 void setContainsLoop();
                 void setContainsBoundViolation();
 

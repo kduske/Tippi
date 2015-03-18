@@ -21,8 +21,8 @@
 #include "ConstructMaximalNet.h"
 #include "ConstructRegionAutomaton.h"
 #include "LoadIntervalNet.h"
-#include "RemoveDeadlocks.h"
-#include "RemoveInnerLivelocks.h"
+#include "MarkUnsafeStates.h"
+#include "RemoveUnsafeStates.h"
 #include "RemoveUnreachableStates.h"
 #include "RenderClosureAutomaton.h"
 #include "Automaton2Text.h"
@@ -44,15 +44,13 @@ int main(int argc, const char* argv[]) {
     
     bool useInputFile = false;
     String filePath;
-    bool keepInnerLivelocks = false;
-    bool keepDeadlocks = false;
+    bool keepUnsafeStates = false;
     bool showEmptyState = false;
     bool showSCCs = false;
     String format = "text";
     GetOpt_pp ops(argc, argv);
     useInputFile = (ops >> Option('i', "inputFile", filePath));
-    ops >> OptionPresent('l', "keepInnerLivelocks", keepInnerLivelocks);
-    ops >> OptionPresent('d', "keepDeadlocks", keepDeadlocks);
+    ops >> OptionPresent('u', "keepUnsafeStates", keepUnsafeStates);
     ops >> OptionPresent('e', "showEmptyState", showEmptyState);
     ops >> OptionPresent('s', "showSCCs", showSCCs);
     ops >> Option('f', "format", format);
@@ -76,19 +74,18 @@ int main(int argc, const char* argv[]) {
     ConstructMaximalNet maximal;
     ConstructClosureAutomaton closure;
     ClosureAutomaton::Ptr cl = closure(maximal(net));
-    if (!keepDeadlocks) {
-        RemoveDeadlocks deadlocks;
-        cl = deadlocks(cl);
-    }
-
-    if (!keepInnerLivelocks) {
-        RemoveInnerLivelocks livelocks;
-        cl = livelocks(cl);
+    
+    MarkUnsafeStates markUnsafe;
+    cl = markUnsafe(cl);
+    
+    if (!keepUnsafeStates) {
+        RemoveUnsafeStates removeUnsafe;
+        cl = removeUnsafe(cl);
     }
     
     RemoveUnreachableStates unreachable;
     cl = unreachable(cl);
-    
+     
     if (format == "text") {
         Automaton2Text render;
         render(cl.get(), std::cout);

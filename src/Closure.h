@@ -55,6 +55,12 @@ namespace Tippi {
     };
     
     class ClosureState : public AutomatonState<ClosureEdge> {
+    private:
+        typedef enum {
+            Safety_Safe,
+            Safety_Unsafe,
+            Safety_Unknown
+        } Safety;
     public:
         typedef Closure Key;
         struct KeyCmp {
@@ -62,7 +68,7 @@ namespace Tippi {
         };
     private:
         Closure m_closure;
-        size_t m_deadlockDistance;
+        Safety m_safety;
         bool m_reachable;
     public:
         ClosureState(const Closure& closure);
@@ -71,30 +77,33 @@ namespace Tippi {
         const Closure& getClosure() const;
         bool isEmpty() const;
 
-        bool isDeadlock() const;
-        size_t getDeadlockDistance() const;
-        void setDeadlockDistance(size_t deadlockDistance);
+        bool isSafetyKnown() const;
+        bool isSafe() const;
+        void setSafe(bool safe);
         
         bool isReachable() const;
         void setReachable(bool reachable);
 
+        bool isStable() const;
+        bool isDeadlock() const;
+        
         String asString() const;
         String asString(const String& markingSeparator, const String& stateSeparator) const;
     };
     
     class ClosureAutomaton : public Automaton<ClosureState, ClosureEdge> {
+    private:
+        ClosureState* m_boundViolationState;
     public:
         typedef std::tr1::shared_ptr<ClosureAutomaton> Ptr;
-    private:
-        size_t m_maxDeadlockDistance;
     public:
         ClosureAutomaton();
         
+        ClosureState* boundViolationState(const Closure& closure);
+        
         const ClosureState* findState(const Closure& closure) const;
 
-        size_t getMaxDeadlockDistance() const;
-        void setMaxDeadlockDistnace(size_t maxDeadlockDistance);
-        
+        StateSet findUnsafeStates() const;
         StateSet findUnreachableStates() const;
     private:
         void doFindUnreachableStates(StateSet& unreachable) const;

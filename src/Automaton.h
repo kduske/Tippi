@@ -592,6 +592,35 @@ namespace Tippi {
             
             return weaklySimulates(m_initialState, other.getInitialState(), relation);
         }
+    protected:
+        void replaceState(StateT* oldState, StateT* newState) {
+            assert(oldState != NULL);
+            assert(newState != NULL);
+            assert(oldState != newState);
+            
+            assert(m_states.count(oldState) == 1);
+            m_states.erase(oldState);
+
+            SetUtils::remove(m_edges, oldState->getIncoming().begin(), oldState->getIncoming().end());
+            SetUtils::remove(m_edges, oldState->getOutgoing().begin(), oldState->getOutgoing().end());
+            
+            oldState->replaceAsSource(newState);
+            oldState->replaceAsTarget(newState);
+            
+            m_edges.insert(newState->getIncoming().begin(), newState->getIncoming().end());
+            m_edges.insert(newState->getOutgoing().begin(), newState->getOutgoing().end());
+            
+            if (m_initialState == oldState)
+                m_initialState = newState;
+            
+            const typename StateSet::iterator it = m_finalStates.find(oldState);
+            if (it != m_finalStates.end()) {
+                m_finalStates.erase(oldState);
+                m_finalStates.insert(newState);
+            }
+            
+            delete oldState;
+        }
     private:
         StateT* findState(StateT& state) const {
             typename StateSet::const_iterator it = m_states.lower_bound(&state);

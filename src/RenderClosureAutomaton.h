@@ -41,10 +41,12 @@ namespace Tippi {
         RenderClosureAutomaton(std::ostream& stream, bool showEmptyState, bool showSCCs);
         void operator()(const ClosureAutomaton* automaton);
     private:
-        void printComponent(const SCC::Component& component, size_t index, size_t maxDeadlockDistance);
-        void printState(const ClosureState* state, size_t maxDeadlockDistance);
+        void printComponent(const SCC::Component& component, size_t index);
+        void printState(const ClosureState* state);
         void printEdge(const ClosureEdge* edge);
         void printAttribute(const String& name, const String& value);
+        void openAttribute(const String& name);
+        void closeAttribute();
         void printColorAttribute(const String& name, size_t r, size_t g, size_t b);
     };
 }

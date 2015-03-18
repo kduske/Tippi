@@ -32,7 +32,7 @@ namespace Tippi {
     void ConstructClosureAutomaton::setUseAnonymousStateNames() {
         m_useAnonymousStateNames = true;
     }
-
+    
     ClosureAutomaton::Ptr ConstructClosureAutomaton::operator()(const NetPtr net) {
         updateTransitionTypes(net);
         
@@ -70,26 +70,25 @@ namespace Tippi {
                 m_transitionTypes[index] = TransitionType_Internal;
         }
     }
-
+    
     void ConstructClosureAutomaton::buildAutomaton(const NetPtr net, ClosureAutomaton::Ptr automaton) const {
         Interval::FiringRule rule(*net);
-        const Interval::NetState initialState = Interval::NetState::createInitialState(*net);
+        const Interval::NetState initialNetState = Interval::NetState::createInitialState(*net);
         
-        const Interval::FiringRule::Closure initialClosure = rule.buildClosure(initialState);
-        if (!initialClosure.containsBoundViolation()) {
-            ClosureState* initialState = automaton->createState(initialClosure);
-            automaton->setInitialState(initialState);
-            handleState(net, rule, initialState, automaton);
-        }
-    }
+        const Interval::FiringRule::Closure initialClosure = rule.buildClosure(initialNetState);
 
+        ClosureState* initialState = automaton->createState(initialClosure);
+        automaton->setInitialState(initialState);
+        handleState(net, rule, initialState, automaton);
+    }
+    
     void ConstructClosureAutomaton::handleState(const NetPtr net,
                                                 const Interval::FiringRule& rule,
                                                 ClosureState* state,
                                                 ClosureAutomaton::Ptr automaton) const {
         
         const Closure& closure = state->getClosure();
-
+        
         const Interval::Transition::List& transitions = net->getTransitions();
         Interval::Transition::List::const_iterator it, end;
         for (it = transitions.begin(), end = transitions.end(); it != end; ++it) {
@@ -120,7 +119,7 @@ namespace Tippi {
                 throw ClosureException("Unexpected transition type: internal");
         }
     }
-
+    
     void ConstructClosureAutomaton::handleSuccessors(const NetPtr net,
                                                      const Interval::FiringRule& rule,
                                                      ClosureState* state,
@@ -131,10 +130,14 @@ namespace Tippi {
         typedef std::pair<ClosureState*, bool> ClosureStateResult;
         
         const Closure succClosure = rule.buildClosure(successors);
-        if (!succClosure.containsBoundViolation()) {
+        if (succClosure.containsBoundViolation()) {
+            ClosureState* succState = automaton->boundViolationState(succClosure);
+            automaton->connectWithObservableEdge(state, succState, label, type);
+        } else {
             const ClosureStateResult succStateResult = automaton->findOrCreateState(succClosure);
             ClosureState* succState = succStateResult.first;
             automaton->connectWithObservableEdge(state, succState, label, type);
+
             if (succStateResult.second) {
                 if (isFinalState(net, succState)) {
                     succState->setFinal(true);
@@ -143,6 +146,7 @@ namespace Tippi {
                 handleState(net, rule, succState, automaton);
             }
         }
+        
     }
     
     bool ConstructClosureAutomaton::isFinalState(const NetPtr net, const ClosureState* state) const {
@@ -167,7 +171,7 @@ namespace Tippi {
         }
         return false;
     }
-
+    
     Interval::NetState::Set ConstructClosureAutomaton::getSuccessorsForObservableTransition(const NetPtr net,
                                                                                             const Interval::FiringRule& rule,
                                                                                             const Interval::NetState::Set& states,

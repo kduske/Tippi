@@ -43,14 +43,14 @@ namespace Tippi {
             SCC::ComponentList::const_iterator cIt, cEnd;
             for (cIt = components.begin(), cEnd = components.end(); cIt != cEnd; ++cIt) {
                 const SCC::Component& component = *cIt;
-                printComponent(component, ++index, automaton->getMaxDeadlockDistance());
+                printComponent(component, ++index);
             }
         } else {
             const ClosureAutomaton::StateSet& states = automaton->getStates();
             ClosureAutomaton::StateSet::const_iterator it, end;
             for (it = states.begin(), end = states.end(); it != end; ++it) {
                 const ClosureState* state = *it;
-                printState(state, automaton->getMaxDeadlockDistance());
+                printState(state);
             }
         }
         
@@ -64,7 +64,7 @@ namespace Tippi {
         m_stream << "}" << std::endl;
     }
 
-    void RenderClosureAutomaton::printComponent(const SCC::Component& component, const size_t index, const size_t maxDeadlockDistance) {
+    void RenderClosureAutomaton::printComponent(const SCC::Component& component, const size_t index) {
         
         if (m_showEmptyState || component.size() != 1 || !component.front()->isEmpty()) {
             m_stream << "subgraph cluster_" << index << " {" << std::endl;
@@ -72,17 +72,41 @@ namespace Tippi {
             SCC::Component::const_iterator sIt, sEnd;
             for (sIt = component.begin(), sEnd = component.end(); sIt != sEnd; ++sIt) {
                 const ClosureState* state = *sIt;
-                printState(state, maxDeadlockDistance);
+                printState(state);
             }
             
             m_stream << "}" << std::endl;
         }
     }
     
-    void RenderClosureAutomaton::printState(const ClosureState* state, const size_t maxDeadlockDistance) {
+    void RenderClosureAutomaton::printState(const ClosureState* state) {
         if (m_showEmptyState || !state->isEmpty()) {
-            m_stream << "" << state->getId() << " [";
-            printAttribute("label", state->asString("\n", "\n"));
+            m_stream << state->getId() << " [";
+            
+            openAttribute("label");
+            if (state->getClosure().containsBoundViolation()) {
+                m_stream << "B";
+            } else if (state->isEmpty()) {
+                m_stream << "E";
+            } else {
+                m_stream << state->asString("\n", "\n");
+                if (state->isSafetyKnown()) {
+                    if (state->isSafe())
+                        m_stream << "\nsafe";
+                    else
+                        m_stream << "\nunsafe";
+                } else {
+                    m_stream << "\nunknown";
+                }
+
+                const Closure& closure = state->getClosure();
+                if (closure.containsBoundViolation())
+                    m_stream << "\nbound violation";
+                if (closure.containsLoop())
+                    m_stream << "\ninner livelock";
+            }
+            closeAttribute();
+            
             m_stream << ",";
             printAttribute("shape", "ellipse");
             if (state->isFinal()) {
@@ -90,21 +114,10 @@ namespace Tippi {
                 printAttribute("peripheries", "2");
             }
             
-            const size_t distance = state->getDeadlockDistance();
-            if (!state->isReachable()) {
-                m_stream << ",";
-                printAttribute("style", "filled");
-                m_stream << ",";
-                printColorAttribute("fillcolor", 0, 255, 0);
-            } else if (distance > 0 && maxDeadlockDistance > 0) {
-                const float d = distance;
-                const float m = maxDeadlockDistance;
-                const size_t gb = static_cast<size_t>(d / m * 255.0f);
-                m_stream << ",";
-                printAttribute("style", "filled");
-                m_stream << ",";
-                printColorAttribute("fillcolor", 255, gb, gb);
-            }
+            m_stream << ",";
+            printAttribute("style", "filled");
+            m_stream << ",";
+            printColorAttribute("fillcolor", 255, 255, 255);
             m_stream << "];" << std::endl;
         }
     }
@@ -139,9 +152,19 @@ namespace Tippi {
     }
     
     void RenderClosureAutomaton::printAttribute(const String& name, const String& value) {
-        m_stream << name << "=\"" << value << "\"";
+        openAttribute(name);
+        m_stream << value;
+        closeAttribute();
     }
     
+    void RenderClosureAutomaton::openAttribute(const String& name) {
+        m_stream << name << "=\"";
+    }
+    
+    void RenderClosureAutomaton::closeAttribute() {
+        m_stream << "\"";
+    }
+
     void RenderClosureAutomaton::printColorAttribute(const String& name, size_t r, size_t g, size_t b) {
         m_stream << name << "=\"#";
         m_stream << std::hex;

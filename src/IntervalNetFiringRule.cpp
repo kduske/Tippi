@@ -83,6 +83,10 @@ namespace Tippi {
             return m_states.insert(state).second;
         }
 
+        void FiringRule::Closure::addStates(const NetState::Set& states) {
+            m_states.insert(states.begin(), states.end());
+        }
+
         void FiringRule::Closure::setContainsLoop() {
             m_containsLoop = true;
         }
@@ -260,6 +264,7 @@ namespace Tippi {
 
         void FiringRule::buildClosureRecurse(const NetState& state, const StringList& labels, Closure& closure) const {
             if (!state.isBounded(m_net)) {
+                closure.addState(state);
                 closure.setContainsBoundViolation();
                 return;
             }

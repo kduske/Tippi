@@ -52,6 +52,22 @@ namespace Tippi {
             VectorUtils::remove(m_incoming, edge);
         }
         
+        template <typename NodeT>
+        void replaceAsSource(NodeT* newSource) {
+            while (!m_outgoing.empty()) {
+                OutgoingT* edge = m_outgoing.back();
+                edge->replaceSource(newSource);
+            }
+        }
+        
+        template <typename NodeT>
+        void replaceAsTarget(NodeT* newTarget) {
+            while (!m_incoming.empty()) {
+                IncomingT* edge = m_incoming.back();
+                edge->replaceTarget(newTarget);
+            }
+        }
+        
         const IncomingList& getIncoming() const {
             return m_incoming;
         }

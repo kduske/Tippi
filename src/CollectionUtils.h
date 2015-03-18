@@ -460,6 +460,15 @@ namespace SetUtils {
     }
     
     template <typename T, typename I, typename Cmp>
+    void remove(std::set<T*, Cmp>& set, I cur, I end) {
+        while (cur != end) {
+            typename std::set<T*, Cmp>::iterator it = set.find(*cur++);
+            if (it != set.end())
+                set.erase(it);
+        }
+    }
+
+    template <typename T, typename I, typename Cmp>
     void removeAndDelete(std::set<T*, Cmp>& set, I* item) {
         remove(set, item);
         delete item;

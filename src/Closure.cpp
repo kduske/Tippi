@@ -58,7 +58,7 @@ namespace Tippi {
 
     ClosureState::ClosureState(const Closure& closure) :
     m_closure(closure),
-    m_deadlockDistance(0),
+    m_safety(Safety_Unknown),
     m_reachable(true) {}
     
     const ClosureState::Key& ClosureState::getKey(const ClosureState* state) {
@@ -73,30 +73,22 @@ namespace Tippi {
         return m_closure.isEmpty();
     }
 
-    bool ClosureState::isDeadlock() const {
-        if (isFinal())
-            return false;
-        if (m_closure.getStates().empty())
-            return false;
-        
-        const ClosureEdge::List& outgoing = getOutgoing();
-        ClosureEdge::List::const_iterator it, end;
-        for (it = outgoing.begin(), end = outgoing.end(); it != end; ++it) {
-            const ClosureEdge* edge = *it;
-            const ClosureState* successor = edge->getTarget();
-            if (successor != this && !successor->getClosure().getStates().empty())
-                return false;
-        }
-        
-        return true;
-    }
-
-    size_t ClosureState::getDeadlockDistance() const {
-        return m_deadlockDistance;
+    bool ClosureState::isSafetyKnown() const {
+        return isEmpty() || m_safety != Safety_Unknown;
     }
     
-    void ClosureState::setDeadlockDistance(size_t deadlockDistance) {
-        m_deadlockDistance = deadlockDistance;
+    bool ClosureState::isSafe() const {
+        if (isEmpty())
+            return true;
+        
+        assert(isSafetyKnown());
+        return m_safety == Safety_Safe;
+    }
+
+    void ClosureState::setSafe(const bool safe) {
+        assert(!isEmpty());
+        assert(!isSafetyKnown());
+        m_safety = safe ? Safety_Safe : Safety_Unsafe;
     }
 
     bool ClosureState::isReachable() const {
@@ -105,6 +97,31 @@ namespace Tippi {
     
     void ClosureState::setReachable(bool reachable) {
         m_reachable = reachable;
+    }
+
+    bool ClosureState::isStable() const {
+        const Outgoing::List& outgoing = getOutgoing();
+        Outgoing::List::const_iterator it, end;
+        for (it = outgoing.begin(), end = outgoing.end(); it != end; ++it) {
+            const Outgoing* edge = *it;
+            const ClosureState* successor = edge->getTarget();
+            if (!successor->isEmpty()) {
+                if (edge->isServiceAction() || (edge->isTimeAction() && !edge->isLoop()))
+                    return false;
+            }
+        }
+        return true;
+    }
+
+    bool ClosureState::isDeadlock() const {
+        const Outgoing::List& outgoing = getOutgoing();
+        Outgoing::List::const_iterator it, end;
+        for (it = outgoing.begin(), end = outgoing.end(); it != end; ++it) {
+            const Outgoing* edge = *it;
+            if (!edge->getTarget()->isEmpty() && !edge->isLoop())
+                return false;
+        }
+        return true;
     }
 
     String ClosureState::asString() const {
@@ -132,7 +149,28 @@ namespace Tippi {
     };
     
     ClosureAutomaton::ClosureAutomaton() :
-    m_maxDeadlockDistance(0) {}
+    m_boundViolationState(NULL) {}
+    
+    ClosureState* ClosureAutomaton::boundViolationState(const Closure& closure) {
+        assert(closure.containsBoundViolation());
+        
+        if (m_boundViolationState == NULL) {
+            m_boundViolationState = createState(closure);
+        } else {
+            const Closure& oldClosure = m_boundViolationState->getClosure();
+            
+            Closure newClosure;
+            newClosure.addStates(oldClosure.getStates());
+            newClosure.addStates(closure.getStates());
+            newClosure.setContainsBoundViolation();
+
+            ClosureState* newState = createState(newClosure);
+            replaceState(m_boundViolationState, newState);
+            m_boundViolationState = newState;
+        }
+        
+        return m_boundViolationState;
+    }
 
     const ClosureState* ClosureAutomaton::findState(const Closure& closure) const {
         ClosureState query(closure);
@@ -141,13 +179,17 @@ namespace Tippi {
             return NULL;
         return *it;
     }
-    
-    size_t ClosureAutomaton::getMaxDeadlockDistance() const {
-        return m_maxDeadlockDistance;
-    }
-    
-    void ClosureAutomaton::setMaxDeadlockDistnace(size_t maxDeadlockDistance) {
-        m_maxDeadlockDistance = maxDeadlockDistance;
+
+    ClosureAutomaton::StateSet ClosureAutomaton::findUnsafeStates() const {
+        StateSet result;
+        const StateSet& states = getStates();
+        StateSet::const_iterator it, end;
+        for (it = states.begin(), end = states.end(); it != end; ++it) {
+            ClosureState* state = *it;
+            if (state->isSafetyKnown() && !state->isSafe())
+                result.insert(state);
+        }
+        return result;
     }
 
     ClosureAutomaton::StateSet ClosureAutomaton::findUnreachableStates() const {

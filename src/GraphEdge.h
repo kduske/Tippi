@@ -68,19 +68,41 @@ namespace Tippi {
         }
         
         void removeFromSource() {
+            assert(m_source != NULL);
             m_source->removeOutgoing(static_cast<typename SourceT::Outgoing*>(this));
             m_source = NULL;
         }
         
+        void replaceSource(SourceT* newSource) {
+            assert(m_source != NULL);
+            assert(newSource != NULL);
+            m_source->removeOutgoing(static_cast<typename SourceT::Outgoing*>(this));
+            m_source = newSource;
+            m_source->addOutgoing(static_cast<typename SourceT::Outgoing*>(this));
+        }
+        
         void removeFromTarget() {
+            assert(m_target != NULL);
             m_target->removeIncoming(static_cast<typename TargetT::Incoming*>(this));
             m_target = NULL;
+        }
+        
+        void replaceTarget(TargetT* newTarget) {
+            assert(m_target != NULL);
+            assert(newTarget != NULL);
+            m_target->removeIncoming(static_cast<typename TargetT::Incoming*>(this));
+            m_target = newTarget;
+            m_target->addIncoming(static_cast<typename TargetT::Incoming*>(this));
         }
         
         size_t getMultiplicity() const {
             return m_multiplicity;
         }
 
+        bool isLoop() const {
+            return m_target == m_source;
+        }
+        
         bool isVisited() const {
             return m_visited;
         }
