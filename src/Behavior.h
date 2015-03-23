@@ -40,7 +40,7 @@ namespace Tippi {
         BehaviorEdge(BehaviorState* source, BehaviorState* target);
     };
     
-    class BehaviorState : public AutomatonState<BehaviorEdge> {
+    class BehaviorState : public AutomatonState<BehaviorState, BehaviorEdge> {
     public:
         struct Key {
             const Interval::NetState& netState;

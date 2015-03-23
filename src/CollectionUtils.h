@@ -49,6 +49,52 @@ namespace Utils {
     };
 }
 
+namespace CollectionUtils {
+    template <template <typename, typename> class C, typename T, typename A>
+    void eraseAndDelete(C<T*,A>& clos, typename C<T*,A>::iterator first, typename C<T*,A>::iterator last) {
+        std::for_each(first, last, Utils::Deleter<T>());
+        clos.erase(first, last);
+    }
+    
+    template <template <typename, typename> class C, typename T, typename A>
+    void eraseAndDelete(C<T*,A>& col, typename C<T*,A>::iterator first) {
+        eraseAndDelete(col, first, col.end());
+    }
+    
+    template <template <typename, typename> class C, typename T, typename A>
+    void deleteAll(const C<T*,A>& col) {
+        std::for_each(col.begin(), col.end(), Utils::Deleter<T>());
+    }
+    
+    template <template <typename, typename> class C, typename T, typename A>
+    void clearAndDelete(C<T*,A>& col) {
+        deleteAll(col);
+        col.clear();
+    }
+
+    template <template <typename, typename, typename> class C, typename T, typename O, typename A>
+    void eraseAndDelete(C<T*,O,A>& clos, typename C<T*,O,A>::iterator first, typename C<T*,O,A>::iterator last) {
+        std::for_each(first, last, Utils::Deleter<T>());
+        clos.erase(first, last);
+    }
+    
+    template <template <typename, typename, typename> class C, typename T, typename O, typename A>
+    void eraseAndDelete(C<T*,O,A>& col, typename C<T*,O,A>::iterator first) {
+        eraseAndDelete(col, first, col.end());
+    }
+    
+    template <template <typename, typename, typename> class C, typename T, typename O, typename A>
+    void deleteAll(const C<T*,O,A>& col) {
+        std::for_each(col.begin(), col.end(), Utils::Deleter<T>());
+    }
+    
+    template <template <typename, typename, typename> class C, typename T, typename O, typename A>
+    void clearAndDelete(C<T*,O,A>& col) {
+        deleteAll(col);
+        col.clear();
+    }
+}
+
 namespace VectorUtils {
     template <typename T>
     void shiftLeft(std::vector<T>& vec, const size_t offset) {
@@ -80,24 +126,22 @@ namespace VectorUtils {
     
     template <typename T>
     void eraseAndDelete(std::vector<T*>& vec, typename std::vector<T*>::iterator first, typename std::vector<T*>::iterator last) {
-        std::for_each(first, last, Utils::Deleter<T>());
-        vec.erase(first, last);
+        CollectionUtils::eraseAndDelete(vec, first, last);
     }
     
     template <typename T>
     void eraseAndDelete(std::vector<T*>& vec, typename std::vector<T*>::iterator first) {
-        eraseAndDelete(vec, first, vec.end());
+        CollectionUtils::eraseAndDelete(vec, first);
     }
     
     template <typename T>
     void clearAndDelete(std::vector<T*>& vec) {
-        std::for_each(vec.begin(), vec.end(), Utils::Deleter<T>());
-        vec.clear();
+        CollectionUtils::clearAndDelete(vec);
     }
     
     template <typename T>
     void deleteAll(const std::vector<T*>& vec) {
-        std::for_each(vec.begin(), vec.end(), Utils::Deleter<T>());
+        CollectionUtils::deleteAll(vec);
     }
     
     template <typename T, typename I>

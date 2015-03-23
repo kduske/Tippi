@@ -3,7 +3,6 @@ INCLUDE(cmake/Utils.cmake)
 # Mac OS X specific configuration
 IF(APPLE)
 	SET(CMAKE_OSX_DEPLOYMENT_TARGET "10.6")
-	SET(CMAKE_OSX_SYSROOT "/Developer/SDKs/MacOSX10.6.sdk/")
 	SET(CMAKE_OSX_ARCHITECTURES "i386;x86_64")
 ENDIF()
 
@@ -49,24 +48,41 @@ ADD_LIBRARY(common ${LIB_COMMON_SOURCE} ${LIB_COMMON_HEADER})
 INCLUDE_DIRECTORIES("${LIB_INCLUDE_DIR}" "${LIB_COMMON_INCLUDE_DIR}")
 
 # Compiler configuration
-IF(MSVC)
-	SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W3 /EHsc /MP /D _CRT_SECURE_NO_DEPRECATE /D _CRT_NONSTDC_NO_DEPRECATE")
-	SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /W3 /MP")
-    INCLUDE_DIRECTORIES(SYSTEM "${LIB_INCLUDE_DIR}")
+IF("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+    SET(COMPILER_IS_CLANG TRUE)
+ENDIF()
+IF("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+    SET(COMPILER_IS_GNU TRUE)
+ENDIF()
+IF("${CMAKE_CXX_COMPILER_ID}" STREQUAL "MSVC")
+    SET(COMPILER_IS_MSVC TRUE)
+ENDIF()
+
+IF(COMPILER_IS_CLANG)
+    MESSAGE(STATUS "Compiler is Clang")
+    SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Os")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Weverything -pedantic -Wno-format -Wno-variadic-macros -Wno-c++11-long-long -Wno-c99-extensions -Wno-padded -Wno-unused-parameter -Wno-global-constructors -Wno-exit-time-destructors -Wno-weak-vtables -Wno-float-equal -Wno-used-but-marked-unused -Wno-format-nonliteral -Wno-missing-noreturn -stdlib=libstdc++")
+ELSEIF(COMPILER_IS_GNU)
+    MESSAGE(STATUS "Compiler is GNU")
+    SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Os")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -pedantic -Wno-format -Wno-variadic-macros -Wno-padded -Wno-unused-parameter -Wno-float-equal -Wno-format-nonliteral -Wno-missing-noreturn")
+ELSEIF(COMPILER_IS_MSVC)
+    MESSAGE(STATUS "Compiler is MSVC")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /W3 /EHsc /MP /D _CRT_SECURE_NO_DEPRECATE /D _CRT_NONSTDC_NO_DEPRECATE")
+    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /W3 /MP")
 ELSE()
-	SET(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -Os")
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Weverything -pedantic -Wno-format -Wno-variadic-macros -Wno-c++11-long-long -Wno-c99-extensions -Wno-padded -Wno-unused-parameter -Wno-global-constructors -Wno-exit-time-destructors -Wno-weak-vtables -Wno-float-equal -Wno-used-but-marked-unused -Wno-format-nonliteral")
+    MESSAGE(FATAL_ERROR "Unsupported compiler detected.")
+ENDIF()
 
-    IF(CMAKE_GENERATOR STREQUAL "Xcode")
-        # Xcode requires these flags to allow debugging
-        SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g3 -O0 -fno-inline")
+IF(CMAKE_GENERATOR STREQUAL "Xcode")
+    # Xcode requires these flags to allow debugging
+    SET(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g3 -O0 -fno-inline")
 
-        # Xcode should treat the library header files as system headers
-        SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -isystem ${LIB_INCLUDE_DIR}")
-        SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -isystem ${LIB_INCLUDE_DIR}")
-    ELSE()
-        INCLUDE_DIRECTORIES(SYSTEM "${LIB_INCLUDE_DIR}")
-    ENDIF()
+    # Xcode should treat the library header files as system headers
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -isystem ${LIB_INCLUDE_DIR}")
+    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -isystem ${LIB_INCLUDE_DIR}")
+ELSE()
+    INCLUDE_DIRECTORIES(SYSTEM "${LIB_INCLUDE_DIR}")
 ENDIF()
 
 # net2beh executable
@@ -78,6 +94,10 @@ SET_XCODE_ATTRIBUTES(net2beh)
 ADD_EXECUTABLE(net2cl "${APPS_SOURCE_DIR}/net2cl.cpp")
 TARGET_LINK_LIBRARIES(net2cl common getopt)
 SET_XCODE_ATTRIBUTES(net2cl)
+
+ADD_CUSTOM_COMMAND(TARGET net2cl POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory "${CMAKE_SOURCE_DIR}/test/data" $<TARGET_FILE_DIR:runtest>/data
+)
 
 # chksim executable
 ADD_EXECUTABLE(chksim "${APPS_SOURCE_DIR}/chksim.cpp")

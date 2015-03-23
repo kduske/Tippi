@@ -54,7 +54,7 @@ namespace Tippi {
         String asString() const;
     };
     
-    class ClosureState : public AutomatonState<ClosureEdge> {
+    class ClosureState : public AutomatonState<ClosureState, ClosureEdge> {
     private:
         typedef enum {
             Safety_Safe,
@@ -76,6 +76,7 @@ namespace Tippi {
         
         const Closure& getClosure() const;
         bool isEmpty() const;
+        bool isBoundViolation() const;
 
         bool isSafetyKnown() const;
         bool isSafe() const;

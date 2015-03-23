@@ -29,6 +29,7 @@
 
 #include <cassert>
 #include <list>
+#include <stack>
 #include <vector>
 
 namespace Tippi {
@@ -121,7 +122,7 @@ namespace Tippi {
      
      @tparam Edge the type of the edges of the automaton
      */
-    template <class Edge>
+    template <class Sub, class Edge>
     class AutomatonState : public GraphNode<Edge, Edge> {
     protected:
         size_t m_id;
@@ -169,7 +170,7 @@ namespace Tippi {
         void setFinal(const bool final) {
             m_final = final;
         }
-
+        
         /**
          Indicates whether this state has an observable incoming edge with the given label.
          
@@ -323,6 +324,134 @@ namespace Tippi {
         }
     };
     
+    template <class StateT>
+    class Component {
+    public:
+        typedef std::list<Component> List;
+        typedef std::set<StateT*> StateSet;
+    private:
+        StateSet m_states;
+    public:
+        const StateSet& getStates() const {
+            return m_states;
+        }
+        
+        void addState(StateT* state) {
+            m_states.insert(state);
+        }
+        
+        bool containsFinalState() const {
+            typename StateSet::const_iterator sIt, sEnd;
+            for (sIt = m_states.begin(), sEnd = m_states.end(); sIt != sEnd; ++sIt) {
+                const StateT* state = *sIt;
+                if (state->isFinal())
+                    return true;
+            }
+            return false;
+        }
+        
+        bool hasExit() const {
+            typename StateSet::const_iterator sIt, sEnd;
+            for (sIt = m_states.begin(), sEnd = m_states.end(); sIt != sEnd; ++sIt) {
+                const StateT* state = *sIt;
+                typename StateT::Outgoing::List& outgoing = state->getOutgoing();
+                typename StateT::Outgoing::List::const_iterator eIt, eEnd;
+                for (eIt = outgoing.begin(), eEnd = outgoing.end(); eIt != eEnd; ++eIt) {
+                    const typename StateT::Outgoing* edge = *eIt;
+                    const StateT* target = edge->getTarget();
+                    if (m_states.count(target) > 0)
+                        return true;
+                }
+            }
+            
+            return false;
+        }
+    };
+    
+    template <class StateT>
+    class ComputeComponents {
+    private:
+        typedef Component<StateT> ComponentT;
+    public:
+        typedef typename ComponentT::List ComponentList;
+    private:
+        typedef size_t Index;
+        
+        struct StateInfo {
+            Index index;
+            Index lowLink;
+            bool onStack;
+            
+            StateInfo() : index(0), lowLink(0), onStack(false) {}
+            StateInfo(const Index i_index) : index(i_index), lowLink(i_index), onStack(true) {}
+            
+            bool isRootNode() const {
+                return lowLink == index;
+            }
+            
+            void updateLowLink(const Index i_index) {
+                lowLink = std::min(lowLink, i_index);
+            }
+        };
+        
+        typedef std::map<StateT*, StateInfo> InfoMap;
+        InfoMap m_infos;
+        
+        typedef std::stack<StateT*> StateStack;
+        StateStack m_stack;
+        
+        Index m_index;
+        ComponentList m_components;
+    public:
+        ComputeComponents(StateT* initialState) :
+        m_index(0) {
+            visitState(initialState);
+        }
+
+        const ComponentList& getComponents() const {
+            return m_components;
+        }
+    private:
+        StateInfo& visitState(StateT* state) {
+            assert(m_infos.count(state) == 0);
+            
+            typename InfoMap::iterator sIt = m_infos.insert(std::make_pair(state, StateInfo(m_index++))).first;
+            StateInfo& stateInfo = sIt->second;
+            m_stack.push(state);
+            
+            typedef typename StateT::Outgoing::List OutList;
+            const OutList& edges = state->getOutgoing();
+            typename OutList::const_iterator eIt, eEnd;
+            for (eIt = edges.begin(), eEnd = edges.end(); eIt != eEnd; ++eIt) {
+                typename StateT::Outgoing* edge = *eIt;
+                
+                typename InfoMap::iterator iIt = m_infos.find(edge->getTarget());
+                if (iIt == m_infos.end()) {
+                    const StateInfo& targetInfo = visitState(edge->getTarget());
+                    stateInfo.updateLowLink(targetInfo.lowLink);
+                } else {
+                    const StateInfo& targetInfo = iIt->second;
+                    if (targetInfo.onStack)
+                        stateInfo.updateLowLink(targetInfo.index);
+                }
+            }
+            
+            if (stateInfo.isRootNode()) {
+                ComponentT component;
+                StateT* top;
+                do {
+                    top = m_stack.top(); m_stack.pop();
+                    m_infos[top].onStack = false;
+                    component.addState(top);
+                } while (top != state);
+                
+                m_components.push_back(component);
+            }
+            
+            return stateInfo;
+        }
+    };
+    
     /**
      An automaton consisting of states and directed edges. Each automaton can have one initial state
      and zero or more final states.
@@ -336,7 +465,7 @@ namespace Tippi {
     class Automaton {
     private:
         /**
-         Implements a weak less comparison operator for states by virtue of the StateT::Key type,
+         Implements a weak total order for states by virtue of the StateT::Key type,
          the StateT::KeyCmp type and the static StateT::getKey method.
          */
         struct StateLess {
@@ -364,7 +493,7 @@ namespace Tippi {
             }
         };
         /**
-         Implements a weak less comparison operator for edges by virtue of the StateT::Key type,
+         Implements a weak total order for edges by virtue of the StateT::Key type,
          the StateT::KeyCmp type and the static StateT::getKey method. If the source and target
          states of two edges are considered equal, the label is used as the order criterion.
          */
@@ -392,6 +521,9 @@ namespace Tippi {
     public:
         typedef StateT State;
         typedef EdgeT Edge;
+        typedef Component<State> Component;
+        typedef typename Component::List ComponentList;
+        
         typedef std::list<StateT*> StateList;
         typedef std::set<StateT*, StateLess> StateSet;
         typedef std::set<EdgeT*, EdgeLess> EdgeSet;
@@ -411,8 +543,8 @@ namespace Tippi {
         m_nextId(1) {}
     public:
         virtual ~Automaton() {
-            SetUtils::clearAndDelete(m_states);
-            SetUtils::clearAndDelete(m_edges);
+            CollectionUtils::clearAndDelete(m_states);
+            CollectionUtils::clearAndDelete(m_edges);
             m_initialState = NULL;
             m_finalStates.clear();
         }
@@ -573,6 +705,11 @@ namespace Tippi {
         
         const StateSet& getFinalStates() const {
             return m_finalStates;
+        }
+        
+        ComponentList computeComponents() const {
+            ComputeComponents<State> compute(getInitialState());
+            return compute.getComponents();
         }
         
         template <class Other>

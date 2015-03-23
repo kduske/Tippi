@@ -34,15 +34,11 @@ namespace Tippi {
         m_stream << "digraph {" << std::endl;
         
         if (m_showSCCs && automaton->getInitialState() != NULL) {
-            typedef StronglyConnectedComponents<const ClosureState> SCC;
-            SCC scc;
-            scc.visitNode(automaton->getInitialState());
-            
-            const SCC::ComponentList& components = scc.components();
+            const ClosureAutomaton::ComponentList& components = automaton->computeComponents();
             size_t index = 0;
-            SCC::ComponentList::const_iterator cIt, cEnd;
+            ClosureAutomaton::ComponentList::const_iterator cIt, cEnd;
             for (cIt = components.begin(), cEnd = components.end(); cIt != cEnd; ++cIt) {
-                const SCC::Component& component = *cIt;
+                const ClosureAutomaton::Component& component = *cIt;
                 printComponent(component, ++index);
             }
         } else {
@@ -64,13 +60,14 @@ namespace Tippi {
         m_stream << "}" << std::endl;
     }
 
-    void RenderClosureAutomaton::printComponent(const SCC::Component& component, const size_t index) {
+    void RenderClosureAutomaton::printComponent(const ClosureAutomaton::Component& component, const size_t index) {
         
-        if (m_showEmptyState || component.size() != 1 || !component.front()->isEmpty()) {
+        if (m_showEmptyState || !containsOnlyEmptyState(component)) {
             m_stream << "subgraph cluster_" << index << " {" << std::endl;
             
-            SCC::Component::const_iterator sIt, sEnd;
-            for (sIt = component.begin(), sEnd = component.end(); sIt != sEnd; ++sIt) {
+            const ClosureAutomaton::Component::StateSet& states = component.getStates();
+            ClosureAutomaton::Component::StateSet::const_iterator sIt, sEnd;
+            for (sIt = states.begin(), sEnd = states.end(); sIt != sEnd; ++sIt) {
                 const ClosureState* state = *sIt;
                 printState(state);
             }
@@ -79,6 +76,14 @@ namespace Tippi {
         }
     }
     
+    bool RenderClosureAutomaton::containsOnlyEmptyState(const ClosureAutomaton::Component& component) const {
+        const ClosureAutomaton::Component::StateSet& states = component.getStates();
+        if (states.size() != 1)
+            return false;
+        const ClosureState* state = *states.begin();
+        return state->isEmpty();
+    }
+
     void RenderClosureAutomaton::printState(const ClosureState* state) {
         if (m_showEmptyState || !state->isEmpty()) {
             m_stream << state->getId() << " [";

@@ -65,18 +65,20 @@ namespace Tippi {
             const NetState initial = NetState::createInitialState(net);
             const FiringRule rule(net);
             
-            const std::pair<NetState::Set, bool> iResult = rule.buildClosure(initial);
-            const NetState::Set& iCl = iResult.first;
-            ASSERT_TRUE(iResult.second);
+            const FiringRule::Closure iResult = rule.buildClosure(initial);
+            const NetState::Set& iCl = iResult.getStates();
+            ASSERT_FALSE(iResult.containsBoundViolation());
+            ASSERT_FALSE(iResult.containsLoop());
             ASSERT_EQ(2u, iCl.size());
             ASSERT_TRUE(iCl.count(initial) == 1);
             ASSERT_TRUE(iCl.count(rule.fireTransition(t2, initial)) == 1);
             
             const NetState state1(Marking::createMarking(1, 0, 0, 0),
                                   Marking::createMarking(2, 2, _, _));
-            const std::pair<NetState::Set, bool> state1Result = rule.buildClosure(state1);
-            const NetState::Set state1Cl = state1Result.first;
-            ASSERT_TRUE(state1Result.second);
+            const FiringRule::Closure state1Result = rule.buildClosure(state1);
+            const NetState::Set& state1Cl = state1Result.getStates();
+            ASSERT_FALSE(state1Result.containsBoundViolation());
+            ASSERT_FALSE(state1Result.containsLoop());
             ASSERT_EQ(5u, state1Cl.size());
             ASSERT_TRUE(state1Cl.count(state1) == 1);
             ASSERT_TRUE(state1Cl.count(NetState(Marking::createMarking(0, 0, 0, 1),
@@ -90,9 +92,9 @@ namespace Tippi {
             
             const NetState state2(Marking::createMarking(1, 0, 1, 0),
                                   Marking::createMarking(2, 2, _, 3));
-            const std::pair<NetState::Set, bool> state2Result = rule.buildClosure(state2);
-            const NetState::Set state2Cl = state2Result.first;
-            ASSERT_FALSE(state2Result.second);
+            const FiringRule::Closure& state2Result = rule.buildClosure(state2);
+            ASSERT_TRUE(state2Result.containsBoundViolation());
+            ASSERT_FALSE(state2Result.containsLoop());
         }
     }
 }

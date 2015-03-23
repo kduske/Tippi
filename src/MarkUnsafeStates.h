@@ -30,9 +30,14 @@ namespace Tippi {
     private:
         ClosureAutomaton::StateSet findInitialUnsafeStates(const ClosureAutomaton::StateSet& states) const;
         ClosureAutomaton::StateSet markPredecessors(const ClosureAutomaton::StateSet& unsafeStates) const;
+        
         void markStates(ClosureAutomaton::StateSet& markedStates, const ClosureAutomaton::StateSet& unmarkedStates) const;
         ClosureAutomaton::StateSet findUndeterminedPredecessors(const ClosureAutomaton::State* state) const;
+        
         bool determineSafety(ClosureAutomaton::State* state) const;
+
+        ClosureAutomaton::ComponentList::const_iterator findDeadEndComponent(const ClosureAutomaton::ComponentList& components) const;
+        bool isDeadEndComponent(const ClosureAutomaton::Component& component) const;
     };
 }
 

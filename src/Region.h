@@ -41,7 +41,7 @@ namespace Tippi {
 
     typedef ClosureAutomaton::StateSet Region;
     
-    class RegionState : public AutomatonState<RegionEdge> {
+    class RegionState : public AutomatonState<RegionState, RegionEdge> {
     public:
         typedef Region Key;
         struct KeyCmp {

@@ -29,7 +29,7 @@ namespace Tippi {
                     const size_t t1, const size_t t2, const size_t t3, const size_t ta, const size_t tb) {
         const Interval::NetState test(Marking::createMarking(A, B, C, D, a, b),
                                       Marking::createMarking(t1, t2, t3, ta, tb));
-        return state->getClosure().contains(test);
+        return state->getClosure().containsState(test);
     }
     
     static bool hasMarkings(const ClosureState* state, const size_t count) {

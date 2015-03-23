@@ -36,7 +36,7 @@ namespace Tippi {
         SimpleAutomatonEdge(SimpleAutomatonState* source, SimpleAutomatonState* target);
     };
     
-    class SimpleAutomatonState : public AutomatonState<SimpleAutomatonEdge> {
+    class SimpleAutomatonState : public AutomatonState<SimpleAutomatonState, SimpleAutomatonEdge> {
     public:
         typedef String Key;
         struct KeyCmp {

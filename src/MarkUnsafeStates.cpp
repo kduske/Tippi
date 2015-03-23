@@ -21,6 +21,20 @@
 
 namespace Tippi {
     ClosureAutomaton::Ptr MarkUnsafeStates::operator()(ClosureAutomaton::Ptr automaton) const {
+        const ClosureAutomaton::ComponentList components = automaton->computeComponents();
+        ClosureAutomaton::ComponentList::const_iterator cIt = findDeadEndComponent(components);
+        while (cIt != components.end()) {
+            const ClosureAutomaton::Component& component = *cIt;
+            const ClosureAutomaton::Component::StateSet& states = component.getStates();
+            ClosureAutomaton::Component::StateSet::const_iterator sIt, sEnd;
+            for (sIt = states.begin(), sEnd = states.end(); sIt != sEnd; ++sIt) {
+                ClosureState* state = *sIt;
+                if (!state->isSafetyKnown())
+                    state->setSafe(false);
+            }
+            cIt = findDeadEndComponent(components);
+        }
+
         const ClosureAutomaton::StateSet& states = automaton->getStates();
         ClosureState::resetVisited(states.begin(), states.end());
         
@@ -176,5 +190,42 @@ namespace Tippi {
         }
         
         return false;
+    }
+
+    ClosureAutomaton::ComponentList::const_iterator MarkUnsafeStates::findDeadEndComponent(const ClosureAutomaton::ComponentList& components) const {
+        ClosureAutomaton::ComponentList::const_iterator cIt, cEnd;
+        for (cIt = components.begin(), cEnd = components.end(); cIt != cEnd; ++cIt) {
+            const ClosureAutomaton::Component& component = *cIt;
+            if (isDeadEndComponent(component))
+                return cIt;
+        }
+        return cEnd;
+    }
+
+    bool MarkUnsafeStates::isDeadEndComponent(const ClosureAutomaton::Component& component) const {
+        const ClosureAutomaton::Component::StateSet& states = component.getStates();
+        typename ClosureAutomaton::Component::StateSet::const_iterator sIt, sEnd;
+        for (sIt = states.begin(), sEnd = states.end(); sIt != sEnd; ++sIt) {
+            const ClosureState* state = *sIt;
+            if (state->isSafetyKnown())
+                return false;
+            if (state->isFinal())
+                return false;
+            if (state->isEmpty())
+                return false;
+            if (state->isBoundViolation())
+                return false;
+            
+            const ClosureState::OutgoingList& outgoing = state->getOutgoing();
+            ClosureState::OutgoingList::const_iterator eIt, eEnd;
+            for (eIt = outgoing.begin(), eEnd = outgoing.end(); eIt != eEnd; ++eIt) {
+                ClosureEdge* edge = *eIt;
+                ClosureState* target = edge->getTarget();
+                if (!target->isEmpty() && !target->isBoundViolation() && states.count(target) == 0 && target->isSafetyKnown() && target->isSafe())
+                    return false;
+            }
+        }
+        
+        return true;
     }
 }

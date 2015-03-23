@@ -73,6 +73,10 @@ namespace Tippi {
         return m_closure.isEmpty();
     }
     
+    bool ClosureState::isBoundViolation() const {
+        return m_closure.containsBoundViolation();
+    }
+
     bool ClosureState::isSafetyKnown() const {
         return isEmpty() || m_safety != Safety_Unknown;
     }
